@@ -1,0 +1,47 @@
+ecflow:
+  scheduler: "{{ platform.scheduler }}"
+  suites_{{ ec.type }}:
+    expand:
+      type: [prod]
+    family_primary:
+      families_{{ ec.synop }}:
+        expand:
+          synop: !list '[{% for h in range(0, 23, 23) %}"{{ "%02d" % h }}",{% endfor %} ]'
+        family_aigfs:
+          vars:
+            PROJ: AIGFS
+            PACKAGEHOME: /scratch3/BMC/wrfruc/cholt/aigfs/aigfs/ecf
+            EVAL: "YES"
+          family_v1.0:
+            family_forecast:
+              task_jaigfs_prep:
+                script: &script
+                  account: myacct
+                  pre_includes:
+                    - head.h
+                    - envir-1.h
+                  post_includes:
+                    - tail.h
+                  manual: "Prepares AIGFS ICS from GFS."
+                  execution: !dict "{{ prep.aigfs_ics.execution}}"
+                  rundir: "{{ prep.aigfs_ics.rundir }}"
+              task_jaigfs_forecast:
+                trigger: jaigfs_prep == complete
+                events: !list '[{% for h in range(0, 13, 6) %}"{{ "release_f%03d" % h }}",{% endfor %} ]'
+                script:
+                  <<: *script
+                  manual: "Runs AIGFS forecast."
+                  execution: !dict "{{ forecast.graphcast_model.execution}}"
+                  rundir: "{{ forecast.graphcast_model.rundir }}"
+              family_post:
+                tasks_{{ ec.synop }}Z_post_f{{ ec.fhr }}:
+                  expand:
+                    fhr: !list '[{% for h in range(0, 13, 6) %}"{{ "%03d" % h }}",{% endfor %} ]'
+                  trigger: "../jaigfs_forecast:release_f{{ ec.fhr }}"
+                  script:
+                    <<: *script
+                    manual: "Runs AIGFS post for {{ ec.fhr }}."
+                    execution: !dict "{{ post.aigfs_post.execution}}"
+                    rundir: "{{ post.aigfs_post.rundir }}"
+                  vars:
+                    FHR: "{{ ec.fhr }}"

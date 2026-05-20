@@ -1,0 +1,27 @@
+".pgrb2.0p25.f000":
+  ":HGT:":
+    levels:
+      - ":surface:"
+    load_once: true
+  ":TMP:":
+    levels:
+      - ":2 m above ground:"
+  ":PRMSL:":
+    levels:
+      - ":mean sea level:"
+  ":VGRD|UGRD:":
+    levels:
+      - ":10 m above ground:"
+  ":SPFH|VVEL|VGRD|UGRD|HGT|TMP:":
+    levels:
+      - ":(50|100|150|200|250|300|400|500|600|700|850|925|1000) mb:"
+
+".pgrb2.0p25.f006":
+  ":LAND:":
+    levels:
+      - ":surface:"
+    load_once: true
+  "^(597):":
+    levels:
+      - ":surface:"
+
