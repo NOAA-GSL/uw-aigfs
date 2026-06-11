@@ -15,8 +15,6 @@ install_conda () {
     bash $installer -bfp $CONDA_DIR
     rm -v $installer
   )
-  APP_DIR=$(dirname $(readlink -f ${BASH_SOURCE[0]}))
-  echo $CONDA_DIR > $APP_DIR/conda_loc
 }
 
 echo "=> Building"
