@@ -13,7 +13,7 @@ all:
 conda:
 	CONDA_DIR=$(INSTALLDIR) ./setup
 
-devenv:
+devenv: env
 	$(ACTIVATE) && mamba install -y -n $(ENVNAME) $(DEVPKGS)
 
 env: conda
