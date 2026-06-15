@@ -1,4 +1,4 @@
-name: uw-aigfs
+name: aigfs
 channels:
   - conda-forge
   - ufs-community

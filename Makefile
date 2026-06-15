@@ -1,5 +1,5 @@
 DEVPKGS    = $(shell cat devpkgs)
-ENVNAME    = uw-aigfs
+ENVNAME    = aigfs
 ENVPATH    = $(shell ls $(CONDA_PREFIX)/envs/$(ENVNAME) 2>/dev/null)
 TARGETS    = conda devenv env format lint rmenv test unittest
 INSTALLDIR = conda
