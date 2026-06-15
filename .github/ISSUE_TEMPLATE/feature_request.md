@@ -12,7 +12,7 @@ Please copy any output files into a public Github gist (see https://gist.github.
 and link to the gist, rather than relying on paths that might change. -->
 
 Your issue may already be reported!
-Please search on the [Issue tracker](https://github.com/NOAA-GSL/mpas_app/issues) before creating a new issue. If an issue already exists, please use that issue to add any additional information.
+Please search on the [Issue tracker](https://github.com/NOAA-GSL/uw-aigfs/issues) before creating a new issue. If an issue already exists, please use that issue to add any additional information.
 
 ## Description
 <!-- Provide a clear and concise description of the problem to be solved. -->
@@ -24,8 +24,7 @@ Please search on the [Issue tracker](https://github.com/NOAA-GSL/mpas_app/issues
 
 ## Requirements**
 <!-- What does the new code need to accomplish? Does it require an update 
-to a version of software (e.g. modules of NCEPLibs, NetCDF, etc.), components 
-(e.g. UFS-Weather-Model), or system tools (e.g. python3) -->
+to any resources beyond this repository? -->
 
 ## Acceptance Criteria (Definition of Done)
 <!-- What does it mean for this feature to be finished? -->

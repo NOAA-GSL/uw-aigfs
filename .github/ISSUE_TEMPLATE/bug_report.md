@@ -11,7 +11,7 @@ assignees: ''
 Please copy any output files into a public Github gist (see https://gist.github.com/) and link to the gist, rather than relying on paths that might change. -->
 
 Your bug may already be reported!
-Please search on the [Issue tracker](https://github.com/NOAA-GSL/mpas_app/issues) before creating a new issue. 
+Please search on the [Issue tracker](https://github.com/NOAA-GSL/uw-aigfs/issues) before creating a new issue. 
 If an issue already exists, please use that issue to add any additional information.
 
 ## Expected behavior
@@ -21,7 +21,7 @@ If an issue already exists, please use that issue to add any additional informat
 <!-- Tell us what happens instead of the expected behavior. -->
 
 ## Machines affected
-<!--- Please provide any relevant information about your setup, including machine/compiler combination. -->
+<!--- Please provide any relevant information about the system on which you are running. -->
 <!-- Reference other issues or PRs in other repositories that this issue is related to, and how they are related. -->
 
 ## Steps to reproduce
@@ -30,7 +30,7 @@ If an issue already exists, please use that issue to add any additional informat
 2. Step 2
 3. See the bug... -->
 
-## Path to working directory
+## Path to working directory on RDHPCS (if applicable)
 <!-- Provide the path to your files on disk. -->
 
 ## Detailed description of fix (optional)
