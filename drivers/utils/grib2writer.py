@@ -143,7 +143,7 @@ class Grib2Writer:
 
         # Set output GRIB2 file.
         cycle = self.start_date.hour
-        lead = int(xarray_ds.time.dt.total_seconds() // 3600)
+        lead = int((xarray_ds.time.dt.total_seconds() // 3600).values[0])
         outfile_sfc = os.path.join(
             outdir, f"{prefix}.t{cycle:02d}z.sfc.f{lead:03d}.grib2"
         )

@@ -32,6 +32,8 @@ from uwtools.utils.tasks import file
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from utils import grib2writer
 
+jax.config.update("jax_platforms", "cpu")
+
 
 class GraphCastModel(DriverCycleBased):
     @task
@@ -82,6 +84,7 @@ class GraphCastModel(DriverCycleBased):
             targets_template=targets * np.nan,
             forcings=forcings,
         )
+        path.touch()
 
     @collection
     def provisioned_rundir(self):
