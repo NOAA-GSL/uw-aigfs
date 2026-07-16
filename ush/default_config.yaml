@@ -1,13 +1,10 @@
 user:
   experiment_dir: /scratch3/BMC/wrfruc/cholt/aigfs/run3
-  aigfs_app: /scratch3/BMC/wrfruc/cholt/aigfs/aigfs/
   gfs_data: /scratch3/BMC/wrfruc/cholt/aigfs/sample_data
   cycle_freq: !timedelta 6
   first_cycle: !datetime 2025-10-21T00
   last_cycle: !datetime 2025-10-21T00
-  platform: ursa
 platform:
-  account: zrtrr
   pretrained_model_path: /scratch3/BMC/wrfruc/cholt/aigfs/fix/gc_weights
   scheduler: slurm
 timevars:
@@ -29,20 +26,19 @@ prep:
         nodes: 1
         tasks_per_node: 1
         walltime: 00:30:00
-        rundir: '{{ user.aigfs_app }}'
-      jobcmd: uw execute --module drivers/generate_ics.py --classname GenICS --task run -c {{ user.experiment_dir }}/config.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path prep
+        rundir: '{{ user.app_home }}'
       envcmds:
         - source /scratch3/BMC/wrfruc/cholt/aigfs/etc/profile.d/conda.sh
         - conda activate aigfs
         - module load wgrib2
-      executable: uw execute --module drivers/generate_ics.py --classname GenICS --task provisioned_rundir -c {{ user.experiment_dir }}/config.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path prep
+      executable: uw execute --module drivers/generate_ics.py --classname GenICS --task provisioned_rundir -c {{ user.experiment_dir }}/experiment.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path prep
     files_to_hardlink:
       data/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/{{ timevars.m2_yyyymmdd }}/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006'
       data/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/{{ timevars.m1_yyyymmdd }}/gfs.t{{ timevars.m1_cyc}}z.pgrb2.0p25.f000'
       data/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/{{ timevars.m1_yyyymmdd }}/gfs.t{{ timevars.m1_cyc}}z.pgrb2.0p25.f006'
       data/gfs.t{{ timevars.cyc }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/{{ timevars.yyyymmdd }}/gfs.t{{ timevars.cyc }}z.pgrb2.0p25.f000'
     rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/prep'
-    variable_extraction_yaml: '{{ user.aigfs_app }}/parm/wgrib2_data_to_process.yml'
+    variable_extraction_yaml: '{{ user.app_home }}/parm/wgrib2_data_to_process.yml'
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
@@ -55,7 +51,6 @@ forecast:
         nodes: 1
         tasks_per_node: 128
         walltime: 01:30:00
-      jobcmd: "run graphcast"
       envcmds:
         - source /scratch3/BMC/wrfruc/cholt/aigfs/etc/profile.d/conda.sh
         - conda activate aigfs

@@ -1,6 +1,48 @@
 #!/usr/bin/env python3
 
-from uwtools.api.config import get_yaml_config
+import argparse
+import inspect
+import logging
+import sys
+from datetime import timedelta
+from pathlib import Path
+from shutil import copy
+from subprocess import STDOUT, CalledProcessError, check_output
+
+from uwtools.api import rocoto
+from uwtools.api.config import YAMLConfig, get_yaml_config, realize
+from uwtools.api.driver import yaml_keys_to_classes
+from uwtools.api.logging import use_uwtools_logger
+
+sys.path.append(str(Path(__file__).parent.parent))
+
+from ush.validation import Config, validate
+
+def generate_rocoto_files(
+    experiment_config: YAMLConfig,
+    experiment_file: Path,
+    app_home: Path,
+    user_config: YAMLConfig,
+    validated: Config,
+) -> None:
+    """
+    Generate the Rocoto XML and the experiment YAML.
+    """
+    workflow_config = get_yaml_config(get_yaml_config(app_home / "parm" / "wflow"/ "rocoto"/ "aigfs_base.yaml"))
+    for config in (experiment_config, user_config):
+        workflow_config.update_from(config)
+    #validate_driver_blocks(validated.user.driver_validation_blocks, workflow_config)
+    realize(
+        input_config=workflow_config,
+        output_file=experiment_file,
+        update_config={"user": {"app_home": str(app_home)}},
+    )
+    rocoto_xml = experiment_file.parent / "rocoto.xml"
+    rocoto_valid = rocoto.realize(config=experiment_file, output_file=rocoto_xml)
+    if not rocoto_valid:
+        logging.error("Invalid Rocoto XML")
+        sys.exit(1)
+
 
 def main():
     """
@@ -8,10 +50,9 @@ def main():
     """
     user_config_files = parse_args()
     experiment_config, user_config, app_home = prepare_configs(user_config_files)
-    #validated = validate(experiment_config.as_dict())
+    validated = validate(experiment_config.as_dict())
     experiment_dir, experiment_file = setup_experiment_directory(validated)
-    #generate_workflow_files(experiment_config, experiment_file, app_home, user_config, validated)
-    #stage_grid_files(experiment_config, experiment_dir)
+    generate_rocoto_files(experiment_config, experiment_file, app_home, user_config, experiment_config)
 
 
 def parse_args() -> list[Path]:

@@ -7,6 +7,7 @@ dependencies:
   - grib2io=2.7.*
   - netcdf4=1.7.*
   - pip=26.1.*
+  - pydantic=2.11.*
   - uwtools=2.18.*
   - xarray=2026.4.*
   - pip:
