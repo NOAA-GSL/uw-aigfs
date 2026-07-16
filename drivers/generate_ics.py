@@ -133,89 +133,6 @@ class GenICS(DriverCycleBased, FileStager):
         yield [self.files_copied(), self.files_hardlinked(), self.files_linked()]
         run_shell_cmd(cmd=cmd, cwd=self.rundir, taskname=taskname)
 
-    @task
-    def ecflow_script(self):
-        """
-        The ecFlow script.
-        """
-        path = self._ecflowscript_path
-        yield self.taskname(path.name)
-        yield Asset(path, path.is_file)
-        yield None
-        self._write_ecflowscript(path)
-
-    def _write_ecflowscript(
-        self, path: Path, envvars: dict[str, str] | None = None
-    ) -> None:
-        """
-        Write the ecFlow script.
-        """
-        envvars = envvars or {}
-        cmd = self.config.get("execution", {}).get("jobcmd")
-        es = self._ecflowscript(
-            envcmds=self.config.get("execution", {}).get("envcmds", []),
-            envvars=envvars,
-            execution=[cmd],
-            scheduler=self._scheduler,
-        )
-        with writable(path) as f:
-            print(es, file=f)
-
-    def _ecflowscript(
-        self,
-        execution: list[str],
-        envcmds: list[str] | None = None,
-        envvars: dict[str, str] | None = None,
-        scheduler: JobScheduler | None = None,
-    ) -> str:
-        """
-        Return a driver runscript.
-
-        :param execution: Statements to execute.
-        :param envcmds: Shell commands to set up runtime environment.
-        :param envvars: Environment variables to set in runtime environment.
-        :param scheduler: A job-scheduler object.
-        """
-        template = """
-        {directives}
-
-        model=%MODEL%
-
-        %include <head.h>
-        %include <envir-p1.h>
-
-        {envcmds}
-
-        {envvars}
-
-        {execution}
-        if [[ $? -ne 0 ]]; then
-           ecflow_client --msg="***JOB ${ECF_NAME} ERROR RUNNING J-SCRIPT ***"
-           ecflow_client --abort
-           exit 1
-        fi
-
-        %include <tail.h>
-
-        %manual
-        {manual}
-        %end
-        """
-        directives = scheduler.directives if scheduler else ""
-        initcmds = scheduler.initcmds if scheduler else []
-        rs = dedent(template).format(
-            directives="\n".join(directives),
-            envcmds="\n".join(envcmds or []),
-            envvars="\n".join([f"export {k}={v}" for k, v in (envvars or {}).items()]),
-            execution="\n".join([*initcmds, *execution]),
-            manual=self._manual,
-            ECF_NAME="ECF_NAME",
-        )
-        return re.sub(r"\n\n\n+", "\n\n", rs.strip())
-
-    @property
-    def _ecflowscript_path(self):
-        return self.rundir / f"{self.driver_name()}.ecf"
 
     # Public helper methods
 
@@ -227,10 +144,6 @@ class GenICS(DriverCycleBased, FileStager):
         return "aigfs_ics"
 
     # Private helper methods
-
-    @property
-    def _manual(self):
-        return "PURPOSE: Prepare data for running a machine learning model with global inputs"
 
     @cache
     def _wgrib2_commands(self):

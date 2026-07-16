@@ -52,7 +52,6 @@ class GraphCastModel(DriverCycleBased):
             start_date=pd.to_datetime(ds.datetime.values[0][-1]),
             case_name="aigfs",
             json_path=self.config["json_path"],
-            done_signal="some string to execute",
         )
         inputs, targets, forcings = itfs.ref
         diffs_stddev, mean, stddev = norm_stats.ref
