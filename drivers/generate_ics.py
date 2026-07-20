@@ -7,16 +7,12 @@ from __future__ import annotations
 import logging
 import re
 from functools import cache
-from pathlib import Path
-from textwrap import dedent
 
 import xarray as xr
 from iotaa import Asset, collection, task
 from uwtools.api.config import get_yaml_config
 from uwtools.api.driver import DriverCycleBased
 from uwtools.drivers.stager import FileStager
-from uwtools.scheduler import JobScheduler
-from uwtools.utils.file import writable
 from uwtools.utils.processing import run_shell_cmd
 
 
@@ -37,7 +33,7 @@ class GenICS(DriverCycleBased, FileStager):
             self.files_copied(),
             self.files_hardlinked(),
             self.files_linked(),
-            self.merged_netcdf_files(),
+            self.runscript(),
         ]
         yield required
 
@@ -132,7 +128,6 @@ class GenICS(DriverCycleBased, FileStager):
         yield Asset(path, path.is_file)
         yield [self.files_copied(), self.files_hardlinked(), self.files_linked()]
         run_shell_cmd(cmd=cmd, cwd=self.rundir, taskname=taskname)
-
 
     # Public helper methods
 
