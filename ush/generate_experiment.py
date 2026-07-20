@@ -31,7 +31,6 @@ def generate_rocoto_files(
     workflow_config = get_yaml_config(get_yaml_config(app_home / "parm" / "wflow"/ "rocoto"/ "aigfs_base.yaml"))
     for config in (experiment_config, user_config):
         workflow_config.update_from(config)
-    #validate_driver_blocks(validated.user.driver_validation_blocks, workflow_config)
     realize(
         input_config=workflow_config,
         output_file=experiment_file,

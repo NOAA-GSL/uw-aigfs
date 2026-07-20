@@ -20,7 +20,7 @@ workflow:
         maxtries: 3
       command:
         cyclestr:
-          value: source &AIGFS_APP;/load_wflow_modules.sh &PLATFORM; && module load wgrib2 && uw execute
+          value: source &AIGFS_APP;/load_wflow_modules.sh &PLATFORM; && uw execute
             --module &AIGFS_APP;/drivers/generate_ics.py
             --classname GenICS
             --task run
