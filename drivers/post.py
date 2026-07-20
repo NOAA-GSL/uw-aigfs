@@ -1,9 +1,9 @@
 from functools import cache
-
 from pathlib import Path
 
 from iotaa import Asset, collection, task
 from uwtools.api.driver import DriverCycleLeadtimeBased
+from uwtools.api.fs import Copier
 from uwtools.utils.processing import run_shell_cmd
 from uwtools.utils.tasks import file
 
@@ -15,8 +15,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         Run directory provisioned with all required content.
         """
         yield self.taskname("provisioned run directory")
-        required = [
-                self.runscript()]
+        required = [self.runscript()]
         yield required
 
     @collection
@@ -40,7 +39,6 @@ class AIGFSPost(DriverCycleLeadtimeBased):
             files[output_path / fp.name] = fp
         yield [Asset(path, (path).is_file) for path in files]
         yield [self.wgrib2_tasks(), Copier(config=files).go("files to deliver")]
-
 
     @task
     def _single_shell_command(self, cmd: str):
@@ -69,7 +67,6 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         Returns a description of the file(s) created when this component runs.
         """
         return {"idx": [Path(cmd.split()[-1]) for cmd in self._wgrib2_commands]}
-
 
     # Private helper methods
     @cache
