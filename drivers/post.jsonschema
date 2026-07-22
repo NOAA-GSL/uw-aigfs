@@ -27,8 +27,8 @@
         "rundir"
       ],
       "type": "object"
-      }
-    },
+    }
+  },
   "required": [
     "aigfs_post"
   ],

@@ -29,7 +29,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
     @task
     def delivery(self):
         """
-        Ouput files copied to destination.
+        Output files copied to destination.
         """
         yield "Deliver files"
         output_path = Path(self.config["deliver_to"])
@@ -66,7 +66,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         """
         Returns a description of the file(s) created when this component runs.
         """
-        return {"idx": [Path(cmd.split()[-1]) for cmd in self._wgrib2_commands]}
+        return {"idx": [Path(cmd.split()[-1]) for cmd in self._wgrib2_commands()]}
 
     # Private helper methods
     @cache

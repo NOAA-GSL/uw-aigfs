@@ -18,6 +18,7 @@ sys.path.append(str(Path(__file__).parent.parent))
 
 from ush.validation import Config, validate
 
+
 def generate_rocoto_files(
     experiment_config: YAMLConfig,
     experiment_file: Path,
@@ -28,7 +29,9 @@ def generate_rocoto_files(
     """
     Generate the Rocoto XML and the experiment YAML.
     """
-    workflow_config = get_yaml_config(get_yaml_config(app_home / "parm" / "wflow"/ "rocoto"/ "aigfs_base.yaml"))
+    workflow_config = get_yaml_config(
+        get_yaml_config(app_home / "parm" / "wflow" / "rocoto" / "aigfs_base.yaml")
+    )
     for config in (experiment_config, user_config):
         workflow_config.update_from(config)
     realize(
@@ -51,7 +54,9 @@ def main():
     experiment_config, user_config, app_home = prepare_configs(user_config_files)
     validated = validate(experiment_config.as_dict())
     experiment_dir, experiment_file = setup_experiment_directory(validated)
-    generate_rocoto_files(experiment_config, experiment_file, app_home, user_config, experiment_config)
+    generate_rocoto_files(
+        experiment_config, experiment_file, app_home, user_config, experiment_config
+    )
 
 
 def parse_args() -> list[Path]:
@@ -62,10 +67,15 @@ def parse_args() -> list[Path]:
     parser = argparse.ArgumentParser(
         description="Configure an experiment with the following input:"
     )
-    parser.add_argument("user_config_files", nargs="+", help="Paths to the user config files.")
+    parser.add_argument(
+        "user_config_files", nargs="+", help="Paths to the user config files."
+    )
     return [Path(p) for p in parser.parse_args().user_config_files]
 
-def prepare_configs(user_config_files: list[Path]) -> tuple[YAMLConfig, YAMLConfig, Path]:
+
+def prepare_configs(
+    user_config_files: list[Path],
+) -> tuple[YAMLConfig, YAMLConfig, Path]:
     """
     Combine base, user, and platform configs into one experiment config.
     """
@@ -78,13 +88,16 @@ def prepare_configs(user_config_files: list[Path]) -> tuple[YAMLConfig, YAMLConf
         experiment_config.update_from(cfg)
     app_home = Path(__file__).parent.parent.resolve()
     machine = experiment_config["user"]["platform"]
-    platform_config = get_yaml_config(app_home / "parm" / "machines" / f"{machine}.yaml")
+    platform_config = get_yaml_config(
+        app_home / "parm" / "machines" / f"{machine}.yaml"
+    )
 
     # Make sure user_config is last to override any settings from supplementals
     for supp_config in (platform_config, user_config):
         experiment_config.update_from(supp_config)
     experiment_config.dereference()
     return experiment_config, user_config, app_home
+
 
 def setup_experiment_directory(validated: Config) -> tuple[Path, Path]:
     """
@@ -95,6 +108,7 @@ def setup_experiment_directory(validated: Config) -> tuple[Path, Path]:
     experiment_dir.mkdir(parents=True, exist_ok=True)
     experiment_file = experiment_dir / "experiment.yaml"
     return experiment_dir, experiment_file
+
 
 if __name__ == "__main__":
     main()  # pragma: no cover

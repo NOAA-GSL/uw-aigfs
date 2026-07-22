@@ -11,6 +11,7 @@ from uwtools.api.driver import yaml_keys_to_classes
 class Config(BaseModel):
     user: User
 
+
 class User(BaseModel):
     cycle_freq: timedelta
     driver_validation_blocks: list[str] = Field(default_factory=list)
