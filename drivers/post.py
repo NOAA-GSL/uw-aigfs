@@ -1,9 +1,9 @@
-from functools import cache
+from functools import cached_property
 from pathlib import Path
 
 from iotaa import Asset, collection, task
 from uwtools.api.driver import DriverCycleLeadtimeBased
-from uwtools.api.fs import Copier
+from uwtools.api.fs import copy
 from uwtools.utils.processing import run_shell_cmd
 from uwtools.utils.tasks import file
 
@@ -24,7 +24,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         Map wgrib2 executions to tasks.
         """
         yield "wgrib2 tasks"
-        yield [self._single_shell_command(cmd) for cmd in self._wgrib2_commands()]
+        yield [self._single_shell_command(cmd) for cmd in self._wgrib2_commands]
 
     @task
     def delivery(self):
@@ -32,13 +32,17 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         Output files copied to destination.
         """
         yield "Deliver files"
-        output_path = Path(self.config["deliver_to"])
+        if (path := self.config.get("deliver_to")) is None:
+            msg = "delivery task requires a 'deliver_to:' section in the driver config"
+            raise ConfigError(msg)
+        output_path = Path(path)
         inputfiles = [Path(fp) for fp in self.config["inputfiles"]]
         files = {}
         for fp in (inputfiles, self.ouput["idx"]):
             files[output_path / fp.name] = fp
         yield [Asset(path, (path).is_file) for path in files]
-        yield [self.wgrib2_tasks(), Copier(config=files).go("files to deliver")]
+        yield self.wgrib2_tasks()
+        copy(config=files)
 
     @task
     def _single_shell_command(self, cmd: str):
@@ -66,18 +70,23 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         """
         Returns a description of the file(s) created when this component runs.
         """
-        return {"idx": [Path(cmd.split()[-1]) for cmd in self._wgrib2_commands()]}
+        outputdir = Path(self.config["outputdir"])
+        idxfiles = [
+            outputdir / f"{Path(fp).name}.idx" for fp in self.config["inputfiles"]
+        ]
+        return {"idx": idxfiles}
 
     # Private helper methods
-    @cache
+    @cached_property
     def _wgrib2_commands(self):
         """
         Generate wgrib2 commands to run for this task.
         """
         wgrib2_commands = []
         inputfiles = self.config["inputfiles"]
-        outputdir = self.config["outputdir"]
-        for input_file in inputfiles:
-            fp = Path(input_file)
-            wgrib2_commands.append(f"wgrib2 -s {fp} > {outputdir}/{fp.name}.idx")
+        idxfiles = self.output["idx"]
+        for infile, idxfile in zip(inputfiles, idxfiles):
+            wgrib2_commands.append(
+                f"wgrib2 -s {fp} > {idxfile}.tmp && mv {idxfile}.tmp {idxfile}"
+            )
         return wgrib2_commands

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import logging
 import re
-from functools import cache
+from functools import cached_property
 
 import xarray as xr
 from iotaa import Asset, collection, task
@@ -47,7 +47,7 @@ class GenICS(DriverCycleBased, FileStager):
         yield Asset(path, path.is_file)
         yield self.wgrib2_tasks()
 
-        output_files = [cmd.split()[-1] for cmd in self._wgrib2_commands()]
+        output_files = [cmd.split()[-1] for cmd in self._wgrib2_commands]
 
         extracted_datasets = [xr.open_dataset(f) for f in output_files]
         ds = xr.merge(extracted_datasets, compat="no_conflicts", join="outer")
@@ -115,7 +115,7 @@ class GenICS(DriverCycleBased, FileStager):
         Map wgrib2 executions to tasks to extract variables at levels.
         """
         yield "wgrib2 tasks"
-        yield [self._single_shell_command(cmd) for cmd in self._wgrib2_commands()]
+        yield [self._single_shell_command(cmd) for cmd in self._wgrib2_commands]
 
     @task
     def _single_shell_command(self, cmd: str):
@@ -140,7 +140,7 @@ class GenICS(DriverCycleBased, FileStager):
 
     # Private helper methods
 
-    @cache
+    @cached_property
     def _wgrib2_commands(self):
         """
         Generate wgrib2 commands for variables to extract at specified levels.
@@ -182,6 +182,9 @@ class GenICS(DriverCycleBased, FileStager):
                     )
                     num_levs = level.count("|") + 1
                     wgrib2_commands.append(
-                        f"wgrib2 -nc_nlev {num_levs} {grib_file} -match '{variable}' -match '{level}' -netcdf {nc_file}"
+                        (
+                            f"wgrib2 -nc_nlev {num_levs} {grib_file} -match '{variable}'"
+                            f"-match '{level}' -netcdf {nc_file}.tmp && mv {nc_file}.tmp {nc_file}"
+                        )
                     )
         return wgrib2_commands

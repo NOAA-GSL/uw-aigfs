@@ -41,7 +41,7 @@ class GraphCastModel(DriverCycleBased):
         """
         GraphCast predictions.
         """
-        path = self.rundir / "aigfs"
+        path = self.rundir / "aigfs.done"
         yield "GraphCast predictions"
         yield Asset(path, path.is_file)
         ics = self.initial_conditions()
