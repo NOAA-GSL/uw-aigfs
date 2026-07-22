@@ -5,7 +5,9 @@ from iotaa import Asset, collection, task
 from uwtools.api.driver import DriverCycleLeadtimeBased
 from uwtools.api.fs import copy
 from uwtools.utils.processing import run_shell_cmd
-from uwtools.utils.tasks import file
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utils.tasks import file
 
 
 class AIGFSPost(DriverCycleLeadtimeBased):
