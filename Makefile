@@ -23,7 +23,7 @@ format:
 	@./format
 
 lint:
-	ruff check drivers
+	ruff check .
 
 rmenv:
 	$(if $(ENVPATH),conda env remove -y -n $(ENVNAME))

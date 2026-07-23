@@ -11,7 +11,7 @@ from pytest import fixture
 
 APP_DIR = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(APP_DIR))
-from drivers import generate_ics
+from drivers import generate_ics  # noqa: E402
 
 
 @fixture
@@ -56,9 +56,8 @@ def test_driver_name(driverobj):
 def test_wgrib2_tasks(driverobj, tmp_path):
     def make_output(*_args, **_kwargs):
         cmd = _kwargs["cmd"]
-        fp = (driverobj.rundir / cmd.split()[-1]).touch()
+        (driverobj.rundir / cmd.split()[-1]).touch()
 
-    cmds = driverobj._wgrib2_commands
     for f in ("a.grib2", "b.grib2"):
         (tmp_path / f).touch()
     with patch.object(generate_ics, "run_shell_cmd", side_effect=make_output) as run:

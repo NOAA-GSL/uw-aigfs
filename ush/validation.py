@@ -2,10 +2,8 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta  # noqa: TC003
 from pathlib import Path  # noqa: TC003
-from typing import Literal
 
-from pydantic import BaseModel, Field, NonNegativeInt, PositiveInt, model_validator
-from uwtools.api.driver import yaml_keys_to_classes
+from pydantic import BaseModel, Field, model_validator
 
 
 class Config(BaseModel):

@@ -1,17 +1,12 @@
 #!/usr/bin/env python3
 
 import argparse
-import inspect
 import logging
 import sys
-from datetime import timedelta
 from pathlib import Path
-from shutil import copy
-from subprocess import STDOUT, CalledProcessError, check_output
 
 from uwtools.api import rocoto
 from uwtools.api.config import YAMLConfig, get_yaml_config, realize
-from uwtools.api.driver import yaml_keys_to_classes
 from uwtools.api.logging import use_uwtools_logger
 
 sys.path.append(str(Path(__file__).parent.parent))
