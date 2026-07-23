@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta  # noqa: TC003
 from pathlib import Path  # noqa: TC003
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, model_validator
 
 
 class Config(BaseModel):
@@ -12,7 +12,6 @@ class Config(BaseModel):
 
 class User(BaseModel):
     cycle_freq: timedelta
-    driver_validation_blocks: list[str] = Field(default_factory=list)
     experiment_dir: Path
     first_cycle: datetime
     last_cycle: datetime
