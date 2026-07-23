@@ -29,7 +29,8 @@ from iotaa import Asset, collection, task
 from uwtools.drivers.driver import DriverCycleBased
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utils import file, grib2writer
+from utils import grib2writer
+from utils.tasks import file
 
 jax.config.update("jax_platforms", "cpu")
 

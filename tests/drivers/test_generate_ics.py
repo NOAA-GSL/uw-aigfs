@@ -58,7 +58,7 @@ def test_wgrib2_tasks(driverobj, tmp_path):
         cmd = _kwargs["cmd"]
         fp = (driverobj.rundir / cmd.split()[-1]).touch()
 
-    cmds = driverobj._wgrib2_commands()
+    cmds = driverobj._wgrib2_commands
     for f in ("a.grib2", "b.grib2"):
         (tmp_path / f).touch()
     with patch.object(generate_ics, "run_shell_cmd", side_effect=make_output) as run:
@@ -67,5 +67,5 @@ def test_wgrib2_tasks(driverobj, tmp_path):
 
 
 def test__wgrib2_commands(driverobj):
-    cmds = driverobj._wgrib2_commands()
+    cmds = driverobj._wgrib2_commands
     assert len(cmds) == 7

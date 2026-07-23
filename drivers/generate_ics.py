@@ -183,7 +183,7 @@ class GenICS(DriverCycleBased, FileStager):
                     num_levs = level.count("|") + 1
                     wgrib2_commands.append(
                         (
-                            f"wgrib2 -nc_nlev {num_levs} {grib_file} -match '{variable}'"
+                            f"wgrib2 -nc_nlev {num_levs} {grib_file} -match '{variable}' "
                             f"-match '{level}' -netcdf {nc_file}.tmp && mv {nc_file}.tmp {nc_file}"
                         )
                     )

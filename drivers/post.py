@@ -1,3 +1,4 @@
+import sys
 from functools import cached_property
 from pathlib import Path
 
@@ -7,6 +8,7 @@ from uwtools.api.fs import copy
 from uwtools.utils.processing import run_shell_cmd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from utils.exceptions import ConfigError
 from utils.tasks import file
 
 
@@ -89,6 +91,6 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         idxfiles = self.output["idx"]
         for infile, idxfile in zip(inputfiles, idxfiles):
             wgrib2_commands.append(
-                f"wgrib2 -s {fp} > {idxfile}.tmp && mv {idxfile}.tmp {idxfile}"
+                f"wgrib2 -s {infile} > {idxfile}.tmp && mv {idxfile}.tmp {idxfile}"
             )
         return wgrib2_commands
