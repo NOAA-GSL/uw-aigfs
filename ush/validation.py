@@ -1,7 +1,9 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta  # noqa: TC003
-from pathlib import Path  # noqa: TC003
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from datetime import datetime, timedelta
+    from pathlib import Path
 
 from pydantic import BaseModel, model_validator
 

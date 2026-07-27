@@ -59,29 +59,31 @@ def parse_args() -> list[Path]:
     Parse command-line arguments.
     """
     use_uwtools_logger()
-    parser = argparse.ArgumentParser(
-        description="Configure an experiment with the following input:"
-    )
+    parser = argparse.ArgumentParser(description="Configure an experiment from user config files.")
     parser.add_argument(
-        "user_config_files", nargs="+", help="Paths to the user config files."
+        "user_config_files",
+        help="paths to the user config files",
+        metavar="PATH",
+        nargs="+",
+        type=Path,
     )
-    return [Path(p) for p in parser.parse_args().user_config_files]
+    return parser.parse_args().user_config_files
 
 
 def prepare_configs(
-    user_config_files: list[Path],
+    user_config_files: list[Path]
 ) -> tuple[YAMLConfig, YAMLConfig, Path]:
     """
     Combine base, user, and platform configs into one experiment config.
     """
     # Set up the experiment
-    experiment_config = get_yaml_config(Path("./default_config.yaml"))
+    app_home = Path(__file__).parent.parent.resolve()
+    experiment_config = app_home / "ush" / "default_config.yaml"
     user_config = get_yaml_config({})
     for cfg_file in user_config_files:
         cfg = get_yaml_config(cfg_file)
         user_config.update_from(cfg)
         experiment_config.update_from(cfg)
-    app_home = Path(__file__).parent.parent.resolve()
     machine = experiment_config["user"]["platform"]
     platform_config = get_yaml_config(
         app_home / "parm" / "machines" / f"{machine}.yaml"
