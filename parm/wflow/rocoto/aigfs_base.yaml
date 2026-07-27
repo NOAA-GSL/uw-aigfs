@@ -70,7 +70,7 @@ workflow:
               uw execute
               --module &AIGFS_APP;/drivers/post.py
               --classname AIGFSPost
-              --task run
+              --task delivery
               --config &EXPERIMENT_CONFIG;
               --cycle @Y-@m-@dT@H
               --key-path post

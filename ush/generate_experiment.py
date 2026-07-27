@@ -45,6 +45,7 @@ def main():
     """
     Stage the workflow manager artifacts and experiment YAML in the experiment directory.
     """
+    use_uwtools_logger()
     user_config_files = parse_args()
     experiment_config, user_config, app_home = prepare_configs(user_config_files)
     validated = validate(experiment_config.as_dict())
@@ -58,7 +59,6 @@ def parse_args() -> list[Path]:
     """
     Parse command-line arguments.
     """
-    use_uwtools_logger()
     parser = argparse.ArgumentParser(
         description="Configure an experiment with the following input:"
     )
