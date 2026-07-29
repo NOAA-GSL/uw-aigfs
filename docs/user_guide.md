@@ -1,6 +1,6 @@
 # User Guide
 
-Welcome to the **uw-aigfs** User Guide. This guide describes how to set up your environment, configure an experiment, and run the AIGFS workflow using the Rocoto workflow manager.
+Welcome to the ***uw-aigfs*** User Guide. This guide describes how to set up your environment, configure an experiment, and run the AIGFS workflow using the ***Rocoto*** workflow manager.
 
 > **⚠️ Work in Progress**
 > This project is currently under active development and may undergo significant breaking changes without notice.
@@ -25,22 +25,22 @@ Welcome to the **uw-aigfs** User Guide. This guide describes how to set up your 
 
 ## Overview
 
-**uw-aigfs** drives an AI-based medium-range global forecast using the [GraphCast](https://github.com/noaa-emc/graphcast) model, orchestrated via [uwtools](https://uwtools.readthedocs.io/en/main/) and the [Rocoto](https://github.com/christopherwharrop/rocoto) workflow manager. The workflow consists of three sequential stages per forecast cycle:
+***uw-aigfs*** drives an AI-based medium-range global forecast using the [GraphCast](https://github.com/noaa-emc/graphcast) model, orchestrated via [uwtools](https://uwtools.readthedocs.io/en/main/) and the [Rocoto](https://github.com/christopherwharrop/rocoto) workflow manager. The workflow consists of three sequential stages per forecast cycle:
 
-1. **Prep** — Extract variables from GFS GRIB2 files and produce a NetCDF initial-conditions file for GraphCast.
-2. **Forecast** — Run GraphCast inference to produce GRIB2 output files at each forecast lead time.
+1. **Prep** — Extract variables from GFS GRIB2 files and produce a NetCDF initial-conditions file for ***GraphCast***.
+2. **Forecast** — Run ***GraphCast*** inference to produce GRIB2 output files at each forecast lead time.
 3. **Post** — Generate GRIB2 index files and deliver them to the forecast output directory.
 
 ---
 
 ## Prerequisites
 
-Before using uw-aigfs, ensure the following are available on your system:
+Before using ***uw-aigfs***, ensure the following are available on your system:
 
 | Requirement | Notes |
 |---|---|
 | Supported platform | Ursa or WCOSS2 |
-| Pre-trained GraphCast model weights | See your platform config for the expected path |
+| Pre-trained ***GraphCast*** model weights | See your platform config for the expected path |
 | GFS GRIB2 input data | 0.25° analysis and short-range forecast files |
 | `wgrib2` | Must be loadable as a module or available in `PATH` |
 | Git | For cloning the repository |
@@ -63,7 +63,7 @@ cd uw-aigfs
 
 ## Setting Up the Environment
 
-uw-aigfs installs and manages its own conda installation in the `conda/` subdirectory of the repository root. To build the environment, run:
+***uw-aigfs*** installs and manages its own conda installation in the `conda/` subdirectory of the repository root. To build the environment, run:
 
 ```bash
 make env
@@ -103,9 +103,9 @@ Supported values for `<platform>`:
 | Block | Purpose |
 |---|---|
 | `user` | Cycle dates, platform, experiment directory, and GFS data path |
-| `timevars` | Jinja2 template variables for date/time formatting used throughout the config |
-| `prep` | ICS generation: GFS file staging and wgrib2 variable extraction |
-| `forecast` | GraphCast model inference: model weights, normalization stats, and forecast parameters |
+| `timevars` | ***Jinja2*** template variables for date/time formatting used throughout the config |
+| `prep` | ICS generation: GFS file staging and ***wgrib2*** variable extraction |
+| `forecast` | ***GraphCast*** model inference: model weights, normalization stats, and forecast parameters |
 | `post` | Post-processing: GRIB2 index generation and file delivery |
 
 The `platform` block supplies scheduler and account settings. A machine-specific YAML in `parm/machines/` (e.g., `parm/machines/ursa.yaml`) is automatically merged based on the value of `user.platform`.
@@ -171,7 +171,7 @@ The following files are written to `user.experiment_dir`:
 | File | Contents |
 |---|---|
 | `experiment.yaml` | Fully realized experiment configuration |
-| `rocoto.xml` | Rocoto workflow definition, ready to run |
+| `rocoto.xml` | ***Rocoto*** workflow definition, ready to run |
 
 If the experiment directory does not exist, it will be created. The generator validates the `user` section of the config with [Pydantic](https://docs.pydantic.dev/) and exits with an error if required fields are missing or invalid.
 
@@ -179,7 +179,7 @@ If the experiment directory does not exist, it will be created. The generator va
 
 ## Running the Workflow
 
-On RDHPCS platforms, Rocoto is available via system module. Run the following command to load it into your environment:
+On RDHPCS platforms, ***Rocoto*** is available via system module. Run the following command to load it into your environment:
 
 ```bash
 module load rocoto
@@ -205,7 +205,7 @@ Individual task logs are written to `<experiment_dir>/log/`. An overall workflow
 
 ### Prep: Initial Conditions Generation
 
-The `task_prep` Rocoto task runs `drivers/generate_ics.py` (driver class `GenICS`). It:
+The `task_prep` ***Rocoto*** task runs `drivers/generate_ics.py` (driver class `GenICS`). It:
 
 1. Hard-links GFS GRIB2 files from `user.gfs_data` into the cycle's `prep/data/` subdirectory. The files required are:
    - Two timesteps from the previous two cycles (for temporal interpolation)
@@ -217,16 +217,16 @@ The `task_prep` Rocoto task runs `drivers/generate_ics.py` (driver class `GenICS
    <experiment_dir>/<YYYYMMDDHH>/prep/aigfs.t<HH>z.ic.nc
    ```
 
-   Variables are renamed and units are converted to match GraphCast's expectations (e.g., geopotential is converted from m to m²/s² by multiplying by 9.80665; total precipitation is converted from kg/m² to m by dividing by 1000).
+   Variables are renamed and units are converted to match ***GraphCast***'s expectations (e.g., geopotential is converted from m to m²/s² by multiplying by 9.80665; total precipitation is converted from kg/m² to m by dividing by 1000).
 
 ### Forecast: GraphCast Inference
 
-The `task_forecast` Rocoto task runs `drivers/run_graphcast.py` (driver class `GraphCastModel`). It depends on `task_prep` completing successfully. The task:
+The `task_forecast` ***Rocoto*** task runs `drivers/run_graphcast.py` (driver class `GraphCastModel`). It depends on `task_prep` completing successfully. The task:
 
 1. Loads the initial-conditions NetCDF file produced by the prep step.
-2. Loads the pre-trained GraphCast model weights (`.npz`) from `platform.pretrained_model_path`.
+2. Loads the pre-trained ***GraphCast*** model weights (`.npz`) from `platform.pretrained_model_path`.
 3. Loads the normalization statistics (`diffs_stddev_by_level.nc`, `mean_by_level.nc`, `stddev_by_level.nc`).
-4. Runs autoregressive GraphCast inference for `forecast.graphcast_model.forecast_length` hours at `forecast.graphcast_model.forecast_freq`-hour intervals.
+4. Runs autoregressive ***GraphCast*** inference for `forecast.graphcast_model.forecast_length` hours at `forecast.graphcast_model.forecast_freq`-hour intervals.
 5. Writes GRIB2 output files to:
 
    ```
@@ -236,11 +236,11 @@ The `task_forecast` Rocoto task runs `drivers/run_graphcast.py` (driver class `G
 
    where `<FFF>` is the three-digit forecast hour. A sentinel file `aigfs.done` is created when the run is complete.
 
-The forecast job requires significant memory (default: 150 GB) due to the size of the GraphCast model.
+The forecast job requires significant memory (default: 150 GB) due to the size of the ***GraphCast*** model.
 
 ### Post-Processing
 
-The `metatask_post` Rocoto metatask fans out into one `task_post_<FFF>` job per forecast lead time. Each post job runs `drivers/post.py` (driver class `AIGFSPost`). It:
+The `metatask_post` ***Rocoto*** metatask fans out into one `task_post_<FFF>` job per forecast lead time. Each post job runs `drivers/post.py` (driver class `AIGFSPost`). It:
 
 1. Waits for the corresponding GRIB2 surface and pressure-level files to exist in the forecast directory (or for `task_forecast` to complete, whichever happens first).
 2. Generates a `wgrib2` inventory index (`.idx`) file for each GRIB2 file.
