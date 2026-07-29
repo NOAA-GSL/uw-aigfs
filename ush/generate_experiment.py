@@ -19,7 +19,6 @@ def generate_rocoto_files(
     experiment_file: Path,
     app_home: Path,
     user_config: YAMLConfig,
-    validated: Config,
 ) -> None:
     """
     Generate the Rocoto XML and the experiment YAML.
@@ -41,17 +40,15 @@ def generate_rocoto_files(
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """
     Stage the workflow manager artifacts and experiment YAML in the experiment directory.
     """
     user_config_files = parse_args()
     experiment_config, user_config, app_home = prepare_configs(user_config_files)
     validated = validate(experiment_config.as_dict())
-    experiment_dir, experiment_file = setup_experiment_directory(validated)
-    generate_rocoto_files(
-        experiment_config, experiment_file, app_home, user_config, experiment_config
-    )
+    _, experiment_file = setup_experiment_directory(validated)
+    generate_rocoto_files(experiment_config, experiment_file, app_home, user_config)
 
 
 def parse_args() -> list[Path]:
@@ -70,13 +67,11 @@ def parse_args() -> list[Path]:
     return parser.parse_args().user_config_files
 
 
-def prepare_configs(
-    user_config_files: list[Path]
-) -> tuple[YAMLConfig, YAMLConfig, Path]:
+def prepare_configs(user_config_files: list[Path]) -> tuple[YAMLConfig, YAMLConfig, Path]:
     """
     Combine base, user, and platform configs into one experiment config.
     """
-    # Set up the experiment
+    # Set up the experiment.
     app_home = Path(__file__).parent.parent.resolve()
     experiment_config = app_home / "ush" / "default_config.yaml"
     user_config = get_yaml_config({})
@@ -85,9 +80,7 @@ def prepare_configs(
         user_config.update_from(cfg)
         experiment_config.update_from(cfg)
     machine = experiment_config["user"]["platform"]
-    platform_config = get_yaml_config(
-        app_home / "parm" / "machines" / f"{machine}.yaml"
-    )
+    platform_config = get_yaml_config(app_home / "parm" / "machines" / f"{machine}.yaml")
 
     # Make sure user_config is last to override any settings from supplementals
     for supp_config in (platform_config, user_config):
