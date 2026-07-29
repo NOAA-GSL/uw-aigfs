@@ -19,7 +19,6 @@ def generate_rocoto_files(
     experiment_file: Path,
     app_home: Path,
     user_config: YAMLConfig,
-    validated: Config,
 ) -> None:
     """
     Generate the Rocoto XML and the experiment YAML.
@@ -41,17 +40,15 @@ def generate_rocoto_files(
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """
     Stage the workflow manager artifacts and experiment YAML in the experiment directory.
     """
     user_config_files = parse_args()
     experiment_config, user_config, app_home = prepare_configs(user_config_files)
     validated = validate(experiment_config.as_dict())
-    experiment_dir, experiment_file = setup_experiment_directory(validated)
-    generate_rocoto_files(
-        experiment_config, experiment_file, app_home, user_config, experiment_config
-    )
+    _, experiment_file = setup_experiment_directory(validated)
+    generate_rocoto_files(experiment_config, experiment_file, app_home, user_config)
 
 
 def parse_args() -> list[Path]:

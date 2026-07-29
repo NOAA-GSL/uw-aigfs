@@ -19,7 +19,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         yield "Delivered GRIB indexes"
         d = self._deliver_to
         if isinstance(d, Path):
-            yield [self._idx_delivered(path) for path in self._delivered2idx.keys()]
+            yield [self._idx_delivered(path) for path in self._delivered2idx]
         else:
             yield d
 
@@ -38,7 +38,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         GRIB index files.
         """
         yield "GRIB indexes"
-        yield [self._idx(path) for path in self._idx2grib.keys()]
+        yield [self._idx(path) for path in self._idx2grib]
 
     # Private tasks
 
@@ -67,7 +67,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         yield req
         path.parent.mkdir(parents=True, exist_ok=True)
         copy(req.ref, path)
-        logging.info(f"{taskname}: Copied {req.ref} -> {path}")
+        logging.info("%s: Copied %s -> %s", taskname, req.ref, path)
 
     @external
     def _valid_driver_config(self, reason: str):
@@ -97,9 +97,8 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         key = "deliver_to"
         if key in self.config:
             return Path(self.config[key])
-        else:
-            reason = f"Definition of '{key}' in 'delivery' task config block"
-            return self._valid_driver_config(reason)
+        reason = f"Definition of '{key}' in 'delivery' task config block"
+        return self._valid_driver_config(reason)
 
     @cached_property
     def _delivered2idx(self) -> dict[Path, Path]:
@@ -110,7 +109,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         assert isinstance(d, Path)
         srcs = self._idx2grib.keys()
         dsts = [d / x.name for x in srcs]
-        return dict(zip(dsts, srcs))
+        return dict(zip(dsts, srcs, strict=True))
 
     @cached_property
     def _idx2grib(self) -> dict[Path, Path]:
@@ -119,4 +118,4 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         """
         srcs = [Path(x) for x in self.config["inputfiles"]]
         dsts = [Path(self.config["outputdir"], f"{x.name}.idx") for x in srcs]
-        return dict(zip(dsts, srcs))
+        return dict(zip(dsts, srcs, strict=True))

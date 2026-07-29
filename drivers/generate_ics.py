@@ -106,7 +106,7 @@ class GenICS(DriverCycleBased, FileStager):
         ds.to_netcdf(path)
 
     @collection
-    def wgrib2_tasks(self, threads=2):
+    def wgrib2_tasks(self):
         """
         Map wgrib2 executions to tasks to extract variables at levels.
         """
@@ -118,7 +118,7 @@ class GenICS(DriverCycleBased, FileStager):
         """
         Run a shell command.
         """
-        path = self.rundir / cmd.split()[-1]
+        path = self.rundir / cmd.split(maxsplit=1)[-1]
         taskname = f"Running wgrib2 command: {cmd}"
         yield taskname
         yield Asset(path, path.is_file)
@@ -159,7 +159,7 @@ class GenICS(DriverCycleBased, FileStager):
                 for grib_file in matching_files:
                     if (load_once := var_config.get("load_once")) is False:
                         continue
-                    logging.info(f"loading {variable}")
+                    logging.info("loading %s", variable)
                     hour_match = re.match(file_pattern, grib_file.name)
                     if hour_match:
                         hour = hour_match.groups()[0]
@@ -178,9 +178,7 @@ class GenICS(DriverCycleBased, FileStager):
                     )
                     num_levs = level.count("|") + 1
                     wgrib2_commands.append(
-                        (
-                            f"wgrib2 -nc_nlev {num_levs} {grib_file} -match '{variable}' "
-                            f"-match '{level}' -netcdf {nc_file}.tmp && mv {nc_file}.tmp {nc_file}"
-                        )
+                        f"wgrib2 -nc_nlev {num_levs} {grib_file} -match '{variable}' "
+                        f"-match '{level}' -netcdf {nc_file}.tmp && mv {nc_file}.tmp {nc_file}"
                     )
         return wgrib2_commands

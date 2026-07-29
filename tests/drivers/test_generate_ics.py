@@ -3,14 +3,15 @@ GenICS driver tests.
 """
 
 import sys
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
 from pytest import fixture
 
-APP_DIR = Path(__file__).resolve().parent.parent.parent
-sys.path.insert(0, str(APP_DIR))
+APP_DIR = Path(__file__).parent.parent.parent
+sys.path.append(str(APP_DIR))
+
 from drivers import generate_ics  # noqa: E402
 
 
@@ -34,7 +35,7 @@ def config(tmp_path):
 
 @fixture
 def cycle():
-    return datetime(2025, 10, 1, 18)
+    return datetime(2025, 10, 1, 18, tzinfo=timezone.utc)
 
 
 @fixture

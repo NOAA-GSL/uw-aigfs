@@ -28,7 +28,8 @@ from graphcast import (
 from iotaa import Asset, collection, task
 from uwtools.drivers.driver import DriverCycleBased
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.append(str(Path(__file__).parent))
+
 from utils import grib2writer
 from utils.tasks import file
 
@@ -51,9 +52,9 @@ class GraphCastModel(DriverCycleBased):
         yield [ics, itfs, model_weights, norm_stats]
         ds = _clean_ics(ics.ref)
         converter = grib2writer.Grib2Writer(
-            start_date=pd.to_datetime(ds.datetime.values[0][-1]),
+            start_date=pd.to_datetime(ds.datetime.values[0][-1]),  # noqa: PD011 FIXME w/ unit tests
             case_name="aigfs",
-            json_path=self.config["json_path"],
+            json_path=Path(self.config["json_path"]),
         )
         inputs, targets, forcings = itfs.ref
         diffs_stddev, mean, stddev = norm_stats.ref
@@ -98,7 +99,7 @@ class GraphCastModel(DriverCycleBased):
 
     # Helper functions
 
-    def driver_name(cls) -> str:
+    def driver_name(self) -> str:
         """
         Returns the name of this driver.
         """
@@ -155,7 +156,7 @@ class GraphCastModel(DriverCycleBased):
         yield "model weights"
         yield Asset(weights, lambda: bool(weights))
         yield file(model_weights_path)
-        with open(model_weights_path, "rb") as f:
+        with model_weights_path.open("rb") as f:
             weights.append(checkpoint.load(f, graphcast.CheckPoint))
 
     @task
@@ -193,11 +194,10 @@ def construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, s
     )
 
     # Wraps everything so the one-step model can produce trajectories.
-    predictor = autoregressive.Predictor(
+    return autoregressive.Predictor(
         predictor,
         gradient_checkpointing=True,
     )
-    return predictor
 
 
 @hk.transform_with_state
@@ -226,7 +226,7 @@ def _adjust_time(ds, fcst_steps):
             "timedelta64"
         )
         starttime = ds["datetime"][0][0].astype("datetime64[s]")
-        new_datetimes = starttime.values + new_times
+        new_datetimes = starttime.values + new_times  # noqa: PD011 FIXME w/ unit tests
         ds = ds.reindex(time=np.asarray(new_times).astype("timedelta64"))
         ds["datetime"][0] = new_datetimes
     return ds
