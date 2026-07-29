@@ -103,6 +103,9 @@ class AIGFSPost(DriverCycleLeadtimeBased):
 
     @cached_property
     def _delivered2idx(self) -> dict[Path, Path]:
+        """
+        A mapping from delivered GRIB index paths to generated GRIB index paths.
+        """
         d = self._deliver_to
         assert isinstance(d, Path)
         srcs = self._idx2grib.keys()
@@ -111,6 +114,9 @@ class AIGFSPost(DriverCycleLeadtimeBased):
 
     @cached_property
     def _idx2grib(self) -> dict[Path, Path]:
+        """
+        A mapping from generated GRIB index paths to their source GRIB files.
+        """
         srcs = [Path(x) for x in self.config["inputfiles"]]
-        dsts = [Path(self.config["outputdir"], x.name).with_suffix(".idx") for x in srcs]
+        dsts = [Path(self.config["outputdir"], f"{x.name}.idx") for x in srcs]
         return dict(zip(dsts, srcs))
