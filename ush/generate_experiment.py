@@ -53,7 +53,6 @@ def parse_args() -> list[Path]:
     """
     Parse command-line arguments.
     """
-    use_uwtools_logger()
     parser = argparse.ArgumentParser(description="Configure an experiment from user config files.")
     parser.add_argument(
         "user_config_files",
