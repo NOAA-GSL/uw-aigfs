@@ -1,5 +1,7 @@
 # Contributor Guide
 
+[← Back to Index](index.md)
+
 Welcome to the ***uw-aigfs*** Contributor Guide. Please familiarize yourself with and follow the procedures in the sections below before submitting changes.
 
 > **Note:** Before starting work on a new feature, bug fix, or other change, please open an [Issue](https://github.com/NOAA-GSL/uw-aigfs/issues) to propose your change and solicit feedback from other developers. This helps avoid duplicate efforts or wasted work.
@@ -188,3 +190,5 @@ When adding a new workflow stage, you will typically need to:
 3. Add a new task or metatask entry in `parm/wflow/rocoto/aigfs_base.yaml`.
 4. Add unit tests in `tests/drivers/`.
 5. Update this documentation.
+
+[← Back to Index](index.md)

@@ -1,5 +1,7 @@
 # User Guide
 
+[← Back to Index](index.md)
+
 Welcome to the ***uw-aigfs*** User Guide. This guide describes how to set up your environment, configure an experiment, and run the AIGFS workflow using the ***Rocoto*** workflow manager.
 
 > **⚠️ Work in Progress**
@@ -252,3 +254,5 @@ Output index files are written to:
 <experiment_dir>/<YYYYMMDDHH>/post_<FFF>/aigfs.t<HH>z.sfc.f<FFF>.grib2.idx
 <experiment_dir>/<YYYYMMDDHH>/post_<FFF>/aigfs.t<HH>z.pres.f<FFF>.grib2.idx
 ```
+
+[← Back to Index](index.md)
