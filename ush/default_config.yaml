@@ -1,5 +1,4 @@
 user:
-  experiment_dir: /scratch3/BMC/wrfruc/cholt/aigfs/run3
   gfs_data: /scratch3/BMC/wrfruc/cholt/aigfs/sample_data
   cycle_freq: !timedelta 6
   first_cycle: !datetime 2025-10-21T00
@@ -78,7 +77,7 @@ post:
       envcmds:
         - source {{ user.app_home }}/load_wflow_modules.sh {{ user.platform }}
         - module load wgrib2
-      executable: uw execute --module {{ user.app_home }}/drivers/post.py --classname AIGFSPost --task wgrib2_tasks -c {{ user.experiment_dir }}/experiment.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path post --leadtime $FHR
+      executable: uw execute --module {{ user.app_home }}/drivers/post.py --classname AIGFSPost --task delivery -c {{ user.experiment_dir }}/experiment.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path post --leadtime $FHR
     deliver_to: "{{ forecast.graphcast_model.rundir }}"
     inputfiles:
       - '{{ forecast.graphcast_model.rundir }}/aigfs.t{{ timevars.cyc }}z.sfc.f{{ timevars.fff }}.grib2'

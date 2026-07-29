@@ -2,37 +2,33 @@
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
 
 from uwtools.api import rocoto
-from uwtools.api.config import YAMLConfig, get_yaml_config, realize
+from uwtools.api.config import YAMLConfig, compose, realize
 from uwtools.api.logging import use_uwtools_logger
 
-sys.path.append(str(Path(__file__).parent.parent))
+APP_HOME = Path(__file__).parent.parent.resolve()
+sys.path.append(str(APP_HOME))
 
-from ush.validation import Config, validate
+from ush.validation import Config, validate  # noqa: E402
 
 
-def generate_rocoto_files(
+def generate_experiment_files(
     experiment_config: YAMLConfig,
     experiment_file: Path,
-    app_home: Path,
-    user_config: YAMLConfig,
-    validated: Config,
+    wflow_manager: str = "rocoto",
 ) -> None:
     """
-    Generate the Rocoto XML and the experiment YAML.
+    Generate the workflow manager artifacts and the experiment YAML.
     """
-    workflow_config = get_yaml_config(
-        get_yaml_config(app_home / "parm" / "wflow" / "rocoto" / "aigfs_base.yaml")
-    )
-    for config in (experiment_config, user_config):
-        workflow_config.update_from(config)
+    workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "aigfs_base.yaml"
     realize(
         input_config=workflow_config,
         output_file=experiment_file,
-        update_config={"user": {"app_home": str(app_home)}},
+        update_config=experiment_config,
     )
     rocoto_xml = experiment_file.parent / "rocoto.xml"
     rocoto_valid = rocoto.realize(config=experiment_file, output_file=rocoto_xml)
@@ -47,12 +43,10 @@ def main():
     """
     use_uwtools_logger()
     user_config_files = parse_args()
-    experiment_config, user_config, app_home = prepare_configs(user_config_files)
+    experiment_config = prepare_configs(user_config_files)
     validated = validate(experiment_config.as_dict())
     experiment_dir, experiment_file = setup_experiment_directory(validated)
-    generate_rocoto_files(
-        experiment_config, experiment_file, app_home, user_config, experiment_config
-    )
+    generate_experiment_files(experiment_config, experiment_file)
 
 
 def parse_args() -> list[Path]:
@@ -60,7 +54,9 @@ def parse_args() -> list[Path]:
     Parse command-line arguments.
     """
     use_uwtools_logger()
-    parser = argparse.ArgumentParser(description="Configure an experiment from user config files.")
+    parser = argparse.ArgumentParser(
+        description="Configure an experiment from user config files."
+    )
     parser.add_argument(
         "user_config_files",
         help="paths to the user config files",
@@ -71,30 +67,26 @@ def parse_args() -> list[Path]:
     return parser.parse_args().user_config_files
 
 
-def prepare_configs(
-    user_config_files: list[Path]
-) -> tuple[YAMLConfig, YAMLConfig, Path]:
+def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     """
     Combine base, user, and platform configs into one experiment config.
     """
     # Set up the experiment
-    app_home = Path(__file__).parent.parent.resolve()
-    experiment_config = app_home / "ush" / "default_config.yaml"
-    user_config = get_yaml_config({})
-    for cfg_file in user_config_files:
-        cfg = get_yaml_config(cfg_file)
-        user_config.update_from(cfg)
-        experiment_config.update_from(cfg)
-    machine = experiment_config["user"]["platform"]
-    platform_config = get_yaml_config(
-        app_home / "parm" / "machines" / f"{machine}.yaml"
-    )
+    user_config = compose(configs=user_config_files, output_file=os.devnull)
+    machine = user_config["user"]["platform"]
+
+    default_config = APP_HOME / "ush" / "default_config.yaml"
+    platform_config = APP_HOME / "parm" / "machines" / f"{machine}.yaml"
 
     # Make sure user_config is last to override any settings from supplementals
-    for supp_config in (platform_config, user_config):
-        experiment_config.update_from(supp_config)
-    experiment_config.dereference()
-    return experiment_config, user_config, app_home
+    experiment_config = compose(
+        configs=[default_config, platform_config, *user_config_files],
+        realize=True,
+        output_file=os.devnull,
+    )
+    experiment_config.update_from({"user": {"app_home": str(APP_HOME)}})
+
+    return experiment_config
 
 
 def setup_experiment_directory(validated: Config) -> tuple[Path, Path]:

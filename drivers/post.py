@@ -4,7 +4,7 @@ from pathlib import Path
 
 from iotaa import Asset, collection, task
 from uwtools.api.driver import DriverCycleLeadtimeBased
-from uwtools.api.fs import copy
+from uwtools.api.fs import copy, Copier
 from uwtools.utils.processing import run_shell_cmd
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -30,7 +30,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         yield "wgrib2 tasks"
         yield [self._single_shell_command(cmd) for cmd in self._wgrib2_commands]
 
-    @task
+    @collection
     def delivery(self):
         """
         Output files copied to destination.
@@ -40,13 +40,10 @@ class AIGFSPost(DriverCycleLeadtimeBased):
             msg = "delivery task requires a 'deliver_to:' section in the driver config"
             raise ConfigError(msg)
         output_path = Path(path)
-        inputfiles = [Path(fp) for fp in self.config["inputfiles"]]
         files = {}
-        for fp in (inputfiles, self.ouput["idx"]):
-            files[output_path / fp.name] = fp
-        yield [Asset(path, (path).is_file) for path in files]
-        yield self.wgrib2_tasks()
-        copy(config=files)
+        for fp in self.output["idx"]:
+            files[str(output_path / fp.name)] = str(fp)
+        yield [self.wgrib2_tasks(), Copier(config=files).go()]
 
     @task
     def _single_shell_command(self, cmd: str):
