@@ -118,7 +118,7 @@ class GenICS(DriverCycleBased, FileStager):
         """
         Run a shell command.
         """
-        path = self.rundir / cmd.split(maxsplit=1)[-1]
+        path = self.rundir / cmd.split(maxsplit=-1)[-1]
         taskname = f"Running wgrib2 command: {cmd}"
         yield taskname
         yield Asset(path, path.is_file)
