@@ -74,7 +74,7 @@ def prepare_configs(user_config_files: list[Path]) -> tuple[YAMLConfig, YAMLConf
     """
     Combine base, user, and platform configs into one experiment config.
     """
-    # Set up the experiment
+    # Set up the experiment.
     app_home = Path(__file__).parent.parent.resolve()
     experiment_config = app_home / "ush" / "default_config.yaml"
     user_config = get_yaml_config({})
