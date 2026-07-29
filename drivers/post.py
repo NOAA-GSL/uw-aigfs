@@ -60,13 +60,14 @@ class AIGFSPost(DriverCycleLeadtimeBased):
 
     @task
     def _idx_delivered(self, path: Path):
-        yield f"Delivered GRIB index {path}"
+        taskname = f"Delivered GRIB index {path}"
+        yield taskname
         yield Asset(path, path.is_file)
         req = self._idx(self._delivered2idx[path])
         yield req
         path.parent.mkdir(parents=True, exist_ok=True)
         copy(req.ref, path)
-        logging.debug(f"Copied {req.ref} -> {path}")
+        logging.info(f"{taskname}: Copied {req.ref} -> {path}")
 
     @external
     def _valid_driver_config(self, reason: str):
