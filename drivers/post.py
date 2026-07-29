@@ -1,5 +1,4 @@
 import logging
-import sys
 from functools import cached_property
 from pathlib import Path
 from shutil import copy
