@@ -58,7 +58,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
     def _gribfile(self, path: Path):
         yield f"GRIB file {path}"
         yield Asset(path, path.is_file)
-        
+
     @task
     def _idx(self, path: Path):
         taskname = f"GRIB index {path}"
