@@ -18,7 +18,7 @@ class User(BaseModel):
     platform: str
 
     @model_validator(mode="after")
-    def first_and_last_cycle(self):
+    def first_and_last_cycle(self) -> User:
         if self.last_cycle < self.first_cycle:
             msg = "last_cycle cannot precede first_cycle"
             raise ValueError(msg)

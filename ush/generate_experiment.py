@@ -37,7 +37,7 @@ def generate_experiment_files(
         sys.exit(1)
 
 
-def main():
+def main() -> None:
     """
     Stage the workflow manager artifacts and experiment YAML in the experiment directory.
     """
@@ -45,7 +45,7 @@ def main():
     user_config_files = parse_args()
     experiment_config = prepare_configs(user_config_files)
     validated = validate(experiment_config.as_dict())
-    experiment_dir, experiment_file = setup_experiment_directory(validated)
+    _, experiment_file = setup_experiment_directory(validated)
     generate_experiment_files(experiment_config, experiment_file)
 
 
@@ -71,14 +71,14 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     """
     Combine base, user, and platform configs into one experiment config.
     """
-    # Set up the experiment
+    # Set up the experiment.
     user_config = compose(configs=user_config_files, output_file=os.devnull)
     machine = user_config["user"]["platform"]
 
     default_config = APP_HOME / "ush" / "default_config.yaml"
     platform_config = APP_HOME / "parm" / "machines" / f"{machine}.yaml"
 
-    # Make sure user_config is last to override any settings from supplementals
+    # Make sure user_config is last to override any settings from supplementals.
     experiment_config = compose(
         configs=[default_config, platform_config, *user_config_files],
         realize=True,

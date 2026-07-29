@@ -1,18 +1,28 @@
-import sys
+import logging
 from functools import cached_property
 from pathlib import Path
+from shutil import copy
 
-from iotaa import Asset, collection, task
+from iotaa import Asset, Node, collection, external, task
 from uwtools.api.driver import DriverCycleLeadtimeBased
-from uwtools.api.fs import copy, Copier
 from uwtools.utils.processing import run_shell_cmd
-
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-from utils.exceptions import ConfigError
-from utils.tasks import file
 
 
 class AIGFSPost(DriverCycleLeadtimeBased):
+    # Public tasks
+
+    @collection
+    def delivery(self):
+        """
+        GRIB index files copied to destination.
+        """
+        yield "Delivered GRIB indexes"
+        d = self._deliver_to
+        if isinstance(d, Path):
+            yield [self._idx_delivered(path) for path in self._delivered2idx]
+        else:
+            yield d
+
     @collection
     def provisioned_rundir(self):
         """
@@ -23,39 +33,46 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         yield required
 
     @collection
-    def wgrib2_tasks(self, threads=2):
+    def indexes(self):
         """
-        Map wgrib2 executions to tasks.
+        GRIB index files.
         """
-        yield "wgrib2 tasks"
-        yield [self._single_shell_command(cmd) for cmd in self._wgrib2_commands]
+        yield "GRIB indexes"
+        yield [self._idx(path) for path in self._idx2grib]
 
-    @collection
-    def delivery(self):
-        """
-        Output files copied to destination.
-        """
-        yield "Deliver files"
-        if (path := self.config.get("deliver_to")) is None:
-            msg = "delivery task requires a 'deliver_to:' section in the driver config"
-            raise ConfigError(msg)
-        output_path = Path(path)
-        files = {}
-        for fp in self.output["idx"]:
-            files[str(output_path / fp.name)] = str(fp)
-        yield [self.wgrib2_tasks(), Copier(config=files).go()]
+    # Private tasks
+
+    @external
+    def _gribfile(self, path: Path):
+        yield f"GRIB file {path}"
+        yield Asset(path, path.is_file)
 
     @task
-    def _single_shell_command(self, cmd: str):
-        """
-        Run a shell command.
-        """
-        path = self.rundir / cmd.split()[-1]
-        taskname = f"Running wgrib2 command: {cmd}"
+    def _idx(self, path: Path):
+        taskname = f"GRIB index {path}"
         yield taskname
         yield Asset(path, path.is_file)
-        yield [file(fp) for fp in self.config["inputfiles"]]
-        run_shell_cmd(cmd=cmd, cwd=self.rundir, taskname=taskname)
+        req = self._gribfile(self._idx2grib[path])
+        yield req
+        path.parent.mkdir(parents=True, exist_ok=True)
+        cmd = f"wgrib2 -s {req.ref} >{path}.tmp && mv {path}.tmp {path}"
+        run_shell_cmd(cmd, cwd=path.parent, taskname=taskname)
+
+    @task
+    def _idx_delivered(self, path: Path):
+        taskname = f"Delivered GRIB index {path}"
+        yield taskname
+        yield Asset(path, path.is_file)
+        req = self._idx(self._delivered2idx[path])
+        yield req
+        path.parent.mkdir(parents=True, exist_ok=True)
+        copy(req.ref, path)
+        logging.info("%s: Copied %s -> %s", taskname, req.ref, path)
+
+    @external
+    def _valid_driver_config(self, reason: str):
+        yield reason
+        yield Asset(None, lambda: False)
 
     # Public helper methods
 
@@ -71,23 +88,34 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         """
         Returns a description of the file(s) created when this component runs.
         """
-        outputdir = Path(self.config["outputdir"])
-        idxfiles = [
-            outputdir / f"{Path(fp).name}.idx" for fp in self.config["inputfiles"]
-        ]
-        return {"idx": idxfiles}
+        return {"idx": self._idx2grib.keys()}
 
     # Private helper methods
+
     @cached_property
-    def _wgrib2_commands(self):
+    def _deliver_to(self) -> Path | Node:
+        key = "deliver_to"
+        if key in self.config:
+            return Path(self.config[key])
+        reason = f"Definition of '{key}' in 'delivery' task config block"
+        return self._valid_driver_config(reason)
+
+    @cached_property
+    def _delivered2idx(self) -> dict[Path, Path]:
         """
-        Generate wgrib2 commands to run for this task.
+        A mapping from delivered GRIB index paths to generated GRIB index paths.
         """
-        wgrib2_commands = []
-        inputfiles = self.config["inputfiles"]
-        idxfiles = self.output["idx"]
-        for infile, idxfile in zip(inputfiles, idxfiles):
-            wgrib2_commands.append(
-                f"wgrib2 -s {infile} > {idxfile}.tmp && mv {idxfile}.tmp {idxfile}"
-            )
-        return wgrib2_commands
+        d = self._deliver_to
+        assert isinstance(d, Path)
+        srcs = self._idx2grib.keys()
+        dsts = [d / x.name for x in srcs]
+        return dict(zip(dsts, srcs, strict=True))
+
+    @cached_property
+    def _idx2grib(self) -> dict[Path, Path]:
+        """
+        A mapping from generated GRIB index paths to their source GRIB files.
+        """
+        srcs = [Path(x) for x in self.config["inputfiles"]]
+        dsts = [Path(self.config["outputdir"], f"{x.name}.idx") for x in srcs]
+        return dict(zip(dsts, srcs, strict=True))
