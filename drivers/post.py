@@ -54,13 +54,21 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         copy(req.ref, path)
         logging.debug(f"Copied {req.ref} -> {path}")
 
+    @external
+    def _gribfile(self, path: Path):
+        yield f"GRIB file {path}"
+        yield Asset(path, path.is_file)
+        
     @task
     def _idx(self, path: Path):
-        yield f"GRIB index {path}"
+        taskname = f"GRIB index {path}"
+        yield taskname
         yield Asset(path, path.is_file)
         req = self._gribfile(self._idx2grib[path])
         yield req
+        path.parent.mkdir(parents=True, exist_ok=True)
         cmd = f"wgrib2 -s {req.ref} >{path}.tmp && mv {path}.tmp {path}"
+        run_shell_cmd(cmd, cwd=path.parent, taskname=taskname)
 
     @task
     def _single_shell_command(self, cmd: str):
@@ -109,14 +117,14 @@ class AIGFSPost(DriverCycleLeadtimeBased):
     @cached_property
     def _delivered2idx(self) -> dict[Path, Path]:
         d = self._deliver_to
-        assert d is not None
+        assert isinstance(d, Path)
         srcs = self._idx2grib.keys()
         dsts = [d / x.name for x in srcs]
         return dict(zip(dsts, srcs))
 
     @cached_property
     def _idx2grib(self) -> dict[Path, Path]:
-        srcs = map(Path, self.config["inputfiles"])
+        srcs = [Path(x) for x in self.config["inputfiles"]]
         dsts = [Path(self.config["outputdir"], x.name).with_suffix(".idx") for x in srcs]
         return dict(zip(dsts, srcs))
 
