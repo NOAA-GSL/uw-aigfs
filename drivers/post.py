@@ -4,7 +4,7 @@ from functools import cached_property
 from pathlib import Path
 from shutil import copy
 
-from iotaa import Asset, collection, task
+from iotaa import Asset, Node, collection, external, task
 from uwtools.api.driver import DriverCycleLeadtimeBased
 from uwtools.utils.processing import run_shell_cmd
 
@@ -21,10 +21,11 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         Output files copied to destination.
         """
         yield "Delivered output"
-        if self._deliver_to:
+        d = self._deliver_to
+        if isinstance(d, Path):
             yield [self._delivered(path) for path in self._delivered2idx.keys()]
         else:
-            yield None
+            yield d
 
     @collection
     def provisioned_rundir(self):
@@ -73,6 +74,11 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         yield [file(fp) for fp in self.config["inputfiles"]]
         run_shell_cmd(cmd=cmd, cwd=self.rundir, taskname=taskname)
 
+    @external
+    def _valid_driver_config(self, reason: str):
+        yield reason
+        yield Asset(None, lambda: False)
+
     # Public helper methods
 
     @classmethod
@@ -92,16 +98,16 @@ class AIGFSPost(DriverCycleLeadtimeBased):
     # Private helper methods
 
     @cached_property
-    def _deliver_to(self) -> Path | None:
+    def _deliver_to(self) -> Path | Node:
         key = "deliver_to"
         if key in self.config:
             return Path(self.config[key])
-        logging.error(f"Define '{key}' in 'delivery' task config block")
-        return None
+        else:
+            reason = f"Definition of '{key}' in 'delivery' task config block"
+            return self._valid_driver_config(reason)
 
     @cached_property
     def _delivered2idx(self) -> dict[Path, Path]:
-        # Only call after config validation in self.delivery.
         d = self._deliver_to
         assert d is not None
         srcs = self._idx2grib.keys()
