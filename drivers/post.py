@@ -15,15 +15,17 @@ from utils.tasks import file
 
 
 class AIGFSPost(DriverCycleLeadtimeBased):
+    # Public tasks
+
     @collection
     def delivery(self):
         """
-        Output files copied to destination.
+        GRIB index files copied to destination.
         """
-        yield "Delivered output"
+        yield "Delivered GRIB indexes"
         d = self._deliver_to
         if isinstance(d, Path):
-            yield [self._delivered(path) for path in self._delivered2idx.keys()]
+            yield [self._idx_delivered(path) for path in self._delivered2idx.keys()]
         else:
             yield d
 
@@ -37,22 +39,14 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         yield required
 
     @collection
-    def wgrib2_tasks(self, threads=2):
+    def indexes(self):
         """
-        Map wgrib2 executions to tasks.
+        GRIB index files.
         """
-        yield "wgrib2 tasks"
-        yield [self._single_shell_command(cmd) for cmd in self._wgrib2_commands]
+        yield "GRIB indexes"
+        yield [self._idx(path) for path in self.idx2grib.keys()]
 
-    @task
-    def _delivered(self, path: Path):
-        yield f"Delivered GRIB index {path}"
-        yield Asset(path, path.is_file)
-        req = self._idx(self._delivered2idx[path])
-        yield req
-        path.parent.mkdir(parents=True, exist_ok=True)
-        copy(req.ref, path)
-        logging.debug(f"Copied {req.ref} -> {path}")
+    # Private tasks
 
     @external
     def _gribfile(self, path: Path):
@@ -71,16 +65,14 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         run_shell_cmd(cmd, cwd=path.parent, taskname=taskname)
 
     @task
-    def _single_shell_command(self, cmd: str):
-        """
-        Run a shell command.
-        """
-        path = self.rundir / cmd.split()[-1]
-        taskname = f"Running wgrib2 command: {cmd}"
-        yield taskname
+    def _idx_delivered(self, path: Path):
+        yield f"Delivered GRIB index {path}"
         yield Asset(path, path.is_file)
-        yield [file(fp) for fp in self.config["inputfiles"]]
-        run_shell_cmd(cmd=cmd, cwd=self.rundir, taskname=taskname)
+        req = self._idx(self._delivered2idx[path])
+        yield req
+        path.parent.mkdir(parents=True, exist_ok=True)
+        copy(req.ref, path)
+        logging.debug(f"Copied {req.ref} -> {path}")
 
     @external
     def _valid_driver_config(self, reason: str):
@@ -127,17 +119,3 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         srcs = [Path(x) for x in self.config["inputfiles"]]
         dsts = [Path(self.config["outputdir"], x.name).with_suffix(".idx") for x in srcs]
         return dict(zip(dsts, srcs))
-
-    @cached_property
-    def _wgrib2_commands(self):
-        """
-        Generate wgrib2 commands to run for this task.
-        """
-        wgrib2_commands = []
-        inputfiles = self.config["inputfiles"]
-        idxfiles = self.output["idx"]
-        for infile, idxfile in zip(inputfiles, idxfiles):
-            wgrib2_commands.append(
-                f"wgrib2 -s {infile} > {idxfile}.tmp && mv {idxfile}.tmp {idxfile}"
-            )
-        return wgrib2_commands
