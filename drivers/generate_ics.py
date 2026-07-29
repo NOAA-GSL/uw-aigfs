@@ -86,17 +86,13 @@ class GenICS(DriverCycleBased, FileStager):
 
         sfc_geop = ds["geopotential_at_surface"].squeeze("batch")
         sfc_geop = (
-            sfc_geop.isel(time=1)
-            if sfc_geop.isel(time=0).isnull().all()
-            else sfc_geop.isel(time=0)
+            sfc_geop.isel(time=1) if sfc_geop.isel(time=0).isnull().all() else sfc_geop.isel(time=0)
         )
         ds["geopotential_at_surface"] = sfc_geop
 
         ls_mask = ds["land_sea_mask"].squeeze("batch")
         ls_mask = (
-            ls_mask.isel(time=0)
-            if ls_mask.isel(time=1).isnull().all()
-            else ls_mask.isel(time=1)
+            ls_mask.isel(time=0) if ls_mask.isel(time=1).isnull().all() else ls_mask.isel(time=1)
         )
         ds["land_sea_mask"] = ls_mask
 

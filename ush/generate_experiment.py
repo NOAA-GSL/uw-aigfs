@@ -70,9 +70,7 @@ def parse_args() -> list[Path]:
     return parser.parse_args().user_config_files
 
 
-def prepare_configs(
-    user_config_files: list[Path]
-) -> tuple[YAMLConfig, YAMLConfig, Path]:
+def prepare_configs(user_config_files: list[Path]) -> tuple[YAMLConfig, YAMLConfig, Path]:
     """
     Combine base, user, and platform configs into one experiment config.
     """
@@ -85,9 +83,7 @@ def prepare_configs(
         user_config.update_from(cfg)
         experiment_config.update_from(cfg)
     machine = experiment_config["user"]["platform"]
-    platform_config = get_yaml_config(
-        app_home / "parm" / "machines" / f"{machine}.yaml"
-    )
+    platform_config = get_yaml_config(app_home / "parm" / "machines" / f"{machine}.yaml")
 
     # Make sure user_config is last to override any settings from supplementals
     for supp_config in (platform_config, user_config):

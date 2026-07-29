@@ -211,9 +211,7 @@ def run_forward(
     mean,
     stddev,
 ):
-    predictor = construct_wrapped_graphcast(
-        model_config, task_config, diffs_stddev, mean, stddev
-    )
+    predictor = construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, stddev)
     return predictor(
         inputs,
         targets_template=targets_template,
@@ -224,9 +222,9 @@ def run_forward(
 def _adjust_time(ds, fcst_steps):
     if (fcst_steps + 2 - len(ds["time"])) > 0:
         logging.info("Updating dataset to account for forecast length.")
-        new_times = np.asarray(
-            [timedelta(hours=6) * f for f in range(fcst_steps + 2)]
-        ).astype("timedelta64")
+        new_times = np.asarray([timedelta(hours=6) * f for f in range(fcst_steps + 2)]).astype(
+            "timedelta64"
+        )
         starttime = ds["datetime"][0][0].astype("datetime64[s]")
         new_datetimes = starttime.values + new_times
         ds = ds.reindex(time=np.asarray(new_times).astype("timedelta64"))
@@ -235,9 +233,7 @@ def _adjust_time(ds, fcst_steps):
 
 
 def _clean_ics(ds):
-    ds = ds.drop_vars(
-        ["geopotential_at_surface", "land_sea_mask", "total_precipitation_6hr"]
-    )
+    ds = ds.drop_vars(["geopotential_at_surface", "land_sea_mask", "total_precipitation_6hr"])
     for var in ds.data_vars:
         if "long_name" in ds[var].attrs:
             del ds[var].attrs["long_name"]
