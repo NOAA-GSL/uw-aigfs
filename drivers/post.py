@@ -38,7 +38,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         GRIB index files.
         """
         yield "GRIB indexes"
-        yield [self._idx(path) for path in self.idx2grib.keys()]
+        yield [self._idx(path) for path in self._idx2grib.keys()]
 
     # Private tasks
 
