@@ -51,6 +51,7 @@ Several `make` targets are available in an activated `aigfs` development environ
 
 | Target | Description |
 |---|---|
+| `make docs` | Build HTML API docs with [pdoc](https://pdoc.dev/) into `docs/api/` |
 | `make format` | Format Python code with [ruff](https://docs.astral.sh/ruff/) |
 | `make lint` | Lint Python code with [ruff](https://docs.astral.sh/ruff/) |
 | `make test` | Run the linter and unit tests (`lint` + `unittest`) |
@@ -71,6 +72,18 @@ This formats the code, then runs the linter and unit tests. The order is intenti
 - **`unittest`** runs higher-level semantic-correctness checks once syntax is clean.
 
 All checks are run by CI against every pull request. Ensure your code is formatted and tests pass locally before opening a PR.
+
+### API Documentation
+
+API documentation for the `drivers/` package is generated automatically by [pdoc](https://pdoc.dev/) from the docstrings in the source code. To build it locally (requires the `devenv`):
+
+```bash
+make docs
+```
+
+Output is written to `docs/api/` (excluded from version control). Open `docs/api/index.html` in a browser to view it.
+
+The docs workflow (`.github/workflows/docs.yaml`) rebuilds and publishes the API docs to GitHub Pages automatically on every push to `main`. To enable this, go to **Settings → Pages** in the repository and set the source to **GitHub Actions**.
 
 ### Formatting and Linting
 

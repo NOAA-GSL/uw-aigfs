@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - ufs-community
 dependencies:
-  - python=3.11.*
+  - python=3.12.*
   - grib2io=2.6.*
   - netcdf4=1.7.*
   - pip=26.1.*
