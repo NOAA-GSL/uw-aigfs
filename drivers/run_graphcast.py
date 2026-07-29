@@ -99,7 +99,8 @@ class GraphCastModel(DriverCycleBased):
 
     # Helper functions
 
-    def driver_name(self) -> str:
+    @classmethod
+    def driver_name(cls) -> str:
         """
         Returns the name of this driver.
         """
