@@ -8,11 +8,6 @@ from iotaa import Asset, Node, collection, external, task
 from uwtools.api.driver import DriverCycleLeadtimeBased
 from uwtools.utils.processing import run_shell_cmd
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
-
-from utils.exceptions import ConfigError
-from utils.tasks import file
-
 
 class AIGFSPost(DriverCycleLeadtimeBased):
     # Public tasks
@@ -93,7 +88,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         """
         Returns a description of the file(s) created when this component runs.
         """
-        return {"idx": self._idxmap.keys()}
+        return {"idx": self._idx2grib.keys()}
 
     # Private helper methods
 
