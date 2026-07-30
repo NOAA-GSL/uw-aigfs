@@ -201,6 +201,8 @@ rocotostat -w rocoto.xml -d rocoto.db
 
 Individual task logs are written to `<experiment_dir>/log/`. An overall workflow log is written to `<experiment_dir>/workflow.log`.
 
+The ***uwtools*** package provides a tool to help iterate through the entire workflow: `uw rocoto iterate`. See the [uwtools Rocoto tool documentation](https://uwtools.readthedocs.io/en/main/sections/user_guide/cli/tools/rocoto.html#cli-rocoto-iterate-examples) for details.
+
 ---
 
 ## Workflow Stages
