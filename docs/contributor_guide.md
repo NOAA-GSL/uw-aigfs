@@ -71,7 +71,7 @@ This formats the code, then runs the linter and unit tests. The order is intenti
 - **`lint`** provides a fast first check for obvious errors and anti-patterns.
 - **`unittest`** runs higher-level semantic-correctness checks once syntax is clean.
 
-All checks are run by CI against every pull request. Ensure your code is formatted and tests pass locally before opening a PR.
+All checks are run by CI against every pull request. Ensure your code is formatted and tests pass locally before opening a PR, and when updating code during the PR process.
 
 ### API Documentation
 
@@ -81,7 +81,7 @@ API documentation for the `drivers/` package is generated automatically by [pdoc
 make docs
 ```
 
-Output is written to `docs/api/` (excluded from version control). Open `docs/api/index.html` in a browser to view it.
+Output is written to `docs/api/` (excluded from version control). Open `docs/api/index.html` in a browser to preview the API documentation prior to the PR process.
 
 The docs workflow (`.github/workflows/docs.yaml`) rebuilds and publishes the API docs to GitHub Pages automatically on every push to `main`. To enable this, go to **Settings → Pages** in the repository and set the source to **GitHub Actions**.
 
@@ -107,7 +107,7 @@ Unit tests live in the `tests/` directory. Run them with coverage reporting:
 make unittest
 ```
 
-Tests are run with [pytest](https://docs.pytest.org/) and coverage is reported via [coverage.py](https://coverage.readthedocs.io/). All pull requests must have passing tests. Strive to maintain high test coverage for any new code you add.
+Tests are run with [pytest](https://docs.pytest.org/) and coverage is reported via [coverage.py](https://coverage.readthedocs.io/). All pull requests must have passing tests. Repository code must maintain 100% test coverage.
 
 ---
 
