@@ -163,7 +163,7 @@ fix/
 With the environment activated (see [Setting Up the Environment](#setting-up-the-environment)), run the experiment generator from the repository root:
 
 ```bash
-python ush/generate_experiment.py [config1.yaml] [config2.yaml ...] your_config.yaml
+python ush/generate_experiment.py [additional.yaml ...] user.yaml
 ```
 
 Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `ush/default_config.yaml` and the appropriate machine YAML (`parm/machines/<platform>.yaml`) before applying your user configs.

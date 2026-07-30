@@ -83,7 +83,7 @@ make docs
 
 Output is written to `docs/api/` (excluded from version control). Open `docs/api/index.html` in a browser to preview the API documentation prior to the PR process.
 
-The docs workflow (`.github/workflows/docs.yaml`) rebuilds and publishes the API docs to GitHub Pages automatically on every push to `main`. To enable this, go to **Settings → Pages** in the repository and set the source to **GitHub Actions**.
+The docs workflow (`.github/workflows/docs.yaml`) rebuilds and publishes the API docs to GitHub Pages automatically on every push to `main`.
 
 ### Formatting and Linting
 
