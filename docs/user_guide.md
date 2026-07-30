@@ -29,7 +29,7 @@ Welcome to the ***uw-aigfs*** User Guide. This guide describes how to set up you
 
 ***uw-aigfs*** drives an AI-based medium-range global forecast using the [GraphCast](https://github.com/noaa-emc/graphcast) model, orchestrated via [uwtools](https://uwtools.readthedocs.io/en/main/) and the [Rocoto](https://github.com/christopherwharrop/rocoto) workflow manager. The workflow consists of three sequential stages per forecast cycle:
 
-1. **Prep** — Extract variables from GFS GRIB2 files and produce a NetCDF initial-conditions file for ***GraphCast***.
+1. **Prep** — Extract variables from GFS GRIB2 files and produce a netCDF initial-conditions file for ***GraphCast***.
 2. **Forecast** — Run ***GraphCast*** inference to produce GRIB2 output files at each forecast lead time.
 3. **Post** — Generate GRIB2 index files and deliver them to the forecast output directory.
 
@@ -214,8 +214,8 @@ The `task_prep` ***Rocoto*** task runs `drivers/generate_ics.py` (driver class `
 1. Hard-links GFS GRIB2 files from `user.gfs_data` into the cycle's `prep/data/` subdirectory. The files required are:
    - Two timesteps from the previous two cycles (for temporal interpolation)
    - The analysis and short-range forecast from the current cycle
-2. Runs `wgrib2` commands (defined by `parm/wgrib2_data_to_process.yml`) to extract meteorological variables at the required pressure levels into individual NetCDF files.
-3. Merges the extracted NetCDF files into a single initial-conditions file:
+2. Runs `wgrib2` commands (defined by `parm/wgrib2_data_to_process.yml`) to extract meteorological variables at the required pressure levels into individual netCDF files.
+3. Merges the extracted netCDF files into a single initial-conditions file:
 
    ```
    <experiment_dir>/<YYYYMMDDHH>/prep/aigfs.t<HH>z.ic.nc
@@ -227,7 +227,7 @@ The `task_prep` ***Rocoto*** task runs `drivers/generate_ics.py` (driver class `
 
 The `task_forecast` ***Rocoto*** task runs `drivers/run_graphcast.py` (driver class `GraphCastModel`). It depends on `task_prep` completing successfully. The task:
 
-1. Loads the initial-conditions NetCDF file produced by the prep step.
+1. Loads the initial-conditions netCDF file produced by the prep step.
 2. Loads the pre-trained ***GraphCast*** model weights (`.npz`) from `platform.pretrained_model_path`.
 3. Loads the normalization statistics (`diffs_stddev_by_level.nc`, `mean_by_level.nc`, `stddev_by_level.nc`).
 4. Runs autoregressive ***GraphCast*** inference for `forecast.graphcast_model.forecast_length` hours at `forecast.graphcast_model.forecast_freq`-hour intervals.

@@ -9,4 +9,4 @@ A [uwtools](https://uwtools.readthedocs.io/en/main/) implementation of the opera
 
 - [User Guide](user_guide.md)
 - [Contributor Guide](contributor_guide.md)
-- [API Reference](https://noaa-gsl.github.io/uw-aigfs/) _(published to GitHub Pages on every push to `main`)_
+- [API Reference](https://noaa-gsl.github.io/uw-aigfs/)
