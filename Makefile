@@ -8,30 +8,30 @@ all:
 	$(error Valid targets are: $(TARGETS))
 
 bootstrap:
-	@./run bootstrap
+	@bin/run bootstrap
 
 devenv:
-	@DEVMODE=1 ./run makeenv
+	@DEVMODE=1 bin/run makeenv
 
 docs:
-	@./run makedocs
+	@bin/run makedocs
 
 env:
-	@./run makeenv
+	@bin/run makeenv
 
 format:
-	@./run format $(SRCDIRS)
+	@bin/run format $(SRCDIRS)
 
 lint:
-	@./run lint
+	@bin/run lint
 
 rmenv:
-	@./run rmenv
+	@bin/run rmenv
 
 test: lint unittest # typecheck
 
 typecheck:
-	@./run typecheck $(SRCDIRS)
+	@bin/run typecheck $(SRCDIRS)
 
 unittest:
-	@./run unittest
+	@bin/run unittest

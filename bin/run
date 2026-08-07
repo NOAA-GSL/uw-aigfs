@@ -137,6 +137,4 @@ rootdir() {
 test $# -eq 0 && echo "usage: $(basename $0) tool [args ...]" && exit 1
 tool=$1
 shift
-msg Starting
 $tool $@
-msg Ready
