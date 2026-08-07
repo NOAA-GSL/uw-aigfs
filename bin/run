@@ -34,7 +34,7 @@ makedocs() {
   local rootdir
   rootdir=$(rootdir)
   activate $(env)
-  pdoc --output-dir $rootdir/docs/api $rootdir/drivers
+  (set -x && pdoc --output-dir $rootdir/docs/api $rootdir/drivers)
   conda deactivate
 }
 
@@ -88,8 +88,12 @@ msg() {
 }
 
 rmenv() {
-  activate
-  conda env remove --yes --name $(env)
+  local env
+  env=$(env)
+  activate base
+  msg Removing environment $env
+  conda env remove --yes --name $env
+  msg Removed environment $env
 }
 
 typecheck() {
