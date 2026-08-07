@@ -63,10 +63,10 @@ makeenv() {
 
 format() {
   local js py
+  test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
   js=( $(fromroot drivers) )
   py=( $(fromroot drivers tests ush) )
   sh=( $(fromroot bin) )
-  test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
   activate $(env)
   msg Formatting Python code
   ruff format ${py[@]}
@@ -78,7 +78,7 @@ format() {
     cmp --quiet $f.new $f && rm $f.new || mv $f.new $f
   done
   msg Formatting shell code
-  shfmt --indent 2 --write ${js[@]}
+  shfmt --indent 2 --write ${sh[@]}
   conda deactivate
 }
 
