@@ -1,6 +1,7 @@
-#!/bin/bash -eu
+#!/usr/bin/env -S bash -euo pipefail
 
-dirs=( drivers tests ush )
+test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
+dirs=( $@ )
 
 echo "=> Formatting code"
 ruff format ${dirs[*]}
@@ -9,7 +10,7 @@ echo "=> Sorting imports"
 ruff check --select I --fix ${dirs[*]}
 
 echo "=> Formatting JSON"
-for f in $(find drivers -not -path "*/.*" -type f -name "*.json" -o -name "*.jsonschema"); do
+for f in $(find ${dirs[*]} -not -path "*/.*" -type f -name "*.json" -o -name "*.jsonschema"); do
   jq -S . $f >$f.new || (echo "    in $f" && rm $f.new && false)
   cmp --quiet $f.new $f && rm $f.new || mv $f.new $f
 done
