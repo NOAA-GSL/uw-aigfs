@@ -66,10 +66,6 @@ makeenv() {
 format() {
   test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
   activate $(env)
-  msg Formatting Python code
-  ruff format $(pyfiles)
-  msg Sorting Python imports
-  ruff check --select I --fix $(pyfiles)
   msg Formatting JSON
   for f in $(find $(jsfiles) -type f -name "*.json" -o -name "*.jsonschema"); do
     jq -S . $f >$f.new || (echo "    in $f" && rm $f.new && false)
@@ -77,6 +73,10 @@ format() {
   done
   msg Formatting shell code
   shfmt --indent 2 --write $(shfiles)
+  msg Formatting Python code
+  ruff format $(pyfiles)
+  msg Sorting Python imports
+  ruff check --select I --fix $(pyfiles)
   conda deactivate
 }
 
