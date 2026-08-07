@@ -27,6 +27,7 @@ bootstrap() {
     )
   fi
   activate
+  export PIP_VERBOSE=1
   if [[ -d $condadir/envs/$env ]]; then
     msg Using existing environment $env
   else
@@ -35,7 +36,7 @@ bootstrap() {
   fi
   if [[ -v DEVMODE ]]; then
     msg Installing dev packages into environment $env
-    conda env update --file $(dirname $(envyaml))/devpkgs.yaml --name $env
+    conda env update --file $(dirname $(envyaml))/devpkgs.yaml --name $env --quiet
   fi
   msg Ready
 }

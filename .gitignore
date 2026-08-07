@@ -2,4 +2,3 @@
 .coverage
 __pycache__
 conda/
-docs/api/
