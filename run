@@ -63,7 +63,7 @@ makeenv() {
 
 format() {
   test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
-  msg Formatting code
+  msg Formatting Python code
   activate $(env)
   ruff format $@
   msg Sorting imports
@@ -78,6 +78,7 @@ format() {
 
 lint() {
   activate $(env)
+  msg Linting Python code
   ruff check $(rootdir)
   conda deactivate
 }
@@ -93,12 +94,14 @@ rmenv() {
 
 typecheck() {
   activate $(env)
+  msg Typechecking Python code
   mypy $@
   conda deactivate
 }
 
 unittest() {
   activate $(env)
+  msg Running Python unit tests
   pytest --cov $(rootdir)/tests
   conda deactivate
 }
