@@ -27,7 +27,7 @@ def config(tmp_path):
                 "data/a.t00z.pgrb2.0p25.f000": str(tmp_path / "a.grib2"),
                 "data/b.t00z.pgrb2.0p25.f006": str(tmp_path / "b.grib2"),
             },
-            "variable_extraction_yaml": str(APP_DIR / "parm" / "wgrib2_data_to_process.yml"),
+            "variable_extraction_yaml": str(APP_DIR / "parm" / "wgrib2_data.yaml"),
             "rundir": str(tmp_path / "prep"),
         }
     }
