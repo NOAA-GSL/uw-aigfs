@@ -64,9 +64,9 @@ makeenv() {
 format() {
   local js py
   test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
-  js=( $(fromroot drivers) )
-  py=( $(fromroot drivers tests ush) )
-  sh=( $(fromroot bin) )
+  js=($(fromroot drivers/))
+  py=($(fromroot drivers/ tests/ ush/))
+  sh=($(fromroot bin/*))
   activate $(env)
   msg Formatting Python code
   ruff format ${py[@]}
