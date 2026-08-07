@@ -66,7 +66,7 @@ format() {
   test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
   js=($(fromroot drivers/))
   py=($(fromroot drivers/ tests/ ush/))
-  sh=($(fromroot bin/*))
+  sh=($(fromroot bin/* scripts/*))
   activate $(env)
   msg Formatting Python code
   ruff format ${py[@]}
