@@ -1,22 +1,32 @@
-#!/bin/bash -e
+#!/usr/bin/env -S bash -euo pipefail
 
-# Functions:
+# Export CONDADIR to specify alternate conda install path.
+# Export DEVMODE to install development packages.
 
-install_conda () {
-  test -d $CONDA_DIR && return
-  echo "=> Installing conda"
-  (
-    os=$(uname)
-    test $os == Darwin && os=MacOSX
-    hardware=$(uname -m)
-    installer=Miniforge3-$os-$hardware.sh
-    version=26.1.1-3
-    curl -sSLO https://github.com/conda-forge/miniforge/releases/download/$version/$installer
-    bash $installer -bfp $CONDA_DIR
-    rm -v $installer
-  )
-}
-
-echo "=> Building"
-install_conda
-echo "=> Ready"
+echo "=> Start"
+reporoot=$(git rev-parse --show-toplevel)
+condadir=${CONDADIR:-$reporoot/conda}
+if [[ -d $condadir ]]; then
+  echo "=> Using existing conda $condadir"
+else
+  echo "=> Installing conda to $condadir"
+  os=$(uname)
+  test $os == Darwin && os=MacOSX
+  machine=$(uname -m)
+  installer=Miniforge3-$os-$machine.sh
+  version=26.3.2-3
+  curl -sSLO https://github.com/conda-forge/miniforge/releases/download/$version/$installer
+  bash $installer -bfp $condadir
+  rm -v $installer
+fi
+. $condadir/etc/profile.d/conda.sh
+env=$(sed -n '/^name:.*/ s/^name: *//p' $reporoot/environment.yaml)
+if [[ ! -d $condadir/envs/$env ]]; then
+  echo "=> Creating environment $env"
+  conda env create --file $reporoot/environment.yaml --quiet --yes
+fi
+if [[ -v DEVMODE ]]; then
+  echo "=> Installing dev packages into $env"
+  conda install --name $env --quiet --yes $(cat $reporoot/devpkgs)
+fi
+echo "=> End"

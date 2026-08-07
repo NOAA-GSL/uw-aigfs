@@ -1,35 +1,31 @@
-ACTIVATE   = . $(INSTALLDIR)/etc/profile.d/conda.sh && conda activate
-DEVPKGS    = $(shell cat devpkgs)
-ENVNAME    = aigfs
-ENVPATH    = $(shell ls $(CONDA_PREFIX)/envs/$(ENVNAME) 2>/dev/null)
-INSTALLDIR = conda
-TARGETS    = conda devenv docs env format lint rmenv test unittest
+ACTIVATE = . $(CONDADIR)/etc/profile.d/conda.sh && conda activate
+CONDADIR = $(if $(CONDADIR),$(CONDADIR),$(PWD)/conda)
+ENVNAME  = $(shell sed -n '/^name:.*/ s/^name: *//p' environment.yaml)
+SHELL    = $(shell /usr/bin/env bash)
+TARGETS  = devenv docs env format lint rmenv test unittest
 
 .PHONY: $(TARGETS)
 
 all:
 	$(error Valid targets are: $(TARGETS))
 
-conda:
-	CONDA_DIR=$(INSTALLDIR) ./setup
-
-devenv: env
-	$(ACTIVATE) && mamba install -y -n $(ENVNAME) $(DEVPKGS)
+devenv:
+	@CONDADIR=$(CONDADIR) DEVMODE=1 bin/setup
 
 docs:
-	$(ACTIVATE) $(ENVNAME) && pdoc --output-dir docs/api drivers
+	@CONDADIR=$(CONDADIR) bin/docs
 
-env: conda
-	$(ACTIVATE) && mamba env create -y -f environment.yaml
+env:
+	@CONDADIR=$(CONDADIR) bin/setup
 
 format:
-	@bin/format drivers tests ush
+	@bin/format $(addprefix $(PWD),drivers tests ush)
 
 lint:
 	ruff check .
 
 rmenv:
-	$(if $(ENVPATH),conda env remove -y -n $(ENVNAME))
+	conda env remove -y -n $(ENVNAME)
 
 test: lint unittest
 

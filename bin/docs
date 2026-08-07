@@ -1,0 +1,10 @@
+#!/usr/bin/env -S bash -euo pipefail
+
+# Export CONDADIR to specify alternate conda install path.
+
+reporoot=$(git rev-parse --show-toplevel)
+condadir=${CONDADIR:-$reporoot/conda}
+. $condadir/etc/profile.d/conda.sh
+env=$(sed -n '/^name:.*/ s/^name: *//p' $reporoot/environment.yaml)
+conda activate env
+pdoc --output-dir $reporoot/docs/api $reporoot/drivers
