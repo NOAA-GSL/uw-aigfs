@@ -1,0 +1,71 @@
+#!/usr/bin/env -S bash -euo pipefail
+
+# Export CONDADIR to specify alternate conda install path.
+# Export DEVMODE to install development packages.
+
+# Tools:
+
+bootstrap() {
+  local condadir env rootdir
+  echo "=> Start"
+  condadir=$(condadir)
+  env=$(env)
+  rootdir=$(rootdir)
+  if [[ -d $condadir ]]; then
+    echo "=> Using existing conda $condadir"
+  else
+    echo "=> Installing conda to $condadir"
+    (
+      os=$(uname)
+      test $os == Darwin && os=MacOSX
+      machine=$(uname -m)
+      installer=Miniforge3-$os-$machine.sh
+      version=26.3.2-3
+      curl -sSLO https://github.com/conda-forge/miniforge/releases/download/$version/$installer
+      bash $installer -bfp $condadir
+      rm -v $installer
+    )
+  fi
+  activate
+  if [[ ! -d $condadir/envs/$env ]]; then
+    echo "=> Creating environment $env"
+    conda env create --file $rootdir/environment.yaml --quiet --yes
+  fi
+  if [[ -v DEVMODE ]]; then
+    echo "=> Installing dev packages into $env"
+    conda install --name $env --quiet --yes $(cat $rootdir/devpkgs)
+  fi
+  echo "=> End"
+}
+
+docs() {
+  rootdir=$(rootdir)
+  activate
+  pdoc --output-dir $rootdir/docs/api $rootdir/drivers
+}
+
+# Helpers:
+
+activate() {
+  . $(condadir)/etc/profile.d/conda.sh
+}
+
+condadir() {
+  rootdir=$(rootdir)
+  echo ${CONDADIR:-$rootdir/conda}
+}
+
+env() {
+  sed -n '/^name:.*/ s/^name: *//p' $(rootdir)/environment.yaml)
+}
+
+rootdir() {
+  git rev-parse --show-toplevel
+}
+
+# Main entrypoint:
+
+test $# -eq 0 && echo "usage: $(basename $0) tool [args ...]" && exit 1
+tool=$1
+shift
+$tool $@
