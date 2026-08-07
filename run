@@ -39,20 +39,28 @@ bootstrap() {
 }
 
 docs() {
+  local rootdir
   rootdir=$(rootdir)
-  activate
+  activate $(env)
   pdoc --output-dir $rootdir/docs/api $rootdir/drivers
+}
+
+rmenv() {
+  activate
+  conda env remove -y -n $(env)
 }
 
 # Helpers:
 
 activate() {
+  local env
+  test -v 1 && env=$1 || env=base
   . $(condadir)/etc/profile.d/conda.sh
+  conda activate $env
 }
 
 condadir() {
-  rootdir=$(rootdir)
-  echo ${CONDADIR:-$rootdir/conda}
+  echo ${CONDADIR:-$(rootdir)/conda}
 }
 
 env() {
