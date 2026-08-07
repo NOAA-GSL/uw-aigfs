@@ -20,7 +20,7 @@ docs:
 	$(ACTIVATE) $(ENVNAME) && pdoc --output-dir docs/api drivers
 
 env: conda
-	$(ACTIVATE) && mamba env create -y -f environment.yml
+	$(ACTIVATE) && mamba env create -y -f environment.yaml
 
 format:
 	@bin/format drivers tests ush
