@@ -1,4 +1,4 @@
-#!/usr/bin/env -S bash -euo pipefail
+#!/usr/bin/env -S bash -aeuo pipefail
 
 # Export CONDADIR to specify alternate conda install path.
 # Export DEVMODE to install development packages.
@@ -7,12 +7,11 @@
 
 bootstrap() {
   local condadir env rootdir
-  msg Starting
   condadir=$(condadir)
   env=$(env)
   rootdir=$(rootdir)
   if [[ -d $condadir ]]; then
-    msg Using existing conda $condadir
+    msg Using existing conda: $condadir
   else
     msg Installing conda to $condadir
     (
@@ -24,28 +23,42 @@ bootstrap() {
       curl -sSLO https://github.com/conda-forge/miniforge/releases/download/$version/$installer
       bash $installer -bfp $condadir
       rm -v $installer
+      activate base
+      conda install --quiet --yes ansible=14.2.*
     )
+    msg Installed conda to $condadir
   fi
-  activate
-  export PIP_VERBOSE=1
-  if [[ -d $condadir/envs/$env ]]; then
-    msg Using existing environment $env
-  else
-    msg Creating environment $env
-    conda env create --file $(envyaml) --quiet --yes
-  fi
-  if [[ -v DEVMODE ]]; then
-    msg Installing dev packages into environment $env
-    conda env update --file $(dirname $(envyaml))/devpkgs.yaml --name $env --quiet
-  fi
-  msg Ready
 }
 
-docs() {
+makedocs() {
   local rootdir
   rootdir=$(rootdir)
   activate $(env)
   pdoc --output-dir $rootdir/docs/api $rootdir/drivers
+  conda deactivate
+}
+
+makeenv() {
+  local condadir env
+  condadir=$(condadir)
+  env=$(env)
+  bootstrap
+  activate base
+  export PIP_VERBOSE=1
+  export XDG_CACHE_HOME=$(condadir)/cache
+  if [[ -d $condadir/envs/$env ]]; then
+    msg Using existing environment $env
+  else
+    msg Creating environment $env
+    conda env create --quiet --yes --file $(envyaml)
+    msg Created environment $env
+  fi
+  if [[ -v DEVMODE ]]; then
+    msg Installing dev packages into environment $env
+    conda env update --quiet --file $(dirname $(envyaml))/devpkgs.yaml --name $env
+    msg Installed dev packages into environment $env
+  fi
+  unset PIP_VERBOSE XDG_CACHE_HOME
 }
 
 format() {
@@ -60,11 +73,13 @@ format() {
     jq -S . $f >$f.new || (echo "    in $f" && rm $f.new && false)
     cmp --quiet $f.new $f && rm $f.new || mv $f.new $f
   done
+  conda deactivate
 }
 
 lint() {
   activate $(env)
   ruff check $(rootdir)
+  conda deactivate
 }
 
 msg() {
@@ -73,25 +88,28 @@ msg() {
 
 rmenv() {
   activate
-  conda env remove -y -n $(env)
+  conda env remove --yes --name $(env)
 }
 
 typecheck() {
   activate $(env)
   mypy $@
+  conda deactivate
 }
 
 unittest() {
   activate $(env)
   pytest --cov $(rootdir)/tests
+  conda deactivate
 }
 
 # Helpers:
 
 activate() {
   local env
-  test -v 1 && env=$1 || env=base
+  env=$1
   . $(condadir)/etc/profile.d/conda.sh
+  export CONDARC=$(rootdir)/.condarc
   conda activate $env
 }
 
@@ -116,4 +134,6 @@ rootdir() {
 test $# -eq 0 && echo "usage: $(basename $0) tool [args ...]" && exit 1
 tool=$1
 shift
+msg Starting
 $tool $@
+msg Ready
