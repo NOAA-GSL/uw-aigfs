@@ -1,5 +1,6 @@
 #!/bin/bash
-set -x
+
+set -euxo pipefail
 
 echo "Starting $0"
 

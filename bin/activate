@@ -1,4 +1,6 @@
-# -*- mode: sh -*-
+#!/bin/bash
+
+set -euo pipefail
 
 # Export CONDADIR to specify alternate conda install path.
 

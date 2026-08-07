@@ -1,4 +1,6 @@
-#!/usr/bin/env -S bash -aeuo pipefail
+#!/bin/bash
+
+set -aeuo pipefail
 
 # Export CONDADIR to specify alternate conda install path.
 # Export DEVMODE to install development packages.
@@ -62,24 +64,24 @@ makeenv() {
 }
 
 format() {
-  local js py
   test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
-  js=($(fromroot drivers/))
-  py=($(fromroot drivers/ tests/ ush/))
-  sh=($(fromroot bin/* scripts/*))
   activate $(env)
   msg Formatting Python code
-  ruff format ${py[@]}
+  ruff format $(pyfiles)
   msg Sorting Python imports
-  ruff check --select I --fix ${py[@]}
+  ruff check --select I --fix $(pyfiles)
   msg Formatting JSON
-  for f in $(find ${js[@]} -type f -name "*.json" -o -name "*.jsonschema"); do
+  for f in $(find $(jsfiles) -type f -name "*.json" -o -name "*.jsonschema"); do
     jq -S . $f >$f.new || (echo "    in $f" && rm $f.new && false)
     cmp --quiet $f.new $f && rm $f.new || mv $f.new $f
   done
   msg Formatting shell code
-  shfmt --indent 2 --write ${sh[@]}
+  shfmt --indent 2 --write $(shfiles)
   conda deactivate
+}
+
+jsfiles() {
+  find $(rootdir) -path $(condadir) -prune -o -type f -name "*.json*" -print
 }
 
 lint() {
@@ -93,6 +95,10 @@ msg() {
   echo "=> $@"
 }
 
+pyfiles() {
+  find $(rootdir) -path $(condadir) -prune -o -type f -name "*.py" -print
+}
+
 rmenv() {
   local env
   env=$(env)
@@ -100,6 +106,12 @@ rmenv() {
   msg Removing environment $env
   conda env remove --yes --name $env
   msg Removed environment $env
+}
+
+shfiles() {
+  find $(rootdir) -path $(condadir) -prune -o -type f -print | while read x; do
+    file $x | grep -q "Bourne-Again shell script" && echo $x
+  done | sort
 }
 
 typecheck() {
