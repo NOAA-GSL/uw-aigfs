@@ -23,7 +23,7 @@ env: conda
 	$(ACTIVATE) && mamba env create -y -f environment.yml
 
 format:
-	@./format
+	@bin/format drivers tests ush
 
 lint:
 	ruff check .
