@@ -1,20 +1,23 @@
 SHELL   := $(shell which bash)
 SRCDIRS := $(addprefix $(PWD)/,drivers tests ush)
-TARGETS := devenv docs env format lint rmenv test typecheck unittest
+TARGETS := bootstrap devenv docs env format lint rmenv test typecheck unittest
 
 .PHONY: $(TARGETS)
 
 all:
 	$(error Valid targets are: $(TARGETS))
 
+bootstrap:
+	@./run bootstrap
+
 devenv:
-	@DEVMODE=1 ./run bootstrap
+	@DEVMODE=1 ./run makeenv
 
 docs:
-	@./run docs
+	@./run makedocs
 
 env:
-	@./run bootstrap
+	@./run makeenv
 
 format:
 	@./run format $(SRCDIRS)
