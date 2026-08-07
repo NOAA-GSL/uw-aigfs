@@ -87,7 +87,7 @@ jsfiles() {
 lint() {
   activate $(env)
   msg Linting Python code
-  ruff check $(rootdir)
+  ruff check $(pyfiles)
   conda deactivate
 }
 
