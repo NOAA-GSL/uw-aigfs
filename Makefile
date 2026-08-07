@@ -1,5 +1,6 @@
 SHELL   := $(shell which bash)
-TARGETS := devenv docs env format lint rmenv test unittest
+SRCDIRS := $(addprefix $(PWD)/,drivers tests ush)
+TARGETS := devenv docs env format lint rmenv test typecheck unittest
 
 .PHONY: $(TARGETS)
 
@@ -16,15 +17,18 @@ env:
 	@./run bootstrap
 
 format:
-	@bin/format $(addprefix $(PWD),drivers tests ush)
+	@./run format $(SRCDIRS)
 
 lint:
-	ruff check .
+	@./run lint
 
 rmenv:
 	@./run rmenv
 
-test: lint unittest
+test: lint unittest # typecheck
+
+typecheck:
+	@./run typecheck $(SRCDIRS)
 
 unittest:
-	pytest --cov tests
+	@./run unittest

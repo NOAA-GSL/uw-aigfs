@@ -51,6 +51,7 @@ docs() {
 format() {
   test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
   msg Formatting code
+  activate $(env)
   ruff format $@
   msg Sorting imports
   ruff check --select I --fix $@
@@ -61,6 +62,11 @@ format() {
   done
 }
 
+lint() {
+  activate $(env)
+  ruff check $(rootdir)
+}
+
 msg() {
   echo "=> $@"
 }
@@ -68,6 +74,16 @@ msg() {
 rmenv() {
   activate
   conda env remove -y -n $(env)
+}
+
+typecheck() {
+  activate $(env)
+  mypy $@
+}
+
+unittest() {
+  activate $(env)
+  pytest --cov $(rootdir)/tests
 }
 
 # Helpers:
