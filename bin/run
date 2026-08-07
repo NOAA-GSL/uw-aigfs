@@ -63,19 +63,22 @@ makeenv() {
 
 format() {
   local js py
+  js=( $(fromroot drivers) )
+  py=( $(fromroot drivers tests ush) )
+  sh=( $(fromroot bin) )
   test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
   activate $(env)
   msg Formatting Python code
-  py=( $(printf "$(rootdir)/%s " drivers tests ush) )
   ruff format ${py[@]}
   msg Sorting Python imports
   ruff check --select I --fix ${py[@]}
   msg Formatting JSON
-  js=( $(printf "$(rootdir)/%s " drivers) )
   for f in $(find ${js[@]} -type f -name "*.json" -o -name "*.jsonschema"); do
     jq -S . $f >$f.new || (echo "    in $f" && rm $f.new && false)
     cmp --quiet $f.new $f && rm $f.new || mv $f.new $f
   done
+  msg Formatting shell code
+  shfmt --indent 2 --write ${js[@]}
   conda deactivate
 }
 
@@ -133,6 +136,10 @@ env() {
 
 envyaml() {
   echo $(rootdir)/envs/environment.yaml
+}
+
+fromroot() {
+  printf "$(rootdir)/%s " $@
 }
 
 rootdir() {
