@@ -7,14 +7,14 @@
 
 bootstrap() {
   local condadir env rootdir
-  echo "=> Start"
+  msg Starting
   condadir=$(condadir)
   env=$(env)
   rootdir=$(rootdir)
   if [[ -d $condadir ]]; then
-    echo "=> Using existing conda $condadir"
+    msg Using existing conda $condadir
   else
-    echo "=> Installing conda to $condadir"
+    msg Installing conda to $condadir
     (
       os=$(uname)
       test $os == Darwin && os=MacOSX
@@ -27,15 +27,17 @@ bootstrap() {
     )
   fi
   activate
-  if [[ ! -d $condadir/envs/$env ]]; then
-    echo "=> Creating environment $env"
+  if [[ -d $condadir/envs/$env ]]; then
+    msg Using existing environment $env
+  else
+    msg Creating environment $env
     conda env create --file $(envyaml) --quiet --yes
   fi
   if [[ -v DEVMODE ]]; then
-    echo "=> Installing dev packages into $env"
-    conda env update --file $(dirname $(envyaml))/devpkgs.yaml --name $env --quiet --yes
+    msg Installing dev packages into environment $env
+    conda env update --file $(dirname $(envyaml))/devpkgs.yaml --name $env
   fi
-  echo "=> Ready"
+  msg Ready
 }
 
 docs() {
@@ -47,15 +49,19 @@ docs() {
 
 format() {
   test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
-  echo "=> Formatting code"
+  msg Formatting code
   ruff format $@
-  echo "=> Sorting imports"
+  msg Sorting imports
   ruff check --select I --fix $@
-  echo "=> Formatting JSON"
+  msg Formatting JSON
   for f in $(find $@ -not -path "*/.*" -type f -name "*.json" -o -name "*.jsonschema"); do
     jq -S . $f >$f.new || (echo "    in $f" && rm $f.new && false)
     cmp --quiet $f.new $f && rm $f.new || mv $f.new $f
   done
+}
+
+msg() {
+  echo "=> $@"
 }
 
 rmenv() {
