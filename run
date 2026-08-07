@@ -29,13 +29,13 @@ bootstrap() {
   activate
   if [[ ! -d $condadir/envs/$env ]]; then
     echo "=> Creating environment $env"
-    conda env create --file $rootdir/environment.yaml --quiet --yes
+    conda env create --file $(envyaml) --quiet --yes
   fi
   if [[ -v DEVMODE ]]; then
     echo "=> Installing dev packages into $env"
-    conda install --name $env --quiet --yes $(cat $rootdir/devpkgs)
+    conda env update --file $(dirname $(envyaml))/devpkgs.yaml --name $env --quiet --yes
   fi
-  echo "=> End"
+  echo "=> Ready"
 }
 
 docs() {
@@ -77,7 +77,11 @@ condadir() {
 }
 
 env() {
-  sed -n '/^name:.*/ s/^name: *//p' $(rootdir)/environment.yaml)
+  sed -n '/^name:.*/ s/^name: *//p' $(envyaml)
+}
+
+envyaml() {
+  echo $(rootdir)/envs/environment.yaml
 }
 
 rootdir() {

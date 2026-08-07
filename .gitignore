@@ -1,5 +1,5 @@
-conda/
-docs/api/
 *.swp
 .coverage
 __pycache__
+conda/
+docs/api/

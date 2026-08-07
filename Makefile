@@ -1,5 +1,5 @@
-SHELL   = $(shell /usr/bin/env bash)
-TARGETS = devenv docs env format lint rmenv test unittest
+SHELL   := $(shell which bash)
+TARGETS := devenv docs env format lint rmenv test unittest
 
 .PHONY: $(TARGETS)
 
