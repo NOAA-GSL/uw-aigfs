@@ -40,10 +40,10 @@ class GenICS(DriverCycleBased, FileStager):
     @task
     def merged_netcdf_files(self):
         """
-        Open the intermediate netcdf files, process the data and write the result in a single file.
+        Open the intermediate netCDF files, process the data and write the result in a single file.
         """
         path = self.rundir / f"aigfs.t{self.cycle.strftime('%H')}z.ic.nc"
-        yield f"Merged NetCDF file {path}"
+        yield f"Merged netCDF file {path}"
         yield Asset(path, path.is_file)
         yield self.wgrib2_tasks()
 
