@@ -56,12 +56,12 @@ makeenv() {
     msg Using existing environment $env
   else
     msg Creating environment $env
-    conda env create --quiet --yes --file $(envyaml)
+    conda env create --file $(envyaml) --quiet --yes
     msg Created environment $env
   fi
   if [[ -v DEVMODE ]]; then
     msg Installing dev packages into environment $env
-    conda env update --quiet --file $(dirname $(envyaml))/devpkgs.yaml --name $env
+    conda env update --file $(dirname $(envyaml))/devpkgs.yaml --name $env --quiet
     msg Installed dev packages into environment $env
   fi
   unset PIP_VERBOSE XDG_CACHE_HOME
@@ -115,7 +115,7 @@ rmenv() {
   env=$(env)
   activate base
   msg Removing environment $env
-  conda env remove --yes --name $env
+  conda env remove --name $env --yes
   msg Removed environment $env
 }
 
