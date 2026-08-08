@@ -10,8 +10,6 @@ from pytest import fixture
 
 from . import generate_ics
 
-APP_DIR = Path(__file__).parent.parent
-
 
 @fixture
 def config(tmp_path):
@@ -25,7 +23,9 @@ def config(tmp_path):
                 "data/a.t00z.pgrb2.0p25.f000": str(tmp_path / "a.grib2"),
                 "data/b.t00z.pgrb2.0p25.f006": str(tmp_path / "b.grib2"),
             },
-            "variable_extraction_yaml": str(APP_DIR / "parm" / "wgrib2_data.yaml"),
+            "variable_extraction_yaml": str(
+                Path(__file__).parent.parent / "parm" / "wgrib2_data.yaml"
+            ),
             "rundir": str(tmp_path / "prep"),
         }
     }
@@ -42,7 +42,7 @@ def driverobj(config, cycle):
         config=config,
         cycle=cycle,
         batch=True,
-        schema_file=APP_DIR / "drivers" / "generate_ics.jsonschema",
+        schema_file=Path(__file__).parent / "generate_ics.jsonschema",
     )
 
 
