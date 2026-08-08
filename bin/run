@@ -94,6 +94,8 @@ jsfiles() {
 
 lint() {
   activate $(env)
+  msg Linting YAML
+  yamllint --no-warnings $(yamlfiles)
   msg Linting shell code
   shellcheck --format=gcc --severity=info --shell=bash $(shfiles)
   msg Linting Python code
@@ -167,6 +169,10 @@ fromroot() {
 
 rootdir() {
   git rev-parse --show-toplevel
+}
+
+yamlfiles() {
+  find $(rootdir) -path $(condadir) -prune -o -type f -name "*.yaml" -print
 }
 
 # Main entrypoint:
