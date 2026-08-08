@@ -11,10 +11,9 @@ from uwtools.api import rocoto
 from uwtools.api.config import YAMLConfig, compose, realize
 from uwtools.api.logging import use_uwtools_logger
 
-APP_HOME = Path(__file__).parent.parent.resolve()
-sys.path.append(str(APP_HOME))
+from .validation import Config, validate
 
-from ush.validation import Config, validate  # noqa: E402
+APP_HOME = Path(__file__).parent.parent.resolve()
 
 
 def generate_experiment_files(
