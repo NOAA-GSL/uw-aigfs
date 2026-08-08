@@ -33,11 +33,14 @@ bootstrap() {
 }
 
 makedocs() {
-  local rootdir
+  local outdir rootdir
   rootdir=$(rootdir)
+  outdir=$rootdir/docs/api
   activate $(env)
-  (set -x && pdoc --output-dir $rootdir/docs/api $rootdir/drivers)
+  msg Building documentation in $outdir
+  pdoc --output-dir $outdir $rootdir/drivers
   conda deactivate
+  msg Built documentation in $outdir
 }
 
 makeenv() {
