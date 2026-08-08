@@ -68,7 +68,6 @@ makeenv() {
 }
 
 format() {
-  test $# -eq 0 && echo "usage: $(basename $0) path [path ...]" && exit 1
   activate $(env)
   msg Formatting JSON
   for f in $(jsfiles); do
@@ -129,7 +128,7 @@ shfiles() {
 typecheck() {
   activate $(env)
   msg Typechecking Python code
-  MYPYPATH=$(rootdir)/drivers mypy $@
+  MYPYPATH=$(rootdir)/drivers mypy $(pyfiles)
   conda deactivate
 }
 

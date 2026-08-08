@@ -1,5 +1,4 @@
 SHELL   := $(shell which bash)
-SRCDIRS := $(addprefix $(PWD)/,drivers tests ush)
 TARGETS := bootstrap devenv docs env format lint rmenv test typecheck unittest
 
 .PHONY: $(TARGETS)
@@ -20,7 +19,7 @@ env:
 	@bin/run makeenv
 
 format:
-	@bin/run format $(SRCDIRS)
+	@bin/run format
 
 lint:
 	@bin/run lint
@@ -31,7 +30,7 @@ rmenv:
 test: lint unittest # typecheck
 
 typecheck:
-	@bin/run typecheck $(SRCDIRS)
+	@bin/run typecheck
 
 unittest:
 	@bin/run unittest
