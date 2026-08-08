@@ -129,7 +129,7 @@ shfiles() {
 typecheck() {
   activate $(env)
   msg Typechecking Python code
-  mypy $@
+  MYPYPATH=$(rootdir)/drivers mypy $@
   conda deactivate
 }
 

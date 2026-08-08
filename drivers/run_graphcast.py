@@ -6,7 +6,6 @@ from __future__ import annotations
 
 import dataclasses
 import logging
-import sys
 from datetime import timedelta
 from functools import partial
 from pathlib import Path
@@ -16,7 +15,7 @@ import jax
 import numpy as np
 import pandas as pd
 import xarray as xr
-from graphcast import (
+from graphcast import (  # type: ignore[import-untyped]
     autoregressive,
     casting,
     checkpoint,
@@ -28,10 +27,8 @@ from graphcast import (
 from iotaa import Asset, collection, task
 from uwtools.drivers.driver import DriverCycleBased
 
-sys.path.append(str(Path(__file__).parent))
-
-from utils import grib2writer
-from utils.tasks import file
+from .utils.grib2writer import Grib2Writer
+from .utils.tasks import file
 
 jax.config.update("jax_platforms", "cpu")
 
@@ -51,7 +48,7 @@ class GraphCastModel(DriverCycleBased):
         norm_stats = self.load_normalization_stats()
         yield [ics, itfs, model_weights, norm_stats]
         ds = _clean_ics(ics.ref)
-        converter = grib2writer.Grib2Writer(
+        converter = Grib2Writer(
             start_date=pd.to_datetime(ds.datetime.values[0][-1]),  # noqa: PD011 FIXME w/ unit tests
             case_name="aigfs",
             json_path=Path(self.config["json_path"]),

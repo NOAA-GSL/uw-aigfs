@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 from pathlib import Path
+from typing import cast
 
 from uwtools.api import rocoto
 from uwtools.api.config import YAMLConfig, compose, realize
@@ -69,7 +70,9 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     Combine base, user, and platform configs into one experiment config.
     """
     # Set up the experiment.
-    user_config = compose(configs=user_config_files, output_file=os.devnull)
+    user_config = compose(
+        configs=cast("list[str | Path]", user_config_files), output_file=os.devnull
+    )
     machine = user_config["user"]["platform"]
 
     default_config = APP_HOME / "ush" / "default_config.yaml"
