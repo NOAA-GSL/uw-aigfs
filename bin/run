@@ -135,7 +135,7 @@ typecheck() {
 unittest() {
   activate $(env)
   msg Running Python unit tests
-  pytest --cov drivers/
+  pytest --cov=drivers --cov=ush --cov-report=term-missing --ignore=conda/ .
   conda deactivate
 }
 

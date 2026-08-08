@@ -27,7 +27,7 @@ lint:
 rmenv:
 	@bin/run rmenv
 
-test: lint unittest # typecheck
+test: lint typecheck unittest
 
 typecheck:
 	@bin/run typecheck
