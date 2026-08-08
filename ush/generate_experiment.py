@@ -61,7 +61,7 @@ def parse_args() -> list[Path]:
         nargs="+",
         type=Path,
     )
-    return parser.parse_args().user_config_files
+    return cast(list[Path], parser.parse_args().user_config_files)
 
 
 def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
@@ -69,9 +69,7 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     Combine base, user, and platform configs into one experiment config.
     """
     # Set up the experiment.
-    user_config = compose(
-        configs=cast("list[str | Path]", user_config_files), output_file=os.devnull
-    )
+    user_config = compose(configs=cast(list[str | Path], user_config_files), output_file=os.devnull)
     machine = user_config["user"]["platform"]
 
     default_config = APP_HOME / "ush" / "default_config.yaml"
@@ -84,8 +82,7 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
         output_file=os.devnull,
     )
     experiment_config.update_from({"user": {"app_home": str(APP_HOME)}})
-
-    return experiment_config
+    return cast(YAMLConfig, experiment_config)
 
 
 def setup_experiment_directory(validated: Config) -> tuple[Path, Path]:

@@ -38,6 +38,7 @@ ignore = [
   "PLR2004", # magic-value-comparison
   "S101",    # assert
   "S603",    # subprocess-without-shell-equals-true
+  "TC006",   # runtime-cast-value
   "UP031",   # printf-string-formatting
 ]
 

@@ -50,9 +50,10 @@ class Grib2Writer:
     ) -> None:
         self.case_name = case_name
         if self.case_name == "aigfs":
-            assert json_path is not None
+            assert json_path
             table_file = json_path / "tables_aigfs.json"
         elif self.case_name.startswith("aige"):
+            assert json_path
             table_file = json_path / "tables_aigefs.json"
         else:
             msg = f"name {self.case_name} is not supported!"
@@ -97,6 +98,7 @@ class Grib2Writer:
         # update decScaleFactor for specific humidity
         # 12 for [5000, 10000]Pa, 10 for [15000, ..., 40000]Pa, 8 for [50000, ..., 100000]Pa
         if var == "specific_humidity":
+            assert level is not None
             if level >= 5000 and level <= 10000:
                 msg.decScaleFactor = 12
             elif level >= 15000 and level <= 40000:
