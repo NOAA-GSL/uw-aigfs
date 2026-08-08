@@ -2,17 +2,15 @@
 GenICS driver tests.
 """
 
-import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from unittest.mock import patch
 
 from pytest import fixture
 
-APP_DIR = Path(__file__).parent.parent.parent
-sys.path.append(str(APP_DIR))
+from . import generate_ics
 
-from drivers import generate_ics  # noqa: E402
+APP_DIR = Path(__file__).parent.parent
 
 
 @fixture
@@ -44,7 +42,7 @@ def driverobj(config, cycle):
         config=config,
         cycle=cycle,
         batch=True,
-        schema_file=APP_DIR / "drivers/generate_ics.jsonschema",
+        schema_file=APP_DIR / "drivers" / "generate_ics.jsonschema",
     )
 
 

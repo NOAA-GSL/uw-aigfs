@@ -42,7 +42,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = [
+"{conftest.py,**/*_test.py}" = [
   "ANN002",  # missing-type-args
   "ANN003",  # missing-type-kwargs
   "PT013",   # pytest-incorrect-pytest-import

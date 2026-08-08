@@ -136,7 +136,7 @@ typecheck() {
 unittest() {
   activate $(env)
   msg Running Python unit tests
-  pytest --cov $(rootdir)/tests
+  pytest --cov drivers/
   conda deactivate
 }
 
