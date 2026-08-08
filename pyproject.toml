@@ -1,3 +1,19 @@
+[tool.coverage.report]
+fail_under = 100
+omit = [
+  "drivers/post.py",
+  "drivers/run_graphcast.py",
+  "drivers/utils/grib2writer.py",
+  "drivers/utils/tasks.py",
+  "ush/generate_experiment.py",
+  "ush/validation.py",
+]
+show_missing = true
+skip_covered = true
+
+[tool.coverage.run]
+branch = true
+
 [tool.mypy]
 check_untyped_defs = true
 pretty = true
