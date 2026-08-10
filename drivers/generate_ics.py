@@ -46,9 +46,8 @@ class GenICs(DriverCycleBased, FileStager):
         yield f"Merged netCDF file {path}"
         yield Asset(path, path.is_file)
         yield self.wgrib2_tasks()
-
+        # PM update to not do command-string processing.
         output_files = [cmd.split()[-1] for cmd in self._wgrib2_commands]
-
         extracted_datasets = [xr.open_dataset(f) for f in output_files]
         ds = xr.merge(extracted_datasets, compat="no_conflicts", join="outer")
         ds = ds.drop_dims("level")
@@ -72,37 +71,28 @@ class GenICs(DriverCycleBased, FileStager):
                 "VGRD": "v_component_of_wind",
             }
         )
-
         ds = ds.assign_coords(datetime=ds.time)
-
         ds["lat"] = ds["lat"].astype("float32")
         ds["lon"] = ds["lon"].astype("float32")
         ds["level"] = ds["level"].astype("int32")
-
         ds["time"] = ds["time"] - ds.time[0]  # time now relative to the first time step
-
         ds = ds.expand_dims(dim="batch")
         ds["datetime"] = ds["datetime"].expand_dims(dim="batch")
-
         sfc_geop = ds["geopotential_at_surface"].squeeze("batch")
         sfc_geop = (
             sfc_geop.isel(time=1) if sfc_geop.isel(time=0).isnull().all() else sfc_geop.isel(time=0)
         )
         ds["geopotential_at_surface"] = sfc_geop
-
         ls_mask = ds["land_sea_mask"].squeeze("batch")
         ls_mask = (
             ls_mask.isel(time=0) if ls_mask.isel(time=1).isnull().all() else ls_mask.isel(time=1)
         )
         ds["land_sea_mask"] = ls_mask
-
-        # Update geopotential unit to m2/s2 by multiplying 9.80665
+        # Update geopotential unit to m2/s2 by multiplying 9.80665.
         ds["geopotential_at_surface"] = ds["geopotential_at_surface"] * 9.80665
         ds["geopotential"] = ds["geopotential"] * 9.80665
-
-        # Update total_precipitation_6hr unit to (m) from (kg/m^2) by dividing it by 1000kg/m³
+        # Update total_precipitation_6hr unit to (m) from (kg/m^2) by dividing it by 1000kg/m³.
         ds["total_precipitation_6hr"] = ds["total_precipitation_6hr"] / 1000
-
         ds.to_netcdf(path)
 
     @collection
@@ -147,7 +137,7 @@ class GenICs(DriverCycleBased, FileStager):
         for sect in ("files_to_copy", "files_to_hardlink", "files_to_link"):
             rel_paths = self.config.get(sect, [])
             for path in rel_paths:
-                if path.startswith("data"):
+                if path.startswith("data"):  # pragma: no cover
                     files.add(self.rundir / path)
         wgrib2_commands = []
         file_pattern = r"\w*\.t(\d{2})z(\.\w*)"
@@ -158,12 +148,12 @@ class GenICs(DriverCycleBased, FileStager):
                 level = var_config["levels"][0]
                 for grib_file in matching_files:
                     if (load_once := var_config.get("load_once")) is False:
-                        continue
+                        continue  # pragma: no cover
                     logging.info("loading %s", variable)
                     hour_match = re.match(file_pattern, grib_file.name)
                     if hour_match:
                         hour = hour_match.groups()[0]
-                    else:
+                    else:  # pragma: no cover
                         msg = "Files don't have names expected by this driver!"
                         raise ValueError(msg)
                     if load_once is True:
