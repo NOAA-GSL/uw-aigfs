@@ -1,5 +1,5 @@
 """
-GenICS driver tests.
+GenICs driver tests.
 """
 
 from datetime import datetime, timezone
@@ -38,7 +38,7 @@ def cycle():
 
 @fixture
 def driverobj(config, cycle):
-    return generate_ics.GenICS(
+    return generate_ics.GenICs(
         config=config,
         cycle=cycle,
         batch=True,

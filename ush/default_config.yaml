@@ -29,7 +29,7 @@ prep:
       envcmds:
         - source {{ user.app_home }}/load_wflow_modules.sh {{ user.platform }}
         - module load wgrib2
-      executable: uw execute --module {{ user.app_home }}/drivers/generate_ics.py --classname GenICS --task merged_netcdf_files -c {{ user.experiment_dir }}/experiment.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path prep
+      executable: uw execute --module {{ user.app_home }}/drivers/generate_ics.py --classname GenICs --task merged_netcdf_files -c {{ user.experiment_dir }}/experiment.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path prep
     files_to_hardlink:
       data/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/{{ timevars.m2_yyyymmdd }}/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006'
       data/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/{{ timevars.m1_yyyymmdd }}/gfs.t{{ timevars.m1_cyc}}z.pgrb2.0p25.f000'

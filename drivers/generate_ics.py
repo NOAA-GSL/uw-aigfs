@@ -16,7 +16,7 @@ from uwtools.drivers.stager import FileStager
 from uwtools.utils.processing import run_shell_cmd
 
 
-class GenICS(DriverCycleBased, FileStager):
+class GenICs(DriverCycleBased, FileStager):
     """
     A driver for generating GraphCast initial conditions.
     """

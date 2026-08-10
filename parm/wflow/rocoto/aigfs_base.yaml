@@ -22,7 +22,7 @@ workflow:
         cyclestr:
           value: source &AIGFS_APP;/load_wflow_modules.sh &PLATFORM; && uw execute
             --module &AIGFS_APP;/drivers/generate_ics.py
-            --classname GenICS
+            --classname GenICs
             --task run
             --config &EXPERIMENT_CONFIG;
             --cycle @Y-@m-@dT@H

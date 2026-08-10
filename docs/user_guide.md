@@ -209,7 +209,7 @@ The ***uwtools*** package provides a tool to help iterate through the entire wor
 
 ### Prep: Initial Conditions Generation
 
-The `task_prep` ***Rocoto*** task runs `drivers/generate_ics.py` (driver class `GenICS`). It:
+The `task_prep` ***Rocoto*** task runs `drivers/generate_ics.py` (driver class `GenICs`). It:
 
 1. Hard-links GFS GRIB2 files from `user.gfs_data` into the cycle's `prep/data/` subdirectory. The files required are:
    - Two timesteps from the previous two cycles (for temporal interpolation)
