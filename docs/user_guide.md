@@ -110,7 +110,7 @@ Supported values for `<platform>`:
 | `forecast` | ***GraphCast*** model inference: model weights, normalization stats, and forecast parameters |
 | `post` | Post-processing: GRIB2 index generation and file delivery |
 
-The `platform` block supplies scheduler and account settings. A machine-specific YAML in `parm/machines/` (e.g., `parm/machines/ursa.yaml`) is automatically merged based on the value of `user.platform`.
+The `platform` block supplies scheduler and account settings. A machine-specific YAML in `parm/machine/` (e.g., `parm/machine/ursa.yaml`) is automatically merged based on the value of `user.platform`.
 
 ### User Config YAML
 
@@ -166,7 +166,7 @@ With the environment activated (see [Setting Up the Environment](#setting-up-the
 python ush/generate_experiment.py [additional.yaml ...] user.yaml
 ```
 
-Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `ush/default_config.yaml` and the appropriate machine YAML (`parm/machines/<platform>.yaml`) before applying your user configs.
+Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `ush/default_config.yaml` and the appropriate machine YAML (`parm/machine/<platform>.yaml`) before applying your user configs.
 
 The following files are written to `user.experiment_dir`:
 

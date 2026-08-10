@@ -168,7 +168,7 @@ uw-aigfs/
 │   └── utils/                 # Shared driver utilities (GRIB2 writing, task helpers)
 ├── modulefiles/               # Environment modulefiles (WCOSS2)
 ├── parm/
-│   ├── machines/              # Per-platform YAML overrides (e.g., ursa.yaml)
+│   ├── machine/               # Per-platform YAML overrides (e.g., ursa.yaml)
 │   ├── wflow/
 │   │   └── rocoto/            # Rocoto workflow YAML template (aigfs_base.yaml)
 │   └── wgrib2_data.yaml       # Variables and levels to extract from GFS GRIB2
