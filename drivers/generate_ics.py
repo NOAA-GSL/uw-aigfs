@@ -24,7 +24,7 @@ class GenICs(DriverCycleBased, FileStager):
     # Tasks
 
     @collection
-    def provisioned_rundir(self):  # pragma: no cover
+    def provisioned_rundir(self):
         """
         Run directory provisioned with all required content.
         """
@@ -38,7 +38,7 @@ class GenICs(DriverCycleBased, FileStager):
         yield required
 
     @task
-    def merged_netcdf_files(self):  # pragma: no cover
+    def merged_netcdf_files(self):
         """
         Open the intermediate netCDF files, process the data and write the result in a single file.
         """
@@ -147,7 +147,7 @@ class GenICs(DriverCycleBased, FileStager):
         for sect in ("files_to_copy", "files_to_hardlink", "files_to_link"):
             rel_paths = self.config.get(sect, [])
             for path in rel_paths:
-                if path.startswith("data"):  # pragma: no cover
+                if path.startswith("data"):
                     files.add(self.rundir / path)
         wgrib2_commands = []
         file_pattern = r"\w*\.t(\d{2})z(\.\w*)"
@@ -158,12 +158,12 @@ class GenICs(DriverCycleBased, FileStager):
                 level = var_config["levels"][0]
                 for grib_file in matching_files:
                     if (load_once := var_config.get("load_once")) is False:
-                        continue  # pragma: no cover
+                        continue
                     logging.info("loading %s", variable)
                     hour_match = re.match(file_pattern, grib_file.name)
                     if hour_match:
                         hour = hour_match.groups()[0]
-                    else:  # pragma: no cover
+                    else:
                         msg = "Files don't have names expected by this driver!"
                         raise ValueError(msg)
                     if load_once is True:

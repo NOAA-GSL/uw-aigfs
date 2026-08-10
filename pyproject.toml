@@ -47,6 +47,7 @@ ignore = [
   "D203",    # incorrect-blank-line-before-class
   "D212",    # multi-line-summary-first-line
   "D401",    # non-imperative-mood
+  "FBT001",  # boolean-type-hint-positional-argument
   "INP001",  # implicit-namespace-package
   "LOG015",  # root-logger-call
   "PLR0913", # too-many-arguments

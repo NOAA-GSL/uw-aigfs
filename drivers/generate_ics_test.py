@@ -3,12 +3,24 @@ GenICs driver tests.
 """
 
 from datetime import datetime, timezone
+from itertools import product
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
-from pytest import fixture
+from iotaa import Asset, external
+from pytest import fixture, mark
 
 from . import generate_ics
+
+
+@fixture
+def atask():
+    @external
+    def f(ready: bool):
+        yield "A %sready task" % ("" if ready else "not-")
+        yield Asset(ready, lambda: ready)
+
+    return f
 
 
 @fixture
@@ -44,6 +56,22 @@ def driverobj(config, cycle):
         batch=True,
         schema_file=Path(__file__).parent / "generate_ics.jsonschema",
     )
+
+
+@mark.parametrize("ready", list(product([True, False], repeat=4)))
+def test_provisioned_rundir(atask, ready, driverobj, logcap):
+    mocks = [Mock(wraps=atask(x)) for x in ready]
+    with (
+        patch.object(driverobj, "files_copied", mocks[0]) as files_copied,
+        patch.object(driverobj, "files_hardlinked", mocks[1]) as files_hardlinked,
+        patch.object(driverobj, "files_linked", mocks[2]) as files_linked,
+        patch.object(driverobj, "runscript", mocks[3]) as runscript,
+    ):
+        node = driverobj.provisioned_rundir()
+        assert "provisioned run directory" in logcap.text
+        for x in [files_copied, files_hardlinked, files_linked, runscript]:
+            x.assert_called_once_with()
+        assert node.ready is all(ready)
 
 
 def test_driver_name(driverobj):
