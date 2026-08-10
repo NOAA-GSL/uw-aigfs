@@ -16,7 +16,6 @@ import numpy as np
 import pandas as pd
 import xarray as xr
 from graphcast import (  # type: ignore[import-untyped]
-    CheckPoint,
     autoregressive,
     casting,
     checkpoint,
@@ -149,7 +148,7 @@ class GraphCastModel(DriverCycleBased):
         Load the pre-trained model weights.
         """
         yield "model weights"
-        weights: list[CheckPoint] = []
+        weights: list[graphcast.CheckPoint] = []
         yield Asset(weights, lambda: bool(weights))
         model_weights_path = Path(self.config["model_weights_path"])
         yield file(model_weights_path)
