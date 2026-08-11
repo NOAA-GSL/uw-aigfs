@@ -1,13 +1,15 @@
-# from collections.abc import Iterator
-# from itertools import product
-# from textwrap import dedent
-# from unittest.mock import Mock, patch
+from collections.abc import Iterator
+
 # import numpy as np
 # import xarray as xr
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from iotaa import Node
+# from itertools import product
+# from textwrap import dedent
+from unittest.mock import Mock, patch
+
+from iotaa import Asset, Node, task
 from pytest import fixture  # , mark, raises
 
 from . import post
@@ -77,8 +79,40 @@ def driverobj(config, cycle):
 #     assert node.ready is all(ready)
 
 
+def test_AIGFSPost__idx_delivered(driverobj):
+    @task
+    def mock__idx(path: Path) -> Iterator:
+        yield f"mock__idx {path}"
+        yield Asset(path, path.is_file)
+        yield None
+        path.parent.mkdir(exist_ok=True, parents=True)
+        path.touch()
+
+    path = Path(driverobj._deliver_to, "aigfs.t00z.sfc.f006.grib2.idx")
+    assert not path.exists()
+    with patch.object(driverobj, "_idx", Mock(wraps=mock__idx)) as _idx:
+        node = driverobj._idx_delivered(path)
+    assert node.ready
+    _idx.assert_called_once_with(driverobj._delivered2idx[path])
+    assert path.is_file()
+
+
+def test_AIGFSPost__valid_driver_config(driverobj, logcap):
+    reason = "Catastrophic failure"
+    node = driverobj._valid_driver_config(reason=reason)
+    assert not node.ready
+    assert reason in logcap.text
+
+
 def test_AIGFSPost_driver_name(driverobj):
     assert driverobj.driver_name() == "aigfs_post"
+
+
+def test_AIGFSPost_output(driverobj):
+    do = Path(driverobj.config["outputdir"])
+    assert driverobj.output == {
+        "idx": [do / "aigfs.t00z.sfc.f006.grib2.idx", do / "aigfs.t00z.pres.f006.grib2.idx"]
+    }
 
 
 def test_AIGFSPost__deliver_to(driverobj):
