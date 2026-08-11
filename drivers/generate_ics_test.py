@@ -5,12 +5,15 @@ GenICs driver tests.
 from datetime import datetime, timezone
 from itertools import product
 from pathlib import Path
+from textwrap import dedent
 from unittest.mock import Mock, patch
 
 from iotaa import Asset, external
-from pytest import fixture, mark
+from pytest import fixture, mark, raises
 
 from . import generate_ics
+
+# Fixtures
 
 
 @fixture
@@ -33,7 +36,8 @@ def config(tmp_path):
             },
             "files_to_link": {
                 "data/a.t00z.pgrb2.0p25.f000": str(tmp_path / "fh0.grib2"),
-                "data/b.t00z.pgrb2.0p25.f006": str(tmp_path / "fh6.grib2"),
+                "data/a.t00z.pgrb2.0p25.f006": str(tmp_path / "fh6.grib2"),
+                "foo/bar": "/baz/quz",
             },
             "variable_extraction_yaml": str(tmp_path / "vars.yaml"),
             "rundir": str(tmp_path / "prep"),
@@ -56,8 +60,69 @@ def driverobj(config, cycle):
     )
 
 
+@fixture
+def varkit(driverobj):
+    content = """
+    ".pgrb2.0p25.f000":
+      ":HGT:":
+        levels:
+          - ":surface:"
+        load_once: true
+      ":TMP:":
+        levels:
+          - ":2 m above ground:"
+      ":PRMSL:":
+        levels:
+          - ":mean sea level:"
+      ":VGRD|UGRD:":
+        levels:
+          - ":10 m above ground:"
+      ":SPFH|VVEL|VGRD|UGRD|HGT|TMP:":
+        levels:
+          - ":(200|850|1000) mb:"
+    ".pgrb2.0p25.f006":
+      ":LAND:":
+        levels:
+          - ":surface:"
+        load_once: true
+      "^(597):":
+        levels:
+          - ":surface:"
+      ":FOO:":
+        levels:
+          - ":surface:"
+        load_once: false
+    """
+    Path(driverobj.config["variable_extraction_yaml"]).write_text(dedent(content))
+    d = driverobj.rundir / "data"
+    keys = [
+        Path(f"{d}/HGT_surface_00.pgrb2.0p25.f000.nc"),
+        Path(f"{d}/TMP_2_m_above_ground_00.pgrb2.0p25.f000.nc"),
+        Path(f"{d}/PRMSL_mean_sea_level_00.pgrb2.0p25.f000.nc"),
+        Path(f"{d}/VGRD.UGRD_10_m_above_ground_00.pgrb2.0p25.f000.nc"),
+        Path(f"{d}/SPFH.VVEL.VGRD.UGRD.HGT.TMP_.200.850.1000._mb_00.pgrb2.0p25.f000.nc"),
+        Path(f"{d}/LAND_surface_00.pgrb2.0p25.f006.nc"),
+        Path(f"{d}/^.597._surface_00.pgrb2.0p25.f006.nc"),
+    ]
+    cmd = "wgrib2 -match ':%s:' -match '%s' -nc_nlev %s -netcdf {ncfile} %s/a.t00z.pgrb2.0p25.f00%s"
+    vals = [
+        cmd % ("surface", ":HGT:", 1, d, 0),
+        cmd % ("2 m above ground", ":TMP:", 1, d, 0),
+        cmd % ("mean sea level", ":PRMSL:", 1, d, 0),
+        cmd % ("10 m above ground", ":VGRD|UGRD:", 1, d, 0),
+        cmd % ("(200|850|1000) mb", ":SPFH|VVEL|VGRD|UGRD|HGT|TMP:", 3, d, 0),
+        cmd % ("surface", ":LAND:", 1, d, 6),
+        cmd % ("surface", "^(597):", 1, d, 6),
+    ]
+    expected = dict(zip(keys, vals, strict=True))
+    return driverobj, expected
+
+
+# Tests
+
+
 @mark.parametrize("ready", list(product([True, False], repeat=4)))
-def test_provisioned_rundir(atask, ready, driverobj, logcap):
+def test_GenICs_provisioned_rundir(atask, ready, driverobj, logcap):
     mocks = [Mock(wraps=atask(x)) for x in ready]
     with (
         patch.object(driverobj, "files_copied", mocks[0]) as files_copied,
@@ -72,21 +137,20 @@ def test_provisioned_rundir(atask, ready, driverobj, logcap):
         assert node.ready is all(ready)
 
 
-def test_driver_name(driverobj):
+def test_GenICs_driver_name(driverobj):
     assert driverobj.driver_name() == "aigfs_ics"
 
 
-# def test_wgrib2_tasks(driverobj, tmp_path):
-#     def make_output(*_args, **_kwargs):
-#         cmd = _kwargs["cmd"]
-#         (driverobj.rundir / cmd.split()[-1]).touch()
-#     for f in ("a.grib2", "b.grib2"):
-#         (tmp_path / f).touch()
-#     with patch.object(generate_ics, "run_shell_cmd", side_effect=make_output) as run:
-#         driverobj.wgrib2_tasks()
-#         assert run.call_count == 7
+def test_GenICs__ncfiles_to_cmds(varkit):
+    driverobj, expected = varkit
+    mapping = driverobj._ncfiles_to_cmds
+    assert mapping == expected
 
 
-# def test__wgrib2_commands(driverobj):
-#     cmds = driverobj._wgrib2_commands
-#     assert len(cmds) == 7
+def test_GenICs__ncfiles_to_cmds__bad_grib_filenames(varkit):
+    driverobj, _ = varkit
+    config = driverobj._config["files_to_link"]
+    key = next(iter(config))
+    config[key.replace("t00z", "z00t")] = config[key]
+    with raises(ValueError, match="GRIB files don't have names expected by this driver!"):
+        assert driverobj._ncfiles_to_cmds

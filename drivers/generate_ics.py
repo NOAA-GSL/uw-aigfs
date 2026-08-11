@@ -142,8 +142,8 @@ class GenICs(DriverCycleBased, FileStager):
                     if (load_once := cfg.get("load_once")) is False:
                         continue
                     logging.info("Loading %s", var)
-                    if not (m := re.match(rf"^.*\.t(\d{2})z{suffix}$", path.name)):
-                        msg = "Files don't have names expected by this driver!"
+                    if not (m := re.match(rf"^.*\.t(\d\d)z{suffix}$", path.name)):
+                        msg = "GRIB files don't have names expected by this driver!"
                         raise ValueError(msg)  # PM don't blow up the task graph
                     if load_once is True:
                         cfg["load_once"] = False
