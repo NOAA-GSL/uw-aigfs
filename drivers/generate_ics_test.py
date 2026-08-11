@@ -137,6 +137,22 @@ def test_GenICs_provisioned_rundir(atask, ready, driverobj, logcap):
         assert node.ready is all(ready)
 
 
+@mark.parametrize("ready", list(product([True, False], repeat=3)))
+def test_GenICs__ncfile(atask, ready, driverobj, logcap):
+    path = driverobj.rundir / "a.nc"
+    mocks = [Mock(wraps=atask(x)) for x in ready]
+    with (
+        patch.object(driverobj, "files_copied", mocks[0]) as files_copied,
+        patch.object(driverobj, "files_hardlinked", mocks[1]) as files_hardlinked,
+        patch.object(driverobj, "files_linked", mocks[2]) as files_linked,
+    ):
+        node = driverobj._ncfile(path=path, cmd="touch {ncfile}")
+        assert f"netCDF file {path}" in logcap.text
+        for x in [files_copied, files_hardlinked, files_linked]:
+            x.assert_called_once_with()
+        assert node.ready is all(ready)
+
+
 def test_GenICs_driver_name(driverobj):
     assert driverobj.driver_name() == "aigfs_ics"
 

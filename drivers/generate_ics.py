@@ -110,7 +110,7 @@ class GenICs(DriverCycleBased, FileStager):
         yield Asset(path, path.is_file)
         yield [self.files_copied(), self.files_hardlinked(), self.files_linked()]
         with atomic(path) as tmp:
-            run_shell_cmd(cmd=cmd % tmp, cwd=self.rundir, taskname=taskname)
+            run_shell_cmd(cmd=cmd.format(ncfile=tmp), cwd=self.rundir, taskname=taskname)
 
     # Public helper methods
 
