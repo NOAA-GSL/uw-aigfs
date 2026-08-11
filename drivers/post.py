@@ -24,21 +24,20 @@ class AIGFSPost(DriverCycleLeadtimeBased):
             yield d
 
     @collection
-    def provisioned_rundir(self):
-        """
-        Run directory provisioned with all required content.
-        """
-        yield self.taskname("provisioned run directory")
-        required = [self.runscript()]
-        yield required
-
-    @collection
     def indexes(self):
         """
         GRIB index files.
         """
         yield "GRIB indexes"
         yield [self._idx(path) for path in self._idx2grib]
+
+    @collection
+    def provisioned_rundir(self):
+        """
+        Run directory provisioned with all required content.
+        """
+        yield self.taskname("provisioned run directory")
+        yield self.runscript()
 
     # Private tasks
 

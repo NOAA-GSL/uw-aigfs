@@ -62,7 +62,7 @@ def driverobj(config, cycle):
 # Tests
 
 
-def test_AIGFSPost__indexes(driverobj, logcap, touch):
+def test_AIGFSPost_indexes(driverobj, logcap, touch):
     @external
     def mock__idx(path: Path) -> Iterator:
         yield f"mock__idx {path}"
@@ -76,6 +76,14 @@ def test_AIGFSPost__indexes(driverobj, logcap, touch):
             touch(index)
         assert driverobj.indexes().ready
     assert "GRIB indexes" in logcap.text
+
+
+def test_AIGFSPost_provisioned_rundir(driverobj, logcap):
+    path = driverobj.rundir / "runscript.aigfs_post"
+    assert not path.exists()
+    assert driverobj.provisioned_rundir().ready
+    assert path.is_file()
+    assert "provisioned run directory" in logcap.text
 
 
 def test_AIGFSPost__gribfile(driverobj, logcap, touch):
