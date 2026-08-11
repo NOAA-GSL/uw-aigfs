@@ -62,6 +62,14 @@ def driverobj(config, cycle):
 # Tests
 
 
+def test_AIGFSPost__gribfile(driverobj, logcap, touch):
+    path = driverobj.rundir / "a.grib2"
+    assert not driverobj._gribfile(path).ready
+    touch(path)
+    assert driverobj._gribfile(path).ready
+    assert f"GRIB file {path}" in logcap.text
+
+
 def test_AIGFSPost__idx(driverobj, logcap, touch):
     @task
     def mock__gribfile(path: Path) -> Iterator:
