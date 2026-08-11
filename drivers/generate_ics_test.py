@@ -2,6 +2,7 @@
 GenICs driver tests.
 """
 
+from collections.abc import Iterator
 from datetime import datetime, timezone
 from itertools import product
 from pathlib import Path
@@ -119,6 +120,20 @@ def varkit(driverobj):
 
 
 # Tests
+
+
+def test_GenICs_ncfiles(varkit):
+    @external
+    def mock__ncfile(path: Path, _: str) -> Iterator:
+        yield "mock _ncfile"
+        yield Asset(path, lambda: True)
+
+    driverobj, expected = varkit
+    with patch.object(driverobj, "_ncfile", Mock(wraps=mock__ncfile)) as _ncfile:
+        node = driverobj.ncfiles()
+    assert node.ready
+    for path, cmd in expected.items():
+        _ncfile.assert_any_call(path, cmd)
 
 
 @mark.parametrize("ready", list(product([True, False], repeat=4)))
