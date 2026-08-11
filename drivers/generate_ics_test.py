@@ -121,7 +121,7 @@ def varkit(driverobj):
 
 
 @mark.filterwarnings("ignore:Times can't be serialized faithfully:UserWarning")
-def test_AIGFSICs_merged_netcdf_files(driverobj, varkit):
+def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
     @task
     def mock_ncfiles() -> Iterator:
 
@@ -233,7 +233,7 @@ def test_AIGFSICs_merged_netcdf_files(driverobj, varkit):
     ds.close()
 
 
-def test_AIGFSICs_ncfiles(varkit):
+def test_drivers_AIGFSICs_ncfiles(varkit):
     @external
     def mock__ncfile(path: Path, _: str) -> Iterator:
         yield "mock _ncfile"
@@ -248,7 +248,7 @@ def test_AIGFSICs_ncfiles(varkit):
 
 
 @mark.parametrize("ready", list(product([True, False], repeat=4)))
-def test_AIGFSICs_provisioned_rundir(atask, ready, driverobj, logcap):
+def test_drivers_AIGFSICs_provisioned_rundir(atask, ready, driverobj, logcap):
     mocks = [Mock(wraps=atask(x)) for x in ready]
     with (
         patch.object(driverobj, "files_copied", mocks[0]) as files_copied,
@@ -264,7 +264,7 @@ def test_AIGFSICs_provisioned_rundir(atask, ready, driverobj, logcap):
 
 
 @mark.parametrize("ready", list(product([True, False], repeat=3)))
-def test_AIGFSICs__ncfile(atask, ready, driverobj, logcap):
+def test_drivers_AIGFSICs__ncfile(atask, ready, driverobj, logcap):
     path = driverobj.rundir / "a.nc"
     mocks = [Mock(wraps=atask(x)) for x in ready]
     with (
@@ -279,17 +279,17 @@ def test_AIGFSICs__ncfile(atask, ready, driverobj, logcap):
     assert node.ready is all(ready)
 
 
-def test_AIGFSICs_driver_name(driverobj):
+def test_drivers_AIGFSICs_driver_name(driverobj):
     assert driverobj.driver_name() == "aigfs_ics"
 
 
-def test_AIGFSICs__ncfiles_to_cmds(varkit):
+def test_drivers_AIGFSICs__ncfiles_to_cmds(varkit):
     driverobj, expected = varkit
     mapping = driverobj._ncfiles_to_cmds
     assert mapping == expected
 
 
-def test_AIGFSICs__ncfiles_to_cmds__bad_grib_filenames(varkit):
+def test_drivers_AIGFSICs__ncfiles_to_cmds__bad_grib_filenames(varkit):
     driverobj, _ = varkit
     config = driverobj._config["files_to_link"]
     key = next(iter(config))

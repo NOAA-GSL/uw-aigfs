@@ -1,8 +1,3 @@
-# import numpy as np
-# import xarray as xr
-# from itertools import product
-# from textwrap import dedent
-
 from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -14,16 +9,6 @@ from pytest import fixture
 from . import post
 
 # Fixtures
-
-
-# @fixture
-# def atask():
-#     @external
-#     def f(ready: bool):
-#         yield "A %sready task" % ("" if ready else "not-")
-#         yield Asset(ready, lambda: ready)
-
-#     return f
 
 
 @fixture
@@ -62,7 +47,7 @@ def driverobj(config, cycle):
 # Tests
 
 
-def test_AIGFSPost_delivery(driverobj, logcap):
+def test_drivers_AIGFSPost_delivery(driverobj, logcap):
     @external
     def mock__idx_delivered(path: Path) -> Iterator:
         yield f"mock__idx_delivered {path}"
@@ -80,7 +65,7 @@ def test_AIGFSPost_delivery(driverobj, logcap):
     assert "Definition of 'deliver_to' in 'delivery' task config block" in logcap.text
 
 
-def test_AIGFSPost_indexes(driverobj, logcap, touch):
+def test_drivers_AIGFSPost_indexes(driverobj, logcap, touch):
     @external
     def mock__idx(path: Path) -> Iterator:
         yield f"mock__idx {path}"
@@ -96,7 +81,7 @@ def test_AIGFSPost_indexes(driverobj, logcap, touch):
     assert "GRIB indexes" in logcap.text
 
 
-def test_AIGFSPost_provisioned_rundir(driverobj, logcap):
+def test_drivers_AIGFSPost_provisioned_rundir(driverobj, logcap):
     path = driverobj.rundir / "runscript.aigfs_post"
     assert not path.exists()
     assert driverobj.provisioned_rundir().ready
@@ -104,7 +89,7 @@ def test_AIGFSPost_provisioned_rundir(driverobj, logcap):
     assert "provisioned run directory" in logcap.text
 
 
-def test_AIGFSPost__gribfile(driverobj, logcap, touch):
+def test_drivers_AIGFSPost__gribfile(driverobj, logcap, touch):
     path = driverobj.rundir / "a.grib2"
     assert not driverobj._gribfile(path).ready
     touch(path)
@@ -112,7 +97,7 @@ def test_AIGFSPost__gribfile(driverobj, logcap, touch):
     assert f"GRIB file {path}" in logcap.text
 
 
-def test_AIGFSPost__idx(driverobj, logcap, touch):
+def test_drivers_AIGFSPost__idx(driverobj, logcap, touch):
     @task
     def mock__gribfile(path: Path) -> Iterator:
         yield f"mock__gribfile {path}"
@@ -136,7 +121,7 @@ def test_AIGFSPost__idx(driverobj, logcap, touch):
     assert run_shell_cmd.call_args[0][0].startswith(f"wgrib2 -s {src}")
 
 
-def test_AIGFSPost__idx_delivered(driverobj, logcap, touch):
+def test_drivers_AIGFSPost__idx_delivered(driverobj, logcap, touch):
     @task
     def mock__idx(path: Path) -> Iterator:
         yield f"mock__idx {path}"
@@ -156,36 +141,36 @@ def test_AIGFSPost__idx_delivered(driverobj, logcap, touch):
     assert f"Copied {src} -> {path}" in logcap.text
 
 
-def test_AIGFSPost__valid_driver_config(driverobj, logcap):
+def test_drivers_AIGFSPost__valid_driver_config(driverobj, logcap):
     reason = "Catastrophic failure"
     node = driverobj._valid_driver_config(reason=reason)
     assert not node.ready
     assert reason in logcap.text
 
 
-def test_AIGFSPost_driver_name(driverobj):
+def test_drivers_AIGFSPost_driver_name(driverobj):
     assert driverobj.driver_name() == "aigfs_post"
 
 
-def test_AIGFSPost_output(driverobj):
+def test_drivers_AIGFSPost_output(driverobj):
     do = Path(driverobj.config["outputdir"])
     assert driverobj.output == {
         "idx": [do / "aigfs.t00z.sfc.f006.grib2.idx", do / "aigfs.t00z.pres.f006.grib2.idx"]
     }
 
 
-def test_AIGFSPost__deliver_to(driverobj):
+def test_drivers_AIGFSPost__deliver_to(driverobj):
     assert driverobj._deliver_to == Path(driverobj.config["deliver_to"])
 
 
-def test_AIGFSPost__deliver_to__fail(driverobj):
+def test_drivers_AIGFSPost__deliver_to__fail(driverobj):
     del driverobj._config["deliver_to"]
     node = driverobj._deliver_to
     assert isinstance(node, Node)
     assert not node.ready
 
 
-def test_AIGFSPost__delivered2idx(driverobj):
+def test_drivers_AIGFSPost__delivered2idx(driverobj):
     dd = driverobj._deliver_to
     do = Path(driverobj.config["outputdir"])
     assert driverobj._delivered2idx == {
@@ -194,7 +179,7 @@ def test_AIGFSPost__delivered2idx(driverobj):
     }
 
 
-def test_AIGFSPost__idx2grib(driverobj):
+def test_drivers_AIGFSPost__idx2grib(driverobj):
     di = driverobj.rundir
     do = Path(driverobj.config["outputdir"])
     assert driverobj._idx2grib == {
