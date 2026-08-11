@@ -2,8 +2,6 @@
 A driver for AIGFS inference.
 """
 
-from __future__ import annotations
-
 import dataclasses
 import logging
 from datetime import timedelta
