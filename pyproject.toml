@@ -1,7 +1,6 @@
 [tool.coverage.report]
 fail_under = 100
 omit = [
-  "drivers/post.py",
   "drivers/run_graphcast.py",
   "drivers/utils/grib2writer.py",
   "drivers/utils/tasks.py",

@@ -1,7 +1,3 @@
-"""
-GenICs driver tests.
-"""
-
 from collections.abc import Iterator
 from datetime import datetime, timezone
 from itertools import product
