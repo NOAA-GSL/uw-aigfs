@@ -188,6 +188,53 @@ def test_GenICs_merged_netcdf_files(driverobj, varkit):
         node = driverobj.merged_netcdf_files()
     assert node.ready
     ncfiles.assert_called_once_with()
+    ds = xr.open_dataset(node.ref)
+    # Variables were renamed from GRIB names to descriptive names:
+    renamed = [
+        "total_precipitation_6hr",
+        "geopotential",
+        "geopotential_at_surface",
+        "land_sea_mask",
+        "mean_sea_level_pressure",
+        "specific_humidity",
+        "temperature",
+        "2m_temperature",
+        "u_component_of_wind",
+        "10m_u_component_of_wind",
+        "v_component_of_wind",
+        "10m_v_component_of_wind",
+        "vertical_velocity",
+    ]
+    for name in renamed:
+        assert name in ds.data_vars
+    # Original GRIB names should not be present:
+    for name in ["HGT", "HGT_surface", "LAND_surface", "APCP_surface", "TMP", "SPFH"]:
+        assert name not in ds.data_vars
+    # Coordinate types were converted:
+    assert ds["lat"].dtype == np.float32
+    assert ds["lon"].dtype == np.float32
+    assert ds["level"].dtype == np.int32
+    # Level values are the pressure levels:
+    np.testing.assert_array_equal(ds["level"].values, [200, 850, 1000])
+    # Time is relative (first time step is zero):
+    assert ds["time"].values[0] == np.timedelta64(0)
+    # batch dimension was added:
+    assert "batch" in ds.dims
+    # datetime coordinate exists with batch dimension:
+    assert "datetime" in ds.coords
+    assert "batch" in ds["datetime"].dims
+    # geopotential_at_surface was scaled by 9.80665 and has no time dim (selected one time):
+    assert "time" not in ds["geopotential_at_surface"].dims
+    np.testing.assert_allclose(ds["geopotential_at_surface"].values.flat[0], 9.80665)
+    # land_sea_mask was selected at one time (no time dim):
+    assert "time" not in ds["land_sea_mask"].dims
+    # geopotential (on pressure levels) was scaled by 9.80665:
+    np.testing.assert_allclose(ds["geopotential"].values.flat[0], 9.80665)
+    # total_precipitation_6hr was divided by 1000 (use last time since it's from f006):
+    np.testing.assert_allclose(
+        float(ds["total_precipitation_6hr"].isel(batch=0, time=-1).values.flat[0]), 0.001
+    )
+    ds.close()
 
 
 def test_GenICs_ncfiles(varkit):
