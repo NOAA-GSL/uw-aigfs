@@ -156,15 +156,14 @@ def test_GenICs_merged_netcdf_files(driverobj, varkit):
         ncfiles = list(driverobj._ncfiles_to_cmds.keys())
         yield Asset(ncfiles, lambda: all(x.is_file() for x in ncfiles))
         yield None
-        t0 = np.datetime64("2025-10-01T18:00")
-        t6 = np.datetime64("2025-10-02T00:00")
         lat = np.array([90.0], dtype="float64")
         lon = np.array([0.0], dtype="float64")
+        t0 = np.datetime64("2025-10-01T18:00")
+        t6 = np.datetime64("2025-10-02T00:00")
         datasets: dict[str, xr.Dataset] = {}
         for ncfile in ncfiles:
             name = ncfile.name
             if "HGT_surface" in name:
-                # geopotential_at_surface: non-null at t0 so isel(time=0) branch is taken
                 datasets[name] = ds_sfc("HGT_surface", t0)
             elif "TMP_2_m_above_ground" in name:
                 datasets[name] = ds_sfc("TMP_2maboveground", t0)
@@ -177,7 +176,6 @@ def test_GenICs_merged_netcdf_files(driverobj, varkit):
             elif "SPFH.VVEL" in name:
                 datasets[name] = ds_atm(["SPFH", "VVEL", "VGRD", "UGRD", "HGT", "TMP"], t0)
             elif "LAND_surface" in name:
-                # land_sea_mask: null at t1 so isel(time=0) branch is taken via else
                 datasets[name] = ds_sfc("LAND_surface", t6)
             else:
                 datasets[name] = ds_sfc("APCP_surface", t6)
