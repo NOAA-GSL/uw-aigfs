@@ -1,5 +1,5 @@
 """
-A driver for Graphcast Inference.
+A driver for AIGFS inference.
 """
 
 from __future__ import annotations
@@ -34,76 +34,7 @@ jax.config.update("jax_platforms", "cpu")
 
 
 class GraphCastModel(DriverCycleBased):
-    @task
-    def predictions(self):
-        """
-        GraphCast predictions.
-        """
-        yield "GraphCast predictions"
-        path = self.rundir / "aigfs.done"
-        yield Asset(path, path.is_file)
-        ics = self.initial_conditions()
-        itfs = self.inputs_targets_forcings()
-        model_weights = self.model_weights()
-        norm_stats = self.load_normalization_stats()
-        yield [ics, itfs, model_weights, norm_stats]
-        ds = _clean_ics(ics.ref)
-        converter = Grib2Writer(
-            start_date=pd.to_datetime(ds.datetime.values[0][-1]),  # noqa: PD011 FIXME w/ unit tests
-            case_name="aigfs",
-            json_path=Path(self.config["json_path"]),
-        )
-        inputs, targets, forcings = itfs.ref
-        diffs_stddev, mean, stddev = norm_stats.ref
-
-        with_configs = partial(
-            run_forward.apply,
-            model_config=model_weights.ref[0].model_config,
-            task_config=model_weights.ref[0].task_config,
-            diffs_stddev=diffs_stddev,
-            mean=mean,
-            stddev=stddev,
-        )
-        with_params = partial(
-            jax.jit(with_configs),
-            params=model_weights.ref[0].params,
-            state={},
-        )
-
-        model = self.drop_state(with_params)
-        self.rundir.mkdir(parents=True, exist_ok=True)
-        converter.save_grib2(ds, self.rundir)
-        rollout.chunked_prediction(
-            self.rundir,
-            converter,
-            model,
-            rng=jax.random.PRNGKey(0),
-            inputs=inputs,
-            targets_template=targets * np.nan,
-            forcings=forcings,
-        )
-        path.touch()
-
-    @collection
-    def provisioned_rundir(self):
-        """
-        Run directory provisioned with all required content.
-        """
-        yield self.taskname("provisioned run directory")
-        yield [self.runscript()]
-
-    # Helper functions
-
-    @classmethod
-    def driver_name(cls) -> str:
-        """
-        Returns the name of this driver.
-        """
-        return "graphcast_model"
-
-    @staticmethod
-    def drop_state(fn):
-        return lambda **kw: fn(**kw)[0]
+    # Public tasks
 
     @task
     def initial_conditions(self):
@@ -143,19 +74,6 @@ class GraphCastModel(DriverCycleBased):
         )
 
     @task
-    def model_weights(self):
-        """
-        Load the pre-trained model weights.
-        """
-        yield "model weights"
-        weights: list[graphcast.CheckPoint] = []
-        yield Asset(weights, lambda: bool(weights))
-        model_weights_path = Path(self.config["model_weights_path"])
-        yield file(model_weights_path)
-        with model_weights_path.open("rb") as f:
-            weights.append(checkpoint.load(f, graphcast.CheckPoint))
-
-    @task
     def load_normalization_stats(self):
         """
         Load and return the stats files contents.
@@ -170,49 +88,113 @@ class GraphCastModel(DriverCycleBased):
         yield [file(p) for p in paths]
         datasets.extend([xr.load_dataset(p) for p in paths])
 
+    @task
+    def model_weights(self):
+        """
+        Load the pre-trained model weights.
+        """
+        yield "model weights"
+        weights: list[graphcast.CheckPoint] = []
+        yield Asset(weights, lambda: bool(weights))
+        model_weights_path = Path(self.config["model_weights_path"])
+        yield file(model_weights_path)
+        with model_weights_path.open("rb") as f:
+            weights.append(checkpoint.load(f, graphcast.CheckPoint))
+
+    @task
+    def predictions(self):
+        """
+        GraphCast predictions.
+        """
+        yield "GraphCast predictions"
+        path = self.rundir / "aigfs.done"
+        yield Asset(path, path.is_file)
+        ics = self.initial_conditions()
+        itfs = self.inputs_targets_forcings()
+        model_weights = self.model_weights()
+        norm_stats = self.load_normalization_stats()
+        yield [ics, itfs, model_weights, norm_stats]
+        ds = _clean_ics(ics.ref)
+        converter = Grib2Writer(
+            start_date=pd.to_datetime(ds.datetime.values[0][-1]),  # noqa: PD011 FIXME w/ unit tests
+            case_name="aigfs",
+            json_path=Path(self.config["json_path"]),
+        )
+        inputs, targets, forcings = itfs.ref
+        diffs_stddev, mean, stddev = norm_stats.ref
+        with_configs = partial(
+            run_forward.apply,
+            model_config=model_weights.ref[0].model_config,
+            task_config=model_weights.ref[0].task_config,
+            diffs_stddev=diffs_stddev,
+            mean=mean,
+            stddev=stddev,
+        )
+        with_params = partial(jax.jit(with_configs), params=model_weights.ref[0].params, state={})
+        model = self.drop_state(with_params)
+        self.rundir.mkdir(parents=True, exist_ok=True)
+        converter.save_grib2(ds, self.rundir)
+        rollout.chunked_prediction(
+            self.rundir,
+            converter,
+            model,
+            rng=jax.random.PRNGKey(0),
+            inputs=inputs,
+            targets_template=targets * np.nan,
+            forcings=forcings,
+        )
+        path.touch()
+
+    @collection
+    def provisioned_rundir(self):
+        """
+        Run directory provisioned with all required content.
+        """
+        yield self.taskname("provisioned run directory")
+        yield [self.runscript()]
+
+    # Public helper methods
+
+    @classmethod
+    def driver_name(cls) -> str:
+        """
+        Returns the name of this driver.
+        """
+        return "graphcast_model"
+
+    @staticmethod
+    def drop_state(fn):
+        return lambda **kw: fn(**kw)[0]
+
+
+# Public functions
+
 
 def construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, stddev):
     """Constructs and wraps the GraphCast Predictor."""
     # Deeper one-step predictor.
     predictor = graphcast.GraphCast(model_config, task_config)
-
     # Modify inputs/outputs to `graphcast.GraphCast` to handle conversion to
     # from/to float32 to/from BFloat16.
     predictor = casting.Bfloat16Cast(predictor)
-
     # Modify inputs/outputs to `casting.Bfloat16Cast` so the casting to/from
     # BFloat16 happens after applying normalization to the inputs/targets.
     predictor = normalization.InputsAndResiduals(
-        predictor,
-        diffs_stddev_by_level=diffs_stddev,
-        mean_by_level=mean,
-        stddev_by_level=stddev,
+        predictor, diffs_stddev_by_level=diffs_stddev, mean_by_level=mean, stddev_by_level=stddev
     )
-
     # Wraps everything so the one-step model can produce trajectories.
-    return autoregressive.Predictor(
-        predictor,
-        gradient_checkpointing=True,
-    )
+    return autoregressive.Predictor(predictor, gradient_checkpointing=True)
 
 
 @hk.transform_with_state
 def run_forward(
-    model_config,
-    task_config,
-    inputs,
-    targets_template,
-    forcings,
-    diffs_stddev,
-    mean,
-    stddev,
+    model_config, task_config, inputs, targets_template, forcings, diffs_stddev, mean, stddev
 ):
     predictor = construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, stddev)
-    return predictor(
-        inputs,
-        targets_template=targets_template,
-        forcings=forcings,
-    )
+    return predictor(inputs, targets_template=targets_template, forcings=forcings)
+
+
+# Private functions
 
 
 def _adjust_time(ds, fcst_steps):
