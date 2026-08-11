@@ -9,6 +9,8 @@ from pathlib import Path
 from textwrap import dedent
 from unittest.mock import Mock, patch
 
+import numpy as np
+import xarray as xr
 from iotaa import Asset, external, task
 from pytest import fixture, mark, raises
 
@@ -122,18 +124,77 @@ def varkit(driverobj):
 # Tests
 
 
-def test_GenICs_merged_netcdf_files(atask, varkit):
+@mark.filterwarnings("ignore:Times can't be serialized faithfully:UserWarning")
+def test_GenICs_merged_netcdf_files(driverobj, varkit):
     @task
     def mock_ncfiles() -> Iterator:
         yield "mock ncfiles"
         ncfiles = list(driverobj._ncfiles_to_cmds.keys())
         yield Asset(ncfiles, lambda: all(x.is_file() for x in ncfiles))
         yield None
+        # Build minimal but valid netCDF files that exercise merged_netcdf_files logic.
+        # Use float64 for lat/lon (so astype float32 is meaningful), float64 for plevel
+        # (so astype int32 is meaningful).
+        t0 = np.datetime64("2025-10-01T18:00")
+        t6 = np.datetime64("2025-10-02T00:00")
+        lat = np.array([90.0], dtype="float64")
+        lon = np.array([0.0], dtype="float64")
+        plevels = np.array([200.0, 850.0, 1000.0], dtype="float64")
+
+        def sfc_ds(varname, time):
+            """A surface-level dataset with a single variable, no level dim."""
+            return xr.Dataset(
+                {varname: (["time", "latitude", "longitude"], np.ones((1, 1, 1)))},
+                coords={"time": [time], "latitude": lat, "longitude": lon},
+            )
+
+        def plev_ds(varnames, time):
+            """A pressure-level dataset with multiple variables and a dummy level dim."""
+            data_vars: dict = {
+                v: (["time", "plevel", "latitude", "longitude"], np.ones((1, 3, 1, 1)))
+                for v in varnames
+            }
+            # Add a dummy variable on a "level" dim so drop_dims("level") is exercised.
+            data_vars["_dummy"] = (["level"], np.zeros(1))
+            return xr.Dataset(
+                data_vars,
+                coords={
+                    "time": [time],
+                    "plevel": plevels,
+                    "level": [0.0],
+                    "latitude": lat,
+                    "longitude": lon,
+                },
+            )
+
+        # Map each ncfile path (by its stem pattern) to the appropriate dataset.
+        # f000 files use t0, f006 files use t6.
+        file_datasets: dict[str, xr.Dataset] = {}
+        for ncfile in ncfiles:
+            name = ncfile.name
+            if "HGT_surface" in name:
+                # geopotential_at_surface: non-null at t0 so isel(time=0) branch is taken
+                file_datasets[name] = sfc_ds("HGT_surface", t0)
+            elif "TMP_2_m_above_ground" in name:
+                file_datasets[name] = sfc_ds("TMP_2maboveground", t0)
+            elif "PRMSL_mean_sea_level" in name:
+                file_datasets[name] = sfc_ds("PRMSL_meansealevel", t0)
+            elif "VGRD.UGRD_10_m_above_ground" in name:
+                ds = sfc_ds("UGRD_10maboveground", t0)
+                ds["VGRD_10maboveground"] = ds["UGRD_10maboveground"].copy()
+                file_datasets[name] = ds
+            elif "SPFH.VVEL" in name:
+                file_datasets[name] = plev_ds(["SPFH", "VVEL", "VGRD", "UGRD", "HGT", "TMP"], t0)
+            elif "LAND_surface" in name:
+                # land_sea_mask: null at t1 so isel(time=0) branch is taken via else
+                file_datasets[name] = sfc_ds("LAND_surface", t6)
+            else:
+                file_datasets[name] = sfc_ds("APCP_surface", t6)
         for ncfile in ncfiles:
             ncfile.parent.mkdir(exist_ok=True, parents=True)
-            ncfile.touch()
+            file_datasets[ncfile.name].to_netcdf(ncfile)
 
-    driverobj, expected = varkit
+    driverobj, _ = varkit
     with patch.object(driverobj, "ncfiles", Mock(wraps=mock_ncfiles)) as ncfiles:
         node = driverobj.merged_netcdf_files()
     assert node.ready
