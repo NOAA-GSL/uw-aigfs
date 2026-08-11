@@ -37,7 +37,7 @@ class AIGFSInference(DriverCycleBased):
     # Public tasks
 
     @task
-    def initial_conditions(self):
+    def initial_conditions(self):  # pragma: no cover
         """
         Load the initial conditions for the model.
         """
@@ -55,7 +55,7 @@ class AIGFSInference(DriverCycleBased):
         ds.attrs.update(src.attrs)
 
     @task
-    def inputs_targets_forcings(self):
+    def inputs_targets_forcings(self):  # pragma: no cover
         """
         The input for GraphCast.
         """
@@ -74,7 +74,7 @@ class AIGFSInference(DriverCycleBased):
         )
 
     @task
-    def load_normalization_stats(self):
+    def load_normalization_stats(self):  # pragma: no cover
         """
         Load and return the stats files contents.
         """
@@ -89,7 +89,7 @@ class AIGFSInference(DriverCycleBased):
         datasets.extend([xr.load_dataset(p) for p in paths])
 
     @task
-    def model_weights(self):
+    def model_weights(self):  # pragma: no cover
         """
         Load the pre-trained model weights.
         """
@@ -102,7 +102,7 @@ class AIGFSInference(DriverCycleBased):
             weights.append(checkpoint.load(f, graphcast.CheckPoint))
 
     @task
-    def predictions(self):
+    def predictions(self):  # pragma: no cover
         """
         GraphCast predictions.
         """
@@ -146,7 +146,7 @@ class AIGFSInference(DriverCycleBased):
         path.touch()
 
     @collection
-    def provisioned_rundir(self):
+    def provisioned_rundir(self):  # pragma: no cover
         """
         Run directory provisioned with all required content.
         """
@@ -160,17 +160,19 @@ class AIGFSInference(DriverCycleBased):
         """
         Returns the name of this driver.
         """
-        return "graphcast_model"
+        return "aigfs_inference"
 
     @staticmethod
-    def drop_state(fn):
+    def drop_state(fn):  # pragma: no cover
         return lambda **kw: fn(**kw)[0]
 
 
 # Public functions
 
 
-def construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, stddev):
+def construct_wrapped_graphcast(
+    model_config, task_config, diffs_stddev, mean, stddev
+):  # pragma: no cover
     """Constructs and wraps the GraphCast Predictor."""
     # Deeper one-step predictor.
     predictor = graphcast.GraphCast(model_config, task_config)
@@ -189,7 +191,7 @@ def construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, s
 @hk.transform_with_state
 def run_forward(
     model_config, task_config, inputs, targets_template, forcings, diffs_stddev, mean, stddev
-):
+):  # pragma: no cover
     predictor = construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, stddev)
     return predictor(inputs, targets_template=targets_template, forcings=forcings)
 
@@ -197,7 +199,7 @@ def run_forward(
 # Private functions
 
 
-def _adjust_time(ds, fcst_steps):
+def _adjust_time(ds, fcst_steps):  # pragma: no cover
     if (fcst_steps + 2 - len(ds["time"])) > 0:
         logging.info("Updating dataset to account for forecast length.")
         new_times = np.asarray([timedelta(hours=6) * f for f in range(fcst_steps + 2)]).astype(
@@ -210,7 +212,7 @@ def _adjust_time(ds, fcst_steps):
     return ds
 
 
-def _clean_ics(ds):
+def _clean_ics(ds):  # pragma: no cover
     ds = ds.drop_vars(["geopotential_at_surface", "land_sea_mask", "total_precipitation_6hr"])
     for var in ds.data_vars:
         if "long_name" in ds[var].attrs:

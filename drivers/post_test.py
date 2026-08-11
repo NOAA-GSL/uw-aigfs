@@ -16,9 +16,7 @@ def config(tmp_path):
     return {
         "aigfs_post": {
             "deliver_to": str(tmp_path / "delivery"),
-            "execution": {
-                "executable": "uw execute -h",
-            },
+            "execution": {"executable": "uw execute -h"},
             "inputfiles": [
                 str(tmp_path / "run" / "aigfs.t00z.sfc.f006.grib2"),
                 str(tmp_path / "run" / "aigfs.t00z.pres.f006.grib2"),

@@ -1,8 +1,6 @@
 [tool.coverage.report]
 fail_under = 100
 omit = [
-  "drivers/utils/grib2writer.py",
-  "ush/generate_experiment.py",
   "ush/validation.py",
 ]
 show_missing = true

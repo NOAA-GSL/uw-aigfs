@@ -41,7 +41,7 @@ prep:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
 forecast:
-  graphcast_model:
+  aigfs_inference:
     diffs_stddev_path: '{{ platform.pretrained_model_path }}/stats/diffs_stddev_by_level.nc'
     execution:
       batchargs:
@@ -78,10 +78,10 @@ post:
         - source {{ user.app_home }}/load_wflow_modules.sh {{ user.platform }}
         - module load wgrib2
       executable: uw execute --module {{ user.app_home }}/drivers/post.py --classname AIGFSPost --task delivery -c {{ user.experiment_dir }}/experiment.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path post --leadtime $FHR
-    deliver_to: "{{ forecast.graphcast_model.rundir }}"
+    deliver_to: "{{ forecast.aigfs_inference.rundir }}"
     inputfiles:
-      - '{{ forecast.graphcast_model.rundir }}/aigfs.t{{ timevars.cyc }}z.sfc.f{{ timevars.fff }}.grib2'
-      - '{{ forecast.graphcast_model.rundir }}/aigfs.t{{ timevars.cyc }}z.pres.f{{ timevars.fff }}.grib2'
+      - '{{ forecast.aigfs_inference.rundir }}/aigfs.t{{ timevars.cyc }}z.sfc.f{{ timevars.fff }}.grib2'
+      - '{{ forecast.aigfs_inference.rundir }}/aigfs.t{{ timevars.cyc }}z.pres.f{{ timevars.fff }}.grib2'
     outputdir: '{{ post.aigfs_post.rundir }}'
     rundir: '{{ user.experiment_dir }}/{{ timevars.yyyymmddhh }}/post_{{ timevars.fff }}'
   platform:

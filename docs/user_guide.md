@@ -135,7 +135,7 @@ platform:
 
 ```yaml
 forecast:
-  graphcast_model:
+  aigfs_inference:
     forecast_length: 240   # hours; default is 120
     forecast_freq: 6       # output frequency in hours; default is 6
 ```
@@ -230,7 +230,7 @@ The `task_forecast` ***Rocoto*** task runs `drivers/run_graphcast.py` (driver cl
 1. Loads the initial-conditions netCDF file produced by the prep step.
 2. Loads the pre-trained ***GraphCast*** model weights (`.npz`) from `platform.pretrained_model_path`.
 3. Loads the normalization statistics (`diffs_stddev_by_level.nc`, `mean_by_level.nc`, `stddev_by_level.nc`).
-4. Runs autoregressive ***GraphCast*** inference for `forecast.graphcast_model.forecast_length` hours at `forecast.graphcast_model.forecast_freq`-hour intervals.
+4. Runs autoregressive ***GraphCast*** inference for `forecast.aigfs_inference.forecast_length` hours at `forecast.aigfs_inference.forecast_freq`-hour intervals.
 5. Writes GRIB2 output files to:
 
    ```
