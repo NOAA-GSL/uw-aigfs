@@ -146,10 +146,10 @@ def test_GenICs_provisioned_rundir(atask, ready, driverobj, logcap):
         patch.object(driverobj, "runscript", mocks[3]) as runscript,
     ):
         node = driverobj.provisioned_rundir()
-        assert "provisioned run directory" in logcap.text
-        for x in [files_copied, files_hardlinked, files_linked, runscript]:
-            x.assert_called_once_with()
-        assert node.ready is all(ready)
+    assert "provisioned run directory" in logcap.text
+    for x in [files_copied, files_hardlinked, files_linked, runscript]:
+        x.assert_called_once_with()
+    assert node.ready is all(ready)
 
 
 @mark.parametrize("ready", list(product([True, False], repeat=3)))
@@ -162,10 +162,10 @@ def test_GenICs__ncfile(atask, ready, driverobj, logcap):
         patch.object(driverobj, "files_linked", mocks[2]) as files_linked,
     ):
         node = driverobj._ncfile(path=path, cmd="touch {ncfile}")
-        assert f"netCDF file {path}" in logcap.text
-        for x in [files_copied, files_hardlinked, files_linked]:
-            x.assert_called_once_with()
-        assert node.ready is all(ready)
+    assert f"netCDF file {path}" in logcap.text
+    for x in [files_copied, files_hardlinked, files_linked]:
+        x.assert_called_once_with()
+    assert node.ready is all(ready)
 
 
 def test_GenICs_driver_name(driverobj):

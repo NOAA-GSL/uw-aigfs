@@ -37,22 +37,22 @@ class GenICs(DriverCycleBased, FileStager):
         ds = ds.drop_dims("level")
         ds = ds.rename(
             {
-                "latitude": "lat",
-                "longitude": "lon",
-                "plevel": "level",
+                "APCP_surface": "total_precipitation_6hr",
+                "HGT": "geopotential",
                 "HGT_surface": "geopotential_at_surface",
                 "LAND_surface": "land_sea_mask",
                 "PRMSL_meansealevel": "mean_sea_level_pressure",
-                "TMP_2maboveground": "2m_temperature",
-                "UGRD_10maboveground": "10m_u_component_of_wind",
-                "VGRD_10maboveground": "10m_v_component_of_wind",
-                "APCP_surface": "total_precipitation_6hr",
-                "HGT": "geopotential",
-                "TMP": "temperature",
                 "SPFH": "specific_humidity",
-                "VVEL": "vertical_velocity",
+                "TMP": "temperature",
+                "TMP_2maboveground": "2m_temperature",
                 "UGRD": "u_component_of_wind",
+                "UGRD_10maboveground": "10m_u_component_of_wind",
                 "VGRD": "v_component_of_wind",
+                "VGRD_10maboveground": "10m_v_component_of_wind",
+                "VVEL": "vertical_velocity",
+                "latitude": "lat",
+                "longitude": "lon",
+                "plevel": "level",
             }
         )
         ds = ds.assign_coords(datetime=ds.time)
@@ -144,7 +144,7 @@ class GenICs(DriverCycleBased, FileStager):
                     logging.info("Loading %s", var)
                     if not (m := re.match(rf"^.*\.t(\d\d)z{suffix}$", path.name)):
                         msg = "GRIB files don't have names expected by this driver!"
-                        raise ValueError(msg)  # PM don't blow up the task graph
+                        raise ValueError(msg)  # PM DON'T BLOW UP THE TASK GRAPH
                     if load_once is True:
                         cfg["load_once"] = False
                     fmt = lambda x: re.sub(r"[|()]", ".", x).replace(":", "")
