@@ -5,7 +5,7 @@ from shutil import copy
 
 from iotaa import Asset, Node, collection, external, task
 from uwtools.api.driver import DriverCycleLeadtimeBased
-from uwtools.utils.processing import run_shell_cmd
+from uwtools.api.utils import atomic, run_shell_cmd
 
 
 class AIGFSPost(DriverCycleLeadtimeBased):
@@ -55,8 +55,9 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         req = self._gribfile(self._idx2grib[path])
         yield req
         path.parent.mkdir(parents=True, exist_ok=True)
-        cmd = f"wgrib2 -s {req.ref} >{path}.tmp && mv {path}.tmp {path}"
-        run_shell_cmd(cmd, cwd=path.parent, taskname=taskname)
+        with atomic(path) as tmp:
+            cmd = f"wgrib2 -s {req.ref} >{tmp}"
+            run_shell_cmd(cmd, cwd=path.parent, taskname=taskname)
 
     @task
     def _idx_delivered(self, path: Path):

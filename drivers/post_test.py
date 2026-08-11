@@ -1,16 +1,15 @@
-from collections.abc import Iterator
-
 # import numpy as np
 # import xarray as xr
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-
 # from itertools import product
 # from textwrap import dedent
+
+from collections.abc import Iterator
+from datetime import datetime, timedelta, timezone
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 from iotaa import Asset, Node, task
-from pytest import fixture  # , mark, raises
+from pytest import fixture
 
 from . import post
 
@@ -63,38 +62,48 @@ def driverobj(config, cycle):
 # Tests
 
 
-# @mark.parametrize("ready", list(product([True, False], repeat=4)))
-# def test_GenICs_provisioned_rundir(atask, ready, driverobj, logcap):
-#     mocks = [Mock(wraps=atask(x)) for x in ready]
-#     with (
-#         patch.object(driverobj, "files_copied", mocks[0]) as files_copied,
-#         patch.object(driverobj, "files_hardlinked", mocks[1]) as files_hardlinked,
-#         patch.object(driverobj, "files_linked", mocks[2]) as files_linked,
-#         patch.object(driverobj, "runscript", mocks[3]) as runscript,
-#     ):
-#         node = driverobj.provisioned_rundir()
-#     assert "provisioned run directory" in logcap.text
-#     for x in [files_copied, files_hardlinked, files_linked, runscript]:
-#         x.assert_called_once_with()
-#     assert node.ready is all(ready)
+def test_AIGFSPost__idx(driverobj, logcap, touch):
+    @task
+    def mock__gribfile(path: Path) -> Iterator:
+        yield f"mock__gribfile {path}"
+        yield Asset(path, path.is_file)
+        yield None
+        touch(path)
+
+    path = Path(driverobj.config["outputdir"], "aigfs.t00z.sfc.f006.grib2.idx")
+    assert not path.exists()
+    with (
+        patch.object(driverobj, "_gribfile", Mock(wraps=mock__gribfile)) as _gribfile,
+        patch.object(post, "run_shell_cmd") as run_shell_cmd,
+    ):
+        run_shell_cmd.side_effect = lambda *_args, **_kwargs: touch(path)
+        node = driverobj._idx(path)
+    assert node.ready
+    src = driverobj._idx2grib[path]
+    _gribfile.assert_called_once_with(src)
+    assert path.is_file()
+    assert f"GRIB index {path}" in logcap.text
+    assert run_shell_cmd.call_args[0][0].startswith(f"wgrib2 -s {src}")
 
 
-def test_AIGFSPost__idx_delivered(driverobj):
+def test_AIGFSPost__idx_delivered(driverobj, logcap, touch):
     @task
     def mock__idx(path: Path) -> Iterator:
         yield f"mock__idx {path}"
         yield Asset(path, path.is_file)
         yield None
-        path.parent.mkdir(exist_ok=True, parents=True)
-        path.touch()
+        touch(path)
 
     path = Path(driverobj._deliver_to, "aigfs.t00z.sfc.f006.grib2.idx")
     assert not path.exists()
     with patch.object(driverobj, "_idx", Mock(wraps=mock__idx)) as _idx:
         node = driverobj._idx_delivered(path)
     assert node.ready
-    _idx.assert_called_once_with(driverobj._delivered2idx[path])
+    src = driverobj._delivered2idx[path]
+    _idx.assert_called_once_with(src)
     assert path.is_file()
+    assert f"Delivered GRIB index {path}" in logcap.text
+    assert f"Copied {src} -> {path}" in logcap.text
 
 
 def test_AIGFSPost__valid_driver_config(driverobj, logcap):
