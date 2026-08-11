@@ -162,7 +162,7 @@ uw-aigfs/
 ├── conda/                     # Managed conda installation (created by make env/devenv)
 ├── docs/                      # User and contributor documentation
 ├── drivers/                   # uwtools driver classes for each workflow stage
-│   ├── generate_ics.py        # GenICs: ICS preparation driver
+│   ├── generate_ics.py        # AIGFSICs: ICS preparation driver
 │   ├── run_graphcast.py       # GraphCastModel: forecast inference driver
 │   ├── post.py                # AIGFSPost: post-processing driver
 │   └── utils/                 # Shared driver utilities (GRIB2 writing, task helpers)

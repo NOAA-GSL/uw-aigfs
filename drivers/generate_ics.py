@@ -15,7 +15,7 @@ from uwtools.api.driver import DriverCycleBased, FileStager
 from uwtools.api.utils import atomic, run_shell_cmd
 
 
-class GenICs(DriverCycleBased, FileStager):
+class AIGFSICs(DriverCycleBased, FileStager):
     """
     A driver for generating GraphCast initial conditions.
     """

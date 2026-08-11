@@ -28,7 +28,7 @@ ecflow:
                 source %AIGFS_APP%/load_wflow_modules.sh %PLATFORM%
                 uw execute \
                   --module %AIGFS_APP%/drivers/generate_ics.py \
-                  --classname GenICs \
+                  --classname AIGFSICs \
                   --task run \
                   --config %EXPERIMENT_CONFIG% \
                   --cycle $ISOCYCLE \
