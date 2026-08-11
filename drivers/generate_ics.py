@@ -30,53 +30,54 @@ class GenICs(DriverCycleBased, FileStager):
         path = self.rundir / f"aigfs.t{self.cycle.strftime('%H')}z.ic.nc"
         yield f"Merged netCDF file {path}"
         yield Asset(path, path.is_file)
-        yield self.ncfiles()
-        datasets = [xr.open_dataset(f) for f in self._ncfiles_to_cmds]
-        # datasets = map(xr.open_dataset, self._ncfiles_to_cmds)
-        ds = xr.merge(datasets, compat="no_conflicts", join="outer")
-        ds = ds.drop_dims("level")
-        ds = ds.rename(
-            {
-                "APCP_surface": "total_precipitation_6hr",
-                "HGT": "geopotential",
-                "HGT_surface": "geopotential_at_surface",
-                "LAND_surface": "land_sea_mask",
-                "PRMSL_meansealevel": "mean_sea_level_pressure",
-                "SPFH": "specific_humidity",
-                "TMP": "temperature",
-                "TMP_2maboveground": "2m_temperature",
-                "UGRD": "u_component_of_wind",
-                "UGRD_10maboveground": "10m_u_component_of_wind",
-                "VGRD": "v_component_of_wind",
-                "VGRD_10maboveground": "10m_v_component_of_wind",
-                "VVEL": "vertical_velocity",
-                "latitude": "lat",
-                "longitude": "lon",
-                "plevel": "level",
-            }
-        )
-        ds = ds.assign_coords(datetime=ds.time)
-        ds["lat"] = ds["lat"].astype("float32")
-        ds["lon"] = ds["lon"].astype("float32")
-        ds["level"] = ds["level"].astype("int32")
-        ds["time"] = ds["time"] - ds.time[0]  # time now relative to the first time step
-        ds = ds.expand_dims(dim="batch")
-        ds["datetime"] = ds["datetime"].expand_dims(dim="batch")
-        sfc_geop = ds["geopotential_at_surface"].squeeze("batch")
-        sfc_geop = (
-            sfc_geop.isel(time=1) if sfc_geop.isel(time=0).isnull().all() else sfc_geop.isel(time=0)
-        )
-        ds["geopotential_at_surface"] = sfc_geop
-        ls_mask = ds["land_sea_mask"].squeeze("batch")
-        ls_mask = (
-            ls_mask.isel(time=0) if ls_mask.isel(time=1).isnull().all() else ls_mask.isel(time=1)
-        )
-        ds["land_sea_mask"] = ls_mask
-        # Update geopotential unit to m2/s2 by multiplying 9.80665.
-        ds["geopotential_at_surface"] = ds["geopotential_at_surface"] * 9.80665
-        ds["geopotential"] = ds["geopotential"] * 9.80665
-        # Update total_precipitation_6hr unit to (m) from (kg/m^2) by dividing it by 1000kg/m³.
-        ds["total_precipitation_6hr"] = ds["total_precipitation_6hr"] / 1000
+        reqs = self.ncfiles()
+        yield reqs
+        datasets = map(xr.open_dataset, reqs.ref)
+        ds = xr.Dataset({"temperature": (["x"], [10, 20, 30])}, coords={"x": [0, 1, 2]})  # PM REMOVE
+        # ds = xr.merge(datasets, compat="no_conflicts", join="outer")
+        # ds = ds.drop_dims("level")
+        # ds = ds.rename(
+        #     {
+        #         "APCP_surface": "total_precipitation_6hr",
+        #         "HGT": "geopotential",
+        #         "HGT_surface": "geopotential_at_surface",
+        #         "LAND_surface": "land_sea_mask",
+        #         "PRMSL_meansealevel": "mean_sea_level_pressure",
+        #         "SPFH": "specific_humidity",
+        #         "TMP": "temperature",
+        #         "TMP_2maboveground": "2m_temperature",
+        #         "UGRD": "u_component_of_wind",
+        #         "UGRD_10maboveground": "10m_u_component_of_wind",
+        #         "VGRD": "v_component_of_wind",
+        #         "VGRD_10maboveground": "10m_v_component_of_wind",
+        #         "VVEL": "vertical_velocity",
+        #         "latitude": "lat",
+        #         "longitude": "lon",
+        #         "plevel": "level",
+        #     }
+        # )
+        # ds = ds.assign_coords(datetime=ds.time)
+        # ds["lat"] = ds["lat"].astype("float32")
+        # ds["lon"] = ds["lon"].astype("float32")
+        # ds["level"] = ds["level"].astype("int32")
+        # ds["time"] = ds["time"] - ds.time[0]  # time now relative to the first time step
+        # ds = ds.expand_dims(dim="batch")
+        # ds["datetime"] = ds["datetime"].expand_dims(dim="batch")
+        # sfc_geop = ds["geopotential_at_surface"].squeeze("batch")
+        # sfc_geop = (
+        #     sfc_geop.isel(time=1) if sfc_geop.isel(time=0).isnull().all() else sfc_geop.isel(time=0)
+        # )
+        # ds["geopotential_at_surface"] = sfc_geop
+        # ls_mask = ds["land_sea_mask"].squeeze("batch")
+        # ls_mask = (
+        #     ls_mask.isel(time=0) if ls_mask.isel(time=1).isnull().all() else ls_mask.isel(time=1)
+        # )
+        # ds["land_sea_mask"] = ls_mask
+        # # Update geopotential unit to m2/s2 by multiplying 9.80665.
+        # ds["geopotential_at_surface"] = ds["geopotential_at_surface"] * 9.80665
+        # ds["geopotential"] = ds["geopotential"] * 9.80665
+        # # Update total_precipitation_6hr unit to (m) from (kg/m^2) by dividing it by 1000kg/m³.
+        # ds["total_precipitation_6hr"] = ds["total_precipitation_6hr"] / 1000
         ds.to_netcdf(path)
 
     @collection

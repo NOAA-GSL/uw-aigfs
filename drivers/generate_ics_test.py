@@ -9,7 +9,7 @@ from pathlib import Path
 from textwrap import dedent
 from unittest.mock import Mock, patch
 
-from iotaa import Asset, external
+from iotaa import Asset, external, task
 from pytest import fixture, mark, raises
 
 from . import generate_ics
@@ -120,6 +120,24 @@ def varkit(driverobj):
 
 
 # Tests
+
+
+def test_GenICs_merged_netcdf_files(atask, varkit):
+    @task
+    def mock_ncfiles() -> Iterator:
+        yield "mock ncfiles"
+        ncfiles = list(driverobj._ncfiles_to_cmds.keys())
+        yield Asset(ncfiles, lambda: all(x.is_file() for x in ncfiles))
+        yield None
+        for ncfile in ncfiles:
+            ncfile.parent.mkdir(exist_ok=True, parents=True)
+            ncfile.touch()
+
+    driverobj, expected = varkit
+    with patch.object(driverobj, "ncfiles", Mock(wraps=mock_ncfiles)) as ncfiles:
+        node = driverobj.merged_netcdf_files()
+    assert node.ready
+    ncfiles.assert_called_once_with()
 
 
 def test_GenICs_ncfiles(varkit):
