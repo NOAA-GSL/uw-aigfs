@@ -33,7 +33,7 @@ from .utils.tasks import file
 jax.config.update("jax_platforms", "cpu")
 
 
-class GraphCastModel(DriverCycleBased):
+class AIGFSInference(DriverCycleBased):
     # Public tasks
 
     @task

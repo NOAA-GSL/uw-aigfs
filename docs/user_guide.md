@@ -225,7 +225,7 @@ The `task_prep` ***Rocoto*** task runs `drivers/generate_ics.py` (driver class `
 
 ### Forecast: GraphCast Inference
 
-The `task_forecast` ***Rocoto*** task runs `drivers/run_graphcast.py` (driver class `GraphCastModel`). It depends on `task_prep` completing successfully. The task:
+The `task_forecast` ***Rocoto*** task runs `drivers/run_graphcast.py` (driver class `AIGFSInference`). It depends on `task_prep` completing successfully. The task:
 
 1. Loads the initial-conditions netCDF file produced by the prep step.
 2. Loads the pre-trained ***GraphCast*** model weights (`.npz`) from `platform.pretrained_model_path`.

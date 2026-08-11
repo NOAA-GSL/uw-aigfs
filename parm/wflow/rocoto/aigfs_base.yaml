@@ -41,7 +41,7 @@ workflow:
         cyclestr:
           value: source &AIGFS_APP;/load_wflow_modules.sh &PLATFORM; && uw execute
             --module &AIGFS_APP;/drivers/run_graphcast.py
-            --classname GraphCastModel
+            --classname AIGFSInference
             --task run
             --config &EXPERIMENT_CONFIG;
             --cycle @Y-@m-@dT@H
