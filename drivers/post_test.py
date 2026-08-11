@@ -62,6 +62,24 @@ def driverobj(config, cycle):
 # Tests
 
 
+def test_AIGFSPost_delivery(driverobj, logcap):
+    @external
+    def mock__idx_delivered(path: Path) -> Iterator:
+        yield f"mock__idx_delivered {path}"
+        yield Asset(path, lambda: True)
+
+    with patch.object(
+        driverobj, "_idx_delivered", Mock(wraps=mock__idx_delivered)
+    ) as _idx_delivered:
+        assert driverobj.delivery().ready
+    assert "Delivered GRIB indexes" in logcap.text
+    del driverobj._deliver_to
+    del driverobj._config["deliver_to"]
+    node = driverobj.delivery()
+    assert not node.ready
+    assert "Definition of 'deliver_to' in 'delivery' task config block" in logcap.text
+
+
 def test_AIGFSPost_indexes(driverobj, logcap, touch):
     @external
     def mock__idx(path: Path) -> Iterator:
