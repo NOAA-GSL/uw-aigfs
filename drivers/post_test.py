@@ -8,7 +8,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
 
-from iotaa import Asset, Node, task
+from iotaa import Asset, Node, external, task
 from pytest import fixture
 
 from . import post
@@ -60,6 +60,22 @@ def driverobj(config, cycle):
 
 
 # Tests
+
+
+def test_AIGFSPost__indexes(driverobj, logcap, touch):
+    @external
+    def mock__idx(path: Path) -> Iterator:
+        yield f"mock__idx {path}"
+        yield Asset(path, path.is_file)
+
+    indexes = list(driverobj._idx2grib.keys())
+    assert not any(x.is_file() for x in indexes)
+    with patch.object(driverobj, "_idx", Mock(wraps=mock__idx)):
+        assert not driverobj.indexes().ready
+        for index in indexes:
+            touch(index)
+        assert driverobj.indexes().ready
+    assert "GRIB indexes" in logcap.text
 
 
 def test_AIGFSPost__gribfile(driverobj, logcap, touch):
