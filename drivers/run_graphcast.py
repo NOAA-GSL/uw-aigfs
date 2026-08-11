@@ -236,6 +236,3 @@ def _clean_ics(ds):
     ds = ds.isel(time=slice(1, 2))
     ds["time"] = ds["time"] - pd.Timedelta(hours=6)
     return ds
-
-
-# The next several functions were taken from https://medium.com/data-science/graphcast-how-to-get-things-done-f2fd5630c5fb
