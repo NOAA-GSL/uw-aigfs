@@ -205,9 +205,8 @@ class Grib2Writer:
             pass
 
 
-if __name__ == "__main__":
+def main():
     use_uwtools_logger()
-    table_file = "tables.json"
     start_date = pd.to_datetime("2025-07-30 06:00:00")
     ds = xr.open_dataset("forecasts_levels-13_steps-64.nc")
     t0 = time()
@@ -216,3 +215,7 @@ if __name__ == "__main__":
     converter = Grib2Writer(start_date)
     converter.save_grib2(ds, outdir)
     logging.info("It took %s mins", (time() - t0) / 60)
+
+
+if __name__ == "__main__":  # pragma: no cover
+    main()
