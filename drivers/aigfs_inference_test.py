@@ -1,5 +1,6 @@
 from collections.abc import Iterator
 from datetime import datetime, timezone
+from itertools import product
 from pathlib import Path
 from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
@@ -7,7 +8,7 @@ from unittest.mock import Mock, patch
 import numpy as np
 import xarray as xr
 from iotaa import Asset, task
-from pytest import fixture
+from pytest import fixture, mark
 
 from . import aigfs_inference
 
@@ -178,6 +179,17 @@ def test_drivers_AIGFSInference_model_weights(driverobj, weights, logcap):
     assert loaded.description == weights.description
     assert loaded.license == weights.license
     assert "model weights" in logcap.text
+
+
+@mark.parametrize("ready", list(product([True, False], repeat=1)))
+def test_drivers_AIGFSInference_provisioned_rundir(atask, ready, driverobj, logcap):
+    mocks = [Mock(wraps=atask(x)) for x in ready]
+    with patch.object(driverobj, "runscript", mocks[0]) as runscript:
+        node = driverobj.provisioned_rundir()
+    for x in [runscript]:
+        x.assert_called_once_with()
+    assert node.ready is all(ready)
+    assert "provisioned run directory" in logcap.text
 
 
 def test_drivers_AIGFSInference_driver_name(driverobj):

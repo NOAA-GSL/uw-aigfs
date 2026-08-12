@@ -1,7 +1,18 @@
 import logging
 from pathlib import Path
 
+from iotaa import Asset, external
 from pytest import fixture
+
+
+@fixture
+def atask():
+    @external
+    def f(ready: bool):
+        yield "A %sready task" % ("" if ready else "not-")
+        yield Asset(ready, lambda: ready)
+
+    return f
 
 
 @fixture

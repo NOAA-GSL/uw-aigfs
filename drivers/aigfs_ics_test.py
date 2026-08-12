@@ -16,16 +16,6 @@ from . import aigfs_ics
 
 
 @fixture
-def atask():
-    @external
-    def f(ready: bool):
-        yield "A %sready task" % ("" if ready else "not-")
-        yield Asset(ready, lambda: ready)
-
-    return f
-
-
-@fixture
 def config(tmp_path):
     return {
         "aigfs_ics": {

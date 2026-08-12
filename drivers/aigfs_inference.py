@@ -149,7 +149,7 @@ class AIGFSInference(DriverCycleBased):
         path.touch()
 
     @collection
-    def provisioned_rundir(self):  # pragma: no cover
+    def provisioned_rundir(self):
         """
         Run directory provisioned with all required content.
         """
