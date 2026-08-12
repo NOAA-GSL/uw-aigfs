@@ -1,7 +1,3 @@
-"""
-Grib2Writer tests.
-"""
-
 import json
 import os
 from datetime import datetime, timezone
@@ -19,7 +15,9 @@ from .grib2writer import SECTION3, Grib2Writer
 
 @fixture
 def ds():
-    """A minimal xarray Dataset for save_grib2 testing."""
+    """
+    A minimal xarray Dataset for save_grib2 testing.
+    """
     nlat, nlon = 721, 1440
     lat = np.linspace(90, -90, nlat, dtype="float32")
     lon = np.linspace(0, 359.75, nlon, dtype="float32")
@@ -239,7 +237,7 @@ def test_drivers_utils_grib2writer_save_grib2_ensemble_prefix(writer_ens, ds, tm
 
 
 def test_drivers_utils_grib2writer_save_grib2_cumsum_aigfs(writer, tmp_path):
-    """total_precipitation_cumsum is kept for aigfs and scaled."""
+    # total_precipitation_cumsum is kept for aigfs and scaled.
     nlat, nlon = 721, 1440
     lat = np.linspace(90, -90, nlat, dtype="float32")
     lon = np.linspace(0, 359.75, nlon, dtype="float32")
@@ -267,7 +265,7 @@ def test_drivers_utils_grib2writer_save_grib2_cumsum_aigfs(writer, tmp_path):
 
 
 def test_drivers_utils_grib2writer_save_grib2_cumsum_ensemble_dropped(writer_ens, tmp_path):
-    """total_precipitation_cumsum is dropped for ensemble."""
+    # total_precipitation_cumsum is dropped for ensemble.
     nlat, nlon = 721, 1440
     lat = np.linspace(90, -90, nlat, dtype="float32")
     lon = np.linspace(0, 359.75, nlon, dtype="float32")
@@ -297,7 +295,7 @@ def test_drivers_utils_grib2writer_save_grib2_cumsum_ensemble_dropped(writer_ens
 
 
 def test_drivers_utils_grib2writer_save_grib2_sendecf(writer, ds, tmp_path, logcap):
-    """When SENDECF is set, subprocess is called."""
+    # When SENDECF is set, subprocess is called.
     script = tmp_path / "setevent.sh"
     script.write_text("#!/bin/bash\nexit 0\n")
     script.chmod(0o755)
@@ -308,7 +306,7 @@ def test_drivers_utils_grib2writer_save_grib2_sendecf(writer, ds, tmp_path, logc
 
 
 def test_drivers_utils_grib2writer_save_grib2_deletes_old_files(writer, ds, tmp_path):
-    """Old grib2 files are deleted before writing."""
+    # Old grib2 files are deleted before writing.
     sfc_file = tmp_path / "aigfs.t18z.sfc.f006.grib2"
     pres_file = tmp_path / "aigfs.t18z.pres.f006.grib2"
     sfc_file.write_text("old")
@@ -320,7 +318,7 @@ def test_drivers_utils_grib2writer_save_grib2_deletes_old_files(writer, ds, tmp_
 
 
 def test_drivers_utils_grib2writer_section3():
-    """SECTION3 has expected shape and key values."""
+    # SECTION3 has expected shape and key values.
     assert SECTION3.shape == (24,)
     assert SECTION3[12] == 1440  # nlon
     assert SECTION3[13] == 721  # nlat
