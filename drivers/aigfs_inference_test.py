@@ -102,6 +102,19 @@ def weights(config):
     return cp
 
 
+@fixture
+def mock_mws(weights):
+    @task
+    def _mock_mws() -> Iterator:
+        yield "mock model_weights"
+        ref: list[graphcast.CheckPoint] = []
+        yield Asset(ref, lambda: bool(ref))
+        yield None
+        ref.append(weights)
+
+    return _mock_mws
+
+
 # Tests
 
 
@@ -114,7 +127,7 @@ def test_drivers_AIGFSInference_initial_conditions(driverobj, ds, logcap):
     assert "initial conditions" in logcap.text
 
 
-def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, weights, logcap):
+def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, mock_mws, logcap):
     @task
     def ics() -> Iterator:
         yield "mock initial_conditions"
@@ -123,21 +136,13 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, weights, logc
         yield None
         ref.update(xr.Dataset({"temperature": (["x"], [10, 20])}))
 
-    @task
-    def mws() -> Iterator:
-        yield "mock model_weights"
-        ref: list[graphcast.CheckPoints] = []
-        yield Asset(ref, lambda: bool(ref))
-        yield None
-        ref.append(weights)
-
     inputs = xr.Dataset({"input_var": (["x"], [1, 2])})
     targets = xr.Dataset({"target_var": (["x"], [3, 4])})
     forcings = xr.Dataset({"forcing_var": (["x"], [5, 6])})
     with (
         patch.object(aigfs_inference.data_utils, "extract_inputs_targets_forcings") as extract,
         patch.object(driverobj, "initial_conditions", Mock(wraps=ics)),
-        patch.object(driverobj, "model_weights", Mock(wraps=mws)),
+        patch.object(driverobj, "model_weights", Mock(wraps=mock_mws)),
     ):
         extract.return_value = (inputs, targets, forcings)
         node = driverobj.inputs_targets_forcings()
@@ -202,7 +207,7 @@ def test_drivers_AIGFSInference_drop_state():
     assert wrapped(a=1, b=2) == 3
 
 
-def test_drivers_AIGFSInference_predictions(driverobj, ds, weights, logcap):
+def test_drivers_AIGFSInference_predictions(driverobj, ds, mock_mws, logcap):
 
     @task
     def mock_ics() -> Iterator:
@@ -220,14 +225,6 @@ def test_drivers_AIGFSInference_predictions(driverobj, ds, weights, logcap):
         yield Asset(ref, lambda: bool(ref))
         yield None
         ref.extend([inputs, targets, forcings])
-
-    @task
-    def mock_mws() -> Iterator:
-        yield "mock model_weights"
-        ref: list[graphcast.CheckPoint] = []
-        yield Asset(ref, lambda: bool(ref))
-        yield None
-        ref.append(weights)
 
     @task
     def mock_norm() -> Iterator:
