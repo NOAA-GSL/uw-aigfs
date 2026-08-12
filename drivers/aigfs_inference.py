@@ -39,7 +39,8 @@ class AIGFSInference(DriverCycleBased):
         """
         Load the initial conditions for the model.
         """
-        yield "initial conditions"
+        taskname = "initial conditions"
+        yield taskname
         ds = xr.Dataset()
         yield Asset(ds, lambda: bool(ds))
         ics_path = self.config["ics_path"]
@@ -48,7 +49,7 @@ class AIGFSInference(DriverCycleBased):
         fcst_freq = self.config["forecast_freq"]
         src = xr.load_dataset(ics_path)
         fcst_steps = fcst_length // fcst_freq
-        src = _adjust_time(src, fcst_steps)
+        src = _adjust_time(src, fcst_steps, taskname)
         ds.update(src)
         ds.attrs.update(src.attrs)
 
@@ -197,9 +198,9 @@ def run_forward(
 # Private functions
 
 
-def _adjust_time(ds, fcst_steps):  # pragma: no cover
+def _adjust_time(ds: xr.Dataset, fcst_steps: int, taskname: str) -> xr.Dataset:
     if (fcst_steps + 2 - len(ds["time"])) > 0:
-        logging.info("Updating dataset to account for forecast length.")
+        logging.info("%s: Updating dataset to account for forecast length.", taskname)
         new_times = np.asarray([timedelta(hours=6) * f for f in range(fcst_steps + 2)]).astype(
             "timedelta64"
         )

@@ -1,8 +1,10 @@
 from datetime import datetime, timezone
 from pathlib import Path
+
+import numpy as np
 import xarray as xr
 from pytest import fixture
-from unittest.mock import patch, Mock
+
 from . import aigfs_inference
 
 # Fixtures
@@ -40,19 +42,63 @@ def driverobj(config, cycle):
     )
 
 
+@fixture
+def ds():
+    t0 = np.datetime64("2025-10-01T18:00")
+    times = np.array([np.timedelta64(0, "h"), np.timedelta64(6, "h")])
+    datetimes = np.array([t0, t0 + np.timedelta64(6, "h")])
+    return xr.Dataset(
+        {"temperature": (["batch", "time", "x"], np.ones((1, 2, 3)))},
+        coords={
+            "batch": [0],
+            "time": times,
+            "datetime": (["batch", "time"], datetimes.reshape(1, 2)),
+            "x": [0, 1, 2],
+        },
+    )
+
+
 # Tests
 
 
-def test_drivers_AIGFSInference_initial_conditions(driverobj):
+def test_drivers_AIGFSInference_initial_conditions(driverobj, ds, logcap):
     path = Path(driverobj.config["ics_path"])
-    ds = xr.Dataset({"temperature": (["x"], [10, 20, 30])}, coords={"x": [0, 1, 2]})
     ds.to_netcdf(path)
-    with patch.object(aigfs_inference, "_adjust_time", Mock(wraps=lambda x, _: x)) as _adjust_time:
-        node = driverobj.initial_conditions()
+    node = driverobj.initial_conditions()
     assert node.ready
-    assert node.ref == ds  # a no-op now due to mocked _adjust_time()
-    _adjust_time.assert_called_once_with(ds, 4)
+    ds_check(node.ref)
+    assert "initial conditions" in logcap.text
 
 
 def test_drivers_AIGFSInference_driver_name(driverobj):
     assert driverobj.driver_name() == "aigfs_inference"
+
+
+def test_drivers_aigfs_inference__adjust_time(ds, logcap):
+    # fcst_steps=4 => needs 6 time steps, ds has 2, so the if block is entered.
+    ds_check(aigfs_inference._adjust_time(ds=ds, fcst_steps=4, taskname="test"))
+    assert "test: Updating dataset to account for forecast length" in logcap.text
+
+
+def test_drivers_aigfs_inference__adjust_time__noop(ds):
+    # fcst_steps=0 => needs 2 time steps, ds has 2, so the if block is NOT entered.
+    result = aigfs_inference._adjust_time(ds=ds, fcst_steps=0, taskname="test")
+    xr.testing.assert_identical(result, ds)
+
+
+# Helpers
+
+
+def ds_check(ds: xr.Dataset):
+    # Should have fcst_steps + 2 = 6 time steps now:
+    assert len(ds["time"]) == 6
+    # Time values are 6-hourly timedeltas:
+    expected_times = np.array([np.timedelta64(6 * i, "h") for i in range(6)])
+    np.testing.assert_array_equal(ds["time"].values, expected_times)
+    # Datetime values are absolute times starting from the original start:
+    t0 = np.datetime64("2025-10-01T18:00")
+    expected_datetimes = np.array([t0 + np.timedelta64(6 * i, "h") for i in range(6)])
+    np.testing.assert_array_equal(ds["datetime"].values[0], expected_datetimes)
+    # Original data at existing time indices is preserved, new indices are NaN:
+    assert float(ds["temperature"].isel(batch=0, time=0, x=0)) == 1.0
+    assert np.isnan(float(ds["temperature"].isel(batch=0, time=2, x=0)))
