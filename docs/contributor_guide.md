@@ -177,7 +177,6 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 ├── modulefiles                     # Directory for system modules
 ├── parm                            # Parameter files
 │   ├── machine                     # Per-platform YAML overrides
-│   ├── transfer_aigfs.list         # ???
 │   ├── wflow                       # Workflow files
 │   │   ├── ecflow                  # ecFlow workflow support
 │   │   └── rocoto                  # Rocoto workflow support
