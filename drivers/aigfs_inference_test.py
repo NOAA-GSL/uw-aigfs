@@ -14,16 +14,16 @@ from . import aigfs_inference
 def config(tmp_path):
     return {
         "aigfs_inference": {
-            "diffs_stddev_path": str(tmp_path / "diffs_stddev"),
+            "diffs_stddev_path": str(tmp_path / "diffs_stddev_by_level.nc"),
             "execution": {"executable": "uw execute -h"},
             "forecast_freq": 6,
             "forecast_length": 24,
             "ics_path": str(tmp_path / "aigfs.t18z.ic.nc"),
-            "json_path": str(tmp_path / "json"),
-            "mean_path": str(tmp_path / "mean"),
-            "model_weights_path": str(tmp_path / "model_weihts"),
+            "json_path": str(tmp_path / "tables"),
+            "mean_path": str(tmp_path / "mean_by_level.nc"),
+            "model_weights_path": str(tmp_path / "weights.npz"),
             "rundir": str(tmp_path / "run"),
-            "stddev_path": str(tmp_path / "stddev"),
+            "stddev_path": str(tmp_path / "stddev_by_level.nc"),
         }
     }
 
@@ -50,16 +50,16 @@ def ds():
     ones = np.ones((1, 2, 1))
     return xr.Dataset(
         {
-            "temperature": (["batch", "time", "x"], ones.copy(), {"long_name": "temp"}),
-            "pressure": (["batch", "time", "x"], ones.copy()),
             "geopotential_at_surface": (["batch", "time", "x"], ones.copy()),
             "land_sea_mask": (["batch", "time", "x"], ones.copy()),
+            "pressure": (["batch", "time", "x"], ones.copy()),
+            "temperature": (["batch", "time", "x"], ones.copy(), {"long_name": "temp"}),
             "total_precipitation_6hr": (["batch", "time", "x"], ones.copy()),
         },
         coords={
             "batch": [0],
-            "time": times,
             "datetime": (["batch", "time"], datetimes.reshape(1, 2)),
+            "time": times,
             "x": [0],
         },
     )
