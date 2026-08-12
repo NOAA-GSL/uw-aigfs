@@ -1,12 +1,18 @@
+from collections.abc import Iterator
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import TYPE_CHECKING
+from unittest.mock import Mock, patch
 
 import numpy as np
 import xarray as xr
+from iotaa import Asset, task
 from pytest import fixture
 
 from . import aigfs_inference
 
+if TYPE_CHECKING:
+    from graphcast import graphcast  # type: ignore[import-untyped]
 # Fixtures
 
 
@@ -75,6 +81,34 @@ def test_drivers_AIGFSInference_initial_conditions(driverobj, ds, logcap):
     assert node.ready
     ds_check(node.ref)
     assert "initial conditions" in logcap.text
+
+
+def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
+    @task
+    def ics() -> Iterator:
+        yield "mock initial_conditions"
+        ref = xr.Dataset()
+        yield Asset(ref, lambda: bool(ref))
+        yield None
+        # ref = None  # PM FIXME
+
+    @task
+    def mws() -> Iterator:
+        yield "mock model_weights"
+        ref: list[graphcast.CheckPoints] = []
+        yield Asset(ref, lambda: bool(ref))
+        yield None
+        # ref = None  # PM FIXME
+
+    with (
+        patch.object(driverobj, "initial_conditions", Mock(wraps=ics)),
+        patch.object(driverobj, "model_weights", Mock(wraps=mws)),
+    ):
+        node = driverobj.inputs_targets_forcings()
+    assert node  # PM REMOVE
+    # assert node.ready
+    # assert node.ref is None  # PM FIXME
+    assert "inputs, targets, and forcings" in logcap.text
 
 
 def test_drivers_AIGFSInference_driver_name(driverobj):

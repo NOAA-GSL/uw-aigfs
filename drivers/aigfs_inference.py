@@ -37,7 +37,7 @@ class AIGFSInference(DriverCycleBased):
     @task
     def initial_conditions(self):
         """
-        Load the initial conditions for the model.
+        Initial conditiona.
         """
         taskname = "initial conditions"
         yield taskname
@@ -77,9 +77,9 @@ class AIGFSInference(DriverCycleBased):
         )
 
     @task
-    def load_normalization_stats(self):  # pragma: no cover
+    def normalization_stats(self):  # pragma: no cover
         """
-        Load and return the stats files contents.
+        Normalization stats.
         """
         yield "normalization stats"
         datasets: list[xr.Dataset] = []
@@ -115,7 +115,7 @@ class AIGFSInference(DriverCycleBased):
         ics = self.initial_conditions()
         itfs = self.inputs_targets_forcings()
         model_weights = self.model_weights()
-        norm_stats = self.load_normalization_stats()
+        norm_stats = self.normalization_stats()
         yield [ics, itfs, model_weights, norm_stats]
         ds = _clean_ics(ics.ref)
         converter = Grib2Writer(
