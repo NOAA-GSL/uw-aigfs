@@ -205,7 +205,7 @@ def _adjust_time(ds: xr.Dataset, fcst_steps: int, taskname: str) -> xr.Dataset:
             "timedelta64"
         )
         starttime = ds["datetime"][0][0].astype("datetime64[s]")
-        new_datetimes = starttime.values + new_times  # noqa: PD011 FIXME w/ unit tests
+        new_datetimes = starttime.to_numpy() + new_times
         ds = ds.reindex(time=np.asarray(new_times).astype("timedelta64"))
         ds["datetime"][0] = new_datetimes
     return ds
