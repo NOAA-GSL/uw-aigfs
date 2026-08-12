@@ -93,4 +93,4 @@ def set_up_experiment_directory(validated: Config) -> tuple[Path, Path]:
 
 
 if __name__ == "__main__":
-    main()
+    main()  # pragma: no cover
