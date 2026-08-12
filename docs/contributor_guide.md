@@ -161,7 +161,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 ├── bin                             # Automation tools
 │   ├── activate                    # Source to activate conda and the AIGFS environment
 │   └── run                         # Support for Makefile targets
-├── conda                           # Managed conda installation (created by make env/devenv)
+├── conda                           # Managed conda installation (created by make [dev]env)
 ├── docs                            # User and contributor documentation
 ├── drivers                         # Driver classes for workflow stages
 │   ├── aigfs_*.jsonschema          # Driver config schemas
