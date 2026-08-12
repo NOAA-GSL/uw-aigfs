@@ -1,5 +1,4 @@
 from collections.abc import Iterator
-from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -75,6 +74,33 @@ def ds():
     )
 
 
+@fixture
+def weights(tmp_path):
+    mc = graphcast.ModelConfig(
+        resolution=0.25,
+        mesh_size=4,
+        latent_size=32,
+        gnn_msg_steps=4,
+        hidden_layers=1,
+        radius_query_fraction_edge_length=0.6,
+    )
+    tc = graphcast.TaskConfig(
+        input_variables=("t",),
+        target_variables=("t",),
+        forcing_variables=("f",),
+        pressure_levels=(850,),
+        input_duration="12h",
+    )
+    params = {"w": np.array([1.0, 2.0])}
+    cp = graphcast.CheckPoint(
+        params=params, model_config=mc, task_config=tc, description="test", license="test"
+    )
+    path = tmp_path / "weights.npz"
+    with path.open("wb") as f:
+        checkpoint.dump(f, cp)
+    return cp
+
+
 # Tests
 
 
@@ -87,11 +113,7 @@ def test_drivers_AIGFSInference_initial_conditions(driverobj, ds, logcap):
     assert "initial conditions" in logcap.text
 
 
-def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
-    @dataclass
-    class TaskConfig:
-        input_duration: str = "12h"
-
+def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, weights, logcap):
     @task
     def ics() -> Iterator:
         yield "mock initial_conditions"
@@ -106,7 +128,7 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
         ref: list[graphcast.CheckPoints] = []
         yield Asset(ref, lambda: bool(ref))
         yield None
-        ref.append(Mock(task_config=TaskConfig()))
+        ref.append(weights)
 
     inputs = xr.Dataset({"input_var": (["x"], [1, 2])})
     targets = xr.Dataset({"target_var": (["x"], [3, 4])})
@@ -130,38 +152,16 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
     assert "inputs, targets, and forcings" in logcap.text
 
 
-def test_drivers_AIGFSInference_model_weights(driverobj, logcap):
-    path = Path(driverobj.config["model_weights_path"])
-    mc = graphcast.ModelConfig(
-        resolution=0.25,
-        mesh_size=4,
-        latent_size=32,
-        gnn_msg_steps=4,
-        hidden_layers=1,
-        radius_query_fraction_edge_length=0.6,
-    )
-    tc = graphcast.TaskConfig(
-        input_variables=("t",),
-        target_variables=("t",),
-        forcing_variables=("f",),
-        pressure_levels=(850,),
-        input_duration="12h",
-    )
-    params = {"w": np.array([1.0, 2.0])}
-    cp = graphcast.CheckPoint(
-        params=params, model_config=mc, task_config=tc, description="test", license="test"
-    )
-    with path.open("wb") as f:
-        checkpoint.dump(f, cp)
+def test_drivers_AIGFSInference_model_weights(driverobj, weights, logcap):
     node = driverobj.model_weights()
     assert node.ready
     assert len(node.ref) == 1
     loaded = node.ref[0]
-    np.testing.assert_array_equal(loaded.params["w"], params["w"])
-    assert loaded.model_config == mc
-    assert loaded.task_config == tc
-    assert loaded.description == "test"
-    assert loaded.license == "test"
+    np.testing.assert_array_equal(loaded.params["w"], weights.params["w"])
+    assert loaded.model_config == weights.model_config
+    assert loaded.task_config == weights.task_config
+    assert loaded.description == weights.description
+    assert loaded.license == weights.license
     assert "model weights" in logcap.text
 
 
