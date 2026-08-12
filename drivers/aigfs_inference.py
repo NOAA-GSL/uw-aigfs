@@ -173,9 +173,7 @@ class AIGFSInference(DriverCycleBased):
 # Public functions
 
 
-def construct_wrapped_graphcast(
-    model_config, task_config, diffs_stddev, mean, stddev
-):  # pragma: no cover
+def construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, stddev):
     """Constructs and wraps the GraphCast Predictor."""
     # Deeper one-step predictor.
     predictor = graphcast.GraphCast(model_config, task_config)

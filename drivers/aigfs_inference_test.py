@@ -76,24 +76,34 @@ def ds():
 
 
 @fixture
-def weights(config):
+def model_config():
+    return graphcast.ModelConfig(
+        resolution=0.25,
+        mesh_size=4,
+        latent_size=32,
+        gnn_msg_steps=4,
+        hidden_layers=1,
+        radius_query_fraction_edge_length=0.6,
+    )
+
+
+@fixture
+def task_config():
+    return graphcast.TaskConfig(
+        input_variables=("t",),
+        target_variables=("t",),
+        forcing_variables=("f",),
+        pressure_levels=(850,),
+        input_duration="12h",
+    )
+
+
+@fixture
+def weights(config, model_config, task_config):
     cp = graphcast.CheckPoint(
         params={"w": np.array([1.0, 2.0])},
-        model_config=graphcast.ModelConfig(
-            resolution=0.25,
-            mesh_size=4,
-            latent_size=32,
-            gnn_msg_steps=4,
-            hidden_layers=1,
-            radius_query_fraction_edge_length=0.6,
-        ),
-        task_config=graphcast.TaskConfig(
-            input_variables=("t",),
-            target_variables=("t",),
-            forcing_variables=("f",),
-            pressure_levels=(850,),
-            input_duration="12h",
-        ),
+        model_config=model_config,
+        task_config=task_config,
         description="test",
         license="test",
     )
@@ -291,6 +301,20 @@ def test_drivers_aigfs_inference__clean_ics(ds):
     # Only time index 1 was kept, and time was shifted back by 6h:
     assert len(result["time"]) == 1
     np.testing.assert_array_equal(result["time"].values, [np.timedelta64(0, "h")])
+
+
+def test_drivers_aigfs_inference_construct_wrapped_graphcast(model_config, task_config):
+    diffs_stddev = xr.Dataset({"x": ([], 1.0)})
+    mean = xr.Dataset({"x": ([], 2.0)})
+    stddev = xr.Dataset({"x": ([], 3.0)})
+    with patch.object(aigfs_inference.graphcast, "GraphCast") as mock_gc:
+        result = aigfs_inference.construct_wrapped_graphcast(
+            model_config, task_config, diffs_stddev, mean, stddev
+        )
+    # GraphCast was called with model_config and task_config:
+    mock_gc.assert_called_once_with(model_config, task_config)
+    # The result is an autoregressive.Predictor wrapping the composition:
+    assert isinstance(result, aigfs_inference.autoregressive.Predictor)
 
 
 # Helpers
