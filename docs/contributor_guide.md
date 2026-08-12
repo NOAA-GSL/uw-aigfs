@@ -191,7 +191,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
     ├── generate_experiment_test.py # Tests for generate_experiment.py
     ├── validation.py               # Pydantic config validation
     ├── validation_test.py          # Tests for validation.py
-    └── wcoss_config.yaml           # ???
+    └── wcoss_config.yaml           # Experiment-configuration overrides
 ```
 
 ### Key Concepts
