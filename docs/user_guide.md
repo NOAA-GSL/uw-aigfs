@@ -100,7 +100,7 @@ Supported values for `<platform>`:
 
 ### Default Configuration
 
-`ush/default_config.yaml` contains the baseline settings for all workflow stages. It is organized into top-level blocks that correspond to the workflow stages and follow the [uwtools YAML](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/index.html) conventions:
+`parm/default_config.yaml` contains the baseline settings for all workflow stages. It is organized into top-level blocks that correspond to the workflow stages and follow the [uwtools YAML](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/index.html) conventions:
 
 | Block | Purpose |
 |---|---|
@@ -166,7 +166,7 @@ With the environment activated (see [Setting Up the Environment](#setting-up-the
 python ush/generate_experiment.py [additional.yaml ...] user.yaml
 ```
 
-Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `ush/default_config.yaml` and the appropriate machine YAML (`parm/machine/<platform>.yaml`) before applying your user configs.
+Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `parm/default_config.yaml` and the appropriate machine YAML (`parm/machine/<platform>.yaml`) before applying your user configs.
 
 The following files are written to `user.experiment_dir`:
 

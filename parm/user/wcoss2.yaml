@@ -1,5 +1,5 @@
 # WCOSS2-specific config overlay for uw-aigfs.
-# Fork of ush/default_config.yaml — do NOT edit default_config.yaml for WCOSS2 changes;
+# Fork of parm/default_config.yaml — do NOT edit default_config.yaml for WCOSS2 changes;
 # that file is kept intact for parallel Ursa/RDHPCS development.
 #
 # User paths use {{ 'USER' | env }} to resolve the USER environment variable at
