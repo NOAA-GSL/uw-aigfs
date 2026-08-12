@@ -182,9 +182,9 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 │   │   └── rocoto                  # Rocoto workflow support
 │   └── wgrib2_data.yaml            # Variables and levels to extract from GFS GRIB2
 ├── pyproject.toml                  # Code-quality tool configuration
-├── scripts                         # Miscellaneous scripts
+├── scripts                         # High-level scripts
 │   └── run_post.sh                 # Helper script for post-processing
-└── ush                             # ???
+└── ush                             # Low-level or utility scripts, scripting libraries
     ├── default_config.yaml         # Baseline experiment configuration
     ├── generate_experiment.py      # Experiment setup CLI
     ├── generate_experiment_test.py # Tests for generate_experiment.py
