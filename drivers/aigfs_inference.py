@@ -35,7 +35,7 @@ class AIGFSInference(DriverCycleBased):
     # Public tasks
 
     @task
-    def initial_conditions(self):  # pragma: no cover
+    def initial_conditions(self):
         """
         Load the initial conditions for the model.
         """
