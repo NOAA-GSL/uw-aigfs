@@ -145,11 +145,26 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, weights, logc
     xr.testing.assert_identical(node.ref[0], inputs)
     xr.testing.assert_identical(node.ref[1], targets)
     xr.testing.assert_identical(node.ref[2], forcings)
-    # extract was called with the ics dataset and correct kwargs:
     call_args = extract.call_args
     xr.testing.assert_identical(call_args[0][0], xr.Dataset({"temperature": (["x"], [10, 20])}))
     assert call_args[1]["target_lead_times"] == slice("6h", "24h")
     assert "inputs, targets, and forcings" in logcap.text
+
+
+def test_drivers_AIGFSInference_normalization_stats(driverobj, logcap):
+    diffs_stddev = xr.Dataset({"diffs_stddev": (["x"], [1.0])})
+    mean = xr.Dataset({"mean": (["x"], [2.0])})
+    stddev = xr.Dataset({"stddev": (["x"], [3.0])})
+    diffs_stddev.to_netcdf(driverobj.config["diffs_stddev_path"])
+    mean.to_netcdf(driverobj.config["mean_path"])
+    stddev.to_netcdf(driverobj.config["stddev_path"])
+    node = driverobj.normalization_stats()
+    assert node.ready
+    assert len(node.ref) == 3
+    xr.testing.assert_identical(node.ref[0], diffs_stddev)
+    xr.testing.assert_identical(node.ref[1], mean)
+    xr.testing.assert_identical(node.ref[2], stddev)
+    assert "normalization stats" in logcap.text
 
 
 def test_drivers_AIGFSInference_model_weights(driverobj, weights, logcap):

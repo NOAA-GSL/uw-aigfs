@@ -77,7 +77,7 @@ class AIGFSInference(DriverCycleBased):
         )
 
     @task
-    def normalization_stats(self):  # pragma: no cover
+    def normalization_stats(self):
         """
         Normalization stats.
         """
