@@ -16,10 +16,8 @@ from .validation import Config, validate
 APP_HOME = Path(__file__).parent.parent.resolve()
 
 
-def generate_experiment_files(  # pragma: no cover
-    experiment_config: YAMLConfig,
-    experiment_file: Path,
-    wflow_manager: str = "rocoto",
+def generate_experiment_files(
+    experiment_config: YAMLConfig, experiment_file: Path, wflow_manager: str = "rocoto"
 ) -> None:
     """
     Generate the workflow manager artifacts and the experiment YAML.
@@ -37,7 +35,7 @@ def generate_experiment_files(  # pragma: no cover
         sys.exit(1)
 
 
-def main() -> None:  # pragma: no cover
+def main() -> None:
     """
     Stage the workflow manager artifacts and experiment YAML in the experiment directory.
     """
@@ -45,11 +43,11 @@ def main() -> None:  # pragma: no cover
     user_config_files = parse_args()
     experiment_config = prepare_configs(user_config_files)
     validated = validate(experiment_config.as_dict())
-    _, experiment_file = setup_experiment_directory(validated)
+    _, experiment_file = set_up_experiment_directory(validated)
     generate_experiment_files(experiment_config, experiment_file)
 
 
-def parse_args() -> list[Path]:  # pragma: no cover
+def parse_args() -> list[Path]:
     """
     Parse command-line arguments.
     """
@@ -64,17 +62,15 @@ def parse_args() -> list[Path]:  # pragma: no cover
     return cast(list[Path], parser.parse_args().user_config_files)
 
 
-def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:  # pragma: no cover
+def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     """
     Combine base, user, and platform configs into one experiment config.
     """
     # Set up the experiment.
     user_config = compose(configs=cast(list[str | Path], user_config_files), output_file=os.devnull)
     machine = user_config["user"]["platform"]
-
     default_config = APP_HOME / "parm" / "default_config.yaml"
     platform_config = APP_HOME / "parm" / "machines" / f"{machine}.yaml"
-
     # Make sure user_config is last to override any settings from supplementals.
     experiment_config = compose(
         configs=[default_config, platform_config, *user_config_files],
@@ -85,7 +81,7 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:  # pragma: no 
     return cast(YAMLConfig, experiment_config)
 
 
-def setup_experiment_directory(validated: Config) -> tuple[Path, Path]:  # pragma: no cover
+def set_up_experiment_directory(validated: Config) -> tuple[Path, Path]:
     """
     Create the experiment directory and write experiment.yaml.
     """
@@ -97,4 +93,4 @@ def setup_experiment_directory(validated: Config) -> tuple[Path, Path]:  # pragm
 
 
 if __name__ == "__main__":
-    main()  # pragma: no cover
+    main()
