@@ -18,6 +18,34 @@ from .grib2writer import SECTION3, Grib2Writer
 
 
 @fixture
+def ds():
+    """A minimal xarray Dataset for save_grib2 testing."""
+    nlat, nlon = 721, 1440
+    lat = np.linspace(90, -90, nlat, dtype="float32")
+    lon = np.linspace(0, 359.75, nlon, dtype="float32")
+    time = [np.timedelta64(6, "h")]
+    level = np.array([850, 500], dtype="int32")
+    ones_sfc = np.ones((1, 1, nlat, nlon), dtype="float32")
+    ones_pres = np.ones((1, 1, 2, nlat, nlon), dtype="float32")
+    return xr.Dataset(
+        {
+            "2m_temperature": (["batch", "time", "lat", "lon"], ones_sfc.copy()),
+            "geopotential": (["batch", "time", "level", "lat", "lon"], ones_pres.copy()),
+            "temperature": (["batch", "time", "level", "lat", "lon"], ones_pres.copy()),
+            "specific_humidity": (["batch", "time", "level", "lat", "lon"], ones_pres * 0.01),
+            "total_precipitation_6hr": (["batch", "time", "lat", "lon"], ones_sfc * 0.002),
+        },
+        coords={
+            "batch": [0],
+            "time": time,
+            "lat": lat,
+            "lon": lon,
+            "level": level,
+        },
+    )
+
+
+@fixture
 def json_path(tmp_path):
     table = {
         "temperature": {
@@ -68,34 +96,6 @@ def writer_ens(json_path, start_date):
 @fixture
 def writer_ens_ctrl(json_path, start_date):
     return Grib2Writer(start_date=start_date, case_name="aigec00", json_path=json_path)
-
-
-@fixture
-def ds():
-    """A minimal xarray Dataset for save_grib2 testing."""
-    nlat, nlon = 721, 1440
-    lat = np.linspace(90, -90, nlat, dtype="float32")
-    lon = np.linspace(0, 359.75, nlon, dtype="float32")
-    time = [np.timedelta64(6, "h")]
-    level = np.array([850, 500], dtype="int32")
-    ones_sfc = np.ones((1, 1, nlat, nlon), dtype="float32")
-    ones_pres = np.ones((1, 1, 2, nlat, nlon), dtype="float32")
-    return xr.Dataset(
-        {
-            "2m_temperature": (["batch", "time", "lat", "lon"], ones_sfc.copy()),
-            "geopotential": (["batch", "time", "level", "lat", "lon"], ones_pres.copy()),
-            "temperature": (["batch", "time", "level", "lat", "lon"], ones_pres.copy()),
-            "specific_humidity": (["batch", "time", "level", "lat", "lon"], ones_pres * 0.01),
-            "total_precipitation_6hr": (["batch", "time", "lat", "lon"], ones_sfc * 0.002),
-        },
-        coords={
-            "batch": [0],
-            "time": time,
-            "lat": lat,
-            "lon": lon,
-            "level": level,
-        },
-    )
 
 
 # Tests
