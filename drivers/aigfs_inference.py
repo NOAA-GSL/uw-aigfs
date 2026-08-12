@@ -92,16 +92,16 @@ class AIGFSInference(DriverCycleBased):
         datasets.extend([xr.load_dataset(p) for p in paths])
 
     @task
-    def model_weights(self):  # pragma: no cover
+    def model_weights(self):
         """
         Load the pre-trained model weights.
         """
         yield "model weights"
         weights: list[graphcast.CheckPoint] = []
         yield Asset(weights, lambda: bool(weights))
-        model_weights_path = Path(self.config["model_weights_path"])
-        yield file(model_weights_path)
-        with model_weights_path.open("rb") as f:
+        req = file(self.config["model_weights_path"])
+        yield req
+        with req.ref.open("rb") as f:
             weights.append(checkpoint.load(f, graphcast.CheckPoint))
 
     @task
