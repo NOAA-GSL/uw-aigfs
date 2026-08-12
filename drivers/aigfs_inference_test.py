@@ -75,28 +75,28 @@ def ds():
 
 
 @fixture
-def weights(tmp_path):
-    mc = graphcast.ModelConfig(
-        resolution=0.25,
-        mesh_size=4,
-        latent_size=32,
-        gnn_msg_steps=4,
-        hidden_layers=1,
-        radius_query_fraction_edge_length=0.6,
-    )
-    tc = graphcast.TaskConfig(
-        input_variables=("t",),
-        target_variables=("t",),
-        forcing_variables=("f",),
-        pressure_levels=(850,),
-        input_duration="12h",
-    )
-    params = {"w": np.array([1.0, 2.0])}
+def weights(config):
     cp = graphcast.CheckPoint(
-        params=params, model_config=mc, task_config=tc, description="test", license="test"
+        params={"w": np.array([1.0, 2.0])},
+        model_config=graphcast.ModelConfig(
+            resolution=0.25,
+            mesh_size=4,
+            latent_size=32,
+            gnn_msg_steps=4,
+            hidden_layers=1,
+            radius_query_fraction_edge_length=0.6,
+        ),
+        task_config=graphcast.TaskConfig(
+            input_variables=("t",),
+            target_variables=("t",),
+            forcing_variables=("f",),
+            pressure_levels=(850,),
+            input_duration="12h",
+        ),
+        description="test",
+        license="test",
     )
-    path = tmp_path / "weights.npz"
-    with path.open("wb") as f:
+    with Path(config["aigfs_inference"]["model_weights_path"]).open("wb") as f:
         checkpoint.dump(f, cp)
     return cp
 
