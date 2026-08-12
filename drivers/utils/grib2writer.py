@@ -1,18 +1,13 @@
-#!/usr/bin/env python
-
 import json
 import logging
 import os
 import subprocess
 from datetime import datetime, timedelta
 from pathlib import Path
-from time import time
 
 import grib2io  # type: ignore[import-untyped]
 import numpy as np
-import pandas as pd
 import xarray as xr
-from uwtools.api.logging import use_uwtools_logger
 
 SECTION3 = np.array(
     [
@@ -47,7 +42,7 @@ SECTION3 = np.array(
 class Grib2Writer:
     def __init__(
         self, start_date: datetime, case_name: str = "aigfs", json_path: Path | None = None
-    ) -> None:  # pragma: no cover
+    ) -> None:
         self.case_name = case_name
         if self.case_name == "aigfs":
             assert json_path
@@ -64,7 +59,7 @@ class Grib2Writer:
 
     def create_grib2_message(
         self, var: str, lead: int, level: int | None = None
-    ) -> grib2io.Grib2Message:  # pragma: no cover
+    ) -> grib2io.Grib2Message:
         # Set duration. NOTE: the duration attr exists for all Grib2Message objects.
         # For Grib2Messages that are instantaneous, the duration is just 0.
         duration = timedelta(hours=0)
@@ -119,7 +114,7 @@ class Grib2Writer:
 
         return msg
 
-    def save_grib2(self, xarray_ds: xr.Dataset, outdir: Path) -> None:  # pragma: no cover
+    def save_grib2(self, xarray_ds: xr.Dataset, outdir: Path) -> None:
         prefix = "aigefs" if self.case_name.startswith("aige") else "aigfs"
 
         # Convert geopotential to geopotential height.
@@ -154,7 +149,7 @@ class Grib2Writer:
 
         # Set output GRIB2 file.
         cycle = self.start_date.hour
-        lead = int((xarray_ds.time.dt.total_seconds() // 3600).values[0])  # noqa: PD011 FIXME w/ unit tests
+        lead = int((xarray_ds.time.dt.total_seconds() // 3600).values[0])
         outfile_sfc = outdir / f"{prefix}.t{cycle:02d}z.sfc.f{lead:03d}.grib2"
         outfile_pres = outdir / f"{prefix}.t{cycle:02d}z.pres.f{lead:03d}.grib2"
 
@@ -178,13 +173,13 @@ class Grib2Writer:
             if "level" in da.coords:
                 for level in da.coords["level"]:
                     msg = self.create_grib2_message(var, lead, level=level)
-                    msg.data = da.sel(level=level).isel(time=0).values  # noqa: PD011 FIXME w/ unit tests
+                    msg.data = da.sel(level=level).isel(time=0).values
                     msg.pack()
                     logging.info("  %s", msg)
                     grib2_out_pres.write(msg)
             else:
                 msg = self.create_grib2_message(var, lead)
-                msg.data = da.isel(time=0).values  # noqa: PD011 FIXME w/ unit tests
+                msg.data = da.isel(time=0).values
                 msg.pack()
                 logging.info("  %s", msg)
                 grib2_out_sfc.write(msg)
@@ -203,19 +198,3 @@ class Grib2Writer:
         if done_signal:
             # API for ecflow_client --force=set ${ECF_NAME}:release_f${fhour}
             pass
-
-
-def main():  # pragma: no cover
-    use_uwtools_logger()
-    start_date = pd.to_datetime("2025-07-30 06:00:00")
-    ds = xr.open_dataset("forecasts_levels-13_steps-64.nc")
-    t0 = time()
-    outdir = Path("./")
-    outdir.mkdir(parents=True, exist_ok=True)
-    converter = Grib2Writer(start_date)
-    converter.save_grib2(ds, outdir)
-    logging.info("It took %s mins", (time() - t0) / 60)
-
-
-if __name__ == "__main__":  # pragma: no cover
-    main()
