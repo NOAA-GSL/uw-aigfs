@@ -174,7 +174,9 @@ class AIGFSInference(DriverCycleBased):
 
 
 def construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, stddev):
-    """Constructs and wraps the GraphCast Predictor."""
+    """
+    Constructs and wraps the GraphCast Predictor.
+    """
     # Deeper one-step predictor.
     predictor = graphcast.GraphCast(model_config, task_config)
     # Modify inputs/outputs to `graphcast.GraphCast` to handle conversion to
@@ -192,7 +194,7 @@ def construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, s
 @hk.transform_with_state
 def run_forward(
     model_config, task_config, inputs, targets_template, forcings, diffs_stddev, mean, stddev
-):  # pragma: no cover
+):  # pragma: no cover -- this is just a wrapper, there's nothing really to test
     predictor = construct_wrapped_graphcast(model_config, task_config, diffs_stddev, mean, stddev)
     return predictor(inputs, targets_template=targets_template, forcings=forcings)
 
