@@ -1,4 +1,3 @@
-import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from unittest.mock import Mock, patch
@@ -24,8 +23,7 @@ def test_ush_generate_experiment_generate_experiment_files(tmp_path):
         update_config=experiment_config,
     )
     rocoto.realize.assert_called_once_with(
-        config=experiment_file,
-        output_file=tmp_path / "rocoto.xml",
+        config=experiment_file, output_file=tmp_path / "rocoto.xml"
     )
 
 
@@ -42,11 +40,11 @@ def test_ush_generate_experiment_generate_experiment_files_invalid_xml(tmp_path)
 
 def test_ush_generate_experiment_main():
     with (
+        patch.object(generate_experiment, "generate_experiment_files") as generate_experiment_files,
         patch.object(generate_experiment, "parse_args") as parse_args,
         patch.object(generate_experiment, "prepare_configs") as prepare_configs,
-        patch.object(generate_experiment, "validate") as validate,
         patch.object(generate_experiment, "set_up_experiment_directory") as s_u_e_d,
-        patch.object(generate_experiment, "generate_experiment_files") as generate_experiment_files,
+        patch.object(generate_experiment, "validate") as validate,
     ):
         s_u_e_d.return_value = (Mock(), Mock())
         generate_experiment.main()
@@ -74,8 +72,8 @@ def test_ush_generate_experiment_prepare_configs():
     mock_experiment_config.update_from.assert_called_once_with(
         {"user": {"app_home": str(generate_experiment.APP_HOME)}}
     )
-    # First call: compose user configs
-    # Second call: compose with default, platform, and user configs
+    # First call: Compose user configs.
+    # Second call: Compose with default, platform, and user configs.
     assert compose.call_count == 2
     second_call = compose.call_args_list[1]
     assert second_call[1]["configs"] == [
@@ -86,7 +84,7 @@ def test_ush_generate_experiment_prepare_configs():
     assert second_call[1]["realize"] is True
 
 
-def test_ush_generate_experiment_set_up_experiment_directory(tmp_path, caplog):
+def test_ush_generate_experiment_set_up_experiment_directory(tmp_path, logcap):
     experiment_dir = tmp_path / "myexp"
     validated = Config(
         user=User(
@@ -97,9 +95,8 @@ def test_ush_generate_experiment_set_up_experiment_directory(tmp_path, caplog):
             platform="test",
         )
     )
-    with caplog.at_level(logging.INFO):
-        result_dir, result_file = generate_experiment.set_up_experiment_directory(validated)
+    result_dir, result_file = generate_experiment.set_up_experiment_directory(validated)
     assert result_dir == experiment_dir
     assert result_dir.is_dir()
     assert result_file == experiment_dir / "experiment.yaml"
-    assert "Experiment will be set up here" in caplog.text
+    assert "Experiment will be set up here" in logcap.text
