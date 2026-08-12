@@ -60,12 +60,11 @@ def test_ush_generate_experiment_parse_args():
     assert result == [Path("/path/to/a.yaml"), Path("/path/to/b.yaml")]
 
 
-def test_ush_generate_experiment_prepare_configs():
-    user_config_files = [Path("/tmp/a.yaml")]  # noqa: S108
-    mock_user_config = {"user": {"platform": "testmachine"}}
+def test_ush_generate_experiment_prepare_configs(tmp_path):
+    user_config_files = [tmp_path / "a.yaml"]
     mock_experiment_config = Mock()
     with patch.object(generate_experiment, "compose") as compose:
-        compose.side_effect = [mock_user_config, mock_experiment_config]
+        compose.side_effect = [{"user": {"platform": "testmachine"}}, mock_experiment_config]
         result = generate_experiment.prepare_configs(user_config_files)
     assert result is mock_experiment_config
     mock_experiment_config.update_from.assert_called_once_with(
@@ -75,9 +74,10 @@ def test_ush_generate_experiment_prepare_configs():
     # Second call: Compose with default, platform, and user configs.
     assert compose.call_count == 2
     second_call = compose.call_args_list[1]
+    parmdir = generate_experiment.APP_HOME / "parm"
     assert second_call[1]["configs"] == [
-        generate_experiment.APP_HOME / "parm" / "default_config.yaml",
-        generate_experiment.APP_HOME / "parm" / "machines" / "testmachine.yaml",
+        parmdir / "default_config.yaml",
+        parmdir / "machines" / "testmachine.yaml",
         *user_config_files,
     ]
     assert second_call[1]["realize"] is True
