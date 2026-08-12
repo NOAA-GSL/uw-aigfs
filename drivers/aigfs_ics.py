@@ -126,7 +126,7 @@ class AIGFSICs(DriverCycleBased, FileStager):
     @cached_property
     def _ncfiles_to_cmds(self) -> dict[Path, str]:
         """
-        A mappting from netCDF file paths to the commands that create them.
+        A mapping from netCDF file paths to the commands that create them.
         """
         datadir = self.rundir / "data"
         paths = set()
