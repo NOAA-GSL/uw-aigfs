@@ -119,7 +119,7 @@ class AIGFSInference(DriverCycleBased):
         yield [ics, itfs, model_weights, norm_stats]
         ds = _clean_ics(ics.ref)
         converter = Grib2Writer(
-            start_date=pd.to_datetime(ds.datetime.values[0][-1]),  # noqa: PD011 FIXME w/ unit tests
+            start_date=pd.to_datetime(ds.datetime.to_numpy()[0][-1]),
             case_name="aigfs",
             json_path=Path(self.config["json_path"]),
         )
