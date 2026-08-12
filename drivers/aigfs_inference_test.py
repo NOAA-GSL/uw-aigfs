@@ -1,4 +1,5 @@
 from collections.abc import Iterator
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import TYPE_CHECKING
@@ -84,13 +85,17 @@ def test_drivers_AIGFSInference_initial_conditions(driverobj, ds, logcap):
 
 
 def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
+    inputs = xr.Dataset({"input_var": (["x"], [1, 2])})
+    targets = xr.Dataset({"target_var": (["x"], [3, 4])})
+    forcings = xr.Dataset({"forcing_var": (["x"], [5, 6])})
+
     @task
     def ics() -> Iterator:
         yield "mock initial_conditions"
         ref = xr.Dataset()
         yield Asset(ref, lambda: bool(ref))
         yield None
-        # ref = None  # PM FIXME
+        ref.update(xr.Dataset({"temperature": (["x"], [10, 20])}))
 
     @task
     def mws() -> Iterator:
@@ -98,17 +103,33 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
         ref: list[graphcast.CheckPoints] = []
         yield Asset(ref, lambda: bool(ref))
         yield None
-        # ref = None  # PM FIXME
+
+        @dataclass
+        class TaskConfig:
+            input_duration: str = "12h"
+
+        ref.append(Mock(task_config=TaskConfig()))
 
     with (
         patch.object(driverobj, "initial_conditions", Mock(wraps=ics)),
         patch.object(driverobj, "model_weights", Mock(wraps=mws)),
+        patch(
+            "drivers.aigfs_inference.data_utils.extract_inputs_targets_forcings",
+            return_value=(inputs, targets, forcings),
+        ) as extract,
     ):
         node = driverobj.inputs_targets_forcings()
-    assert node  # PM REMOVE
-    # assert node.ready
-    # assert node.ref is None  # PM FIXME
+    assert node.ready
     assert "inputs, targets, and forcings" in logcap.text
+    # node.ref is the datasets list with (inputs, targets, forcings):
+    assert len(node.ref) == 3
+    xr.testing.assert_identical(node.ref[0], inputs)
+    xr.testing.assert_identical(node.ref[1], targets)
+    xr.testing.assert_identical(node.ref[2], forcings)
+    # extract was called with the ics dataset and correct kwargs:
+    call_args = extract.call_args
+    xr.testing.assert_identical(call_args[0][0], xr.Dataset({"temperature": (["x"], [10, 20])}))
+    assert call_args[1]["target_lead_times"] == slice("6h", "24h")
 
 
 def test_drivers_AIGFSInference_driver_name(driverobj):
