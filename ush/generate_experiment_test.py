@@ -1,3 +1,4 @@
+from pathlib import Path
 from unittest.mock import Mock, patch
 
 from . import generate_experiment
@@ -25,7 +26,9 @@ def test_ush_generate_experiment_main():
 
 
 def test_ush_generate_experiment_parse_args():
-    pass
+    with patch("sys.argv", ["prog", "/path/to/a.yaml", "/path/to/b.yaml"]):
+        result = generate_experiment.parse_args()
+    assert result == [Path("/path/to/a.yaml"), Path("/path/to/b.yaml")]
 
 
 def test_ush_generate_experiment_prepare_configs():
