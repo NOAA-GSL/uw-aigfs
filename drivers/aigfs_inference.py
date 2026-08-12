@@ -166,7 +166,7 @@ class AIGFSInference(DriverCycleBased):
         return "aigfs_inference"
 
     @staticmethod
-    def drop_state(fn):  # pragma: no cover
+    def drop_state(fn):
         return lambda **kw: fn(**kw)[0]
 
 

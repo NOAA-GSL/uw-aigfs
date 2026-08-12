@@ -196,6 +196,12 @@ def test_drivers_AIGFSInference_driver_name(driverobj):
     assert driverobj.driver_name() == "aigfs_inference"
 
 
+def test_drivers_AIGFSInference_drop_state():
+    fn = lambda **kw: (kw["a"] + kw["b"], "state")
+    wrapped = aigfs_inference.AIGFSInference.drop_state(fn)
+    assert wrapped(a=1, b=2) == 3
+
+
 def test_drivers_aigfs_inference__adjust_time(ds, logcap):
     # fcst_steps=4 => needs 6 time steps, ds has 2, so the if block is entered.
     ds_check(aigfs_inference._adjust_time(ds=ds, fcst_steps=4, taskname="test"))
