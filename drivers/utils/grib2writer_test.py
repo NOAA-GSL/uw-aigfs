@@ -99,28 +99,25 @@ def writer_ens_ctrl(json_path, start_date):
 # Tests
 
 
-def test_drivers_utils_grib2writer_init(writer):
-    assert writer.case_name == "aigfs"
-    assert writer.start_date == datetime(2025, 10, 1, 18, tzinfo=timezone.utc)
-    assert "temperature" in writer.attrs
-    assert writer.attrs["temperature"]["templates"]["pdtn"] == 0
-
-
-def test_drivers_utils_grib2writer_init_aigefs(writer_ens):
-    assert writer_ens.case_name == "aigep01"
-    assert "temperature" in writer_ens.attrs
-
-
-def test_drivers_utils_grib2writer_init_unsupported_case(json_path, start_date):
-    with raises(ValueError, match="not supported"):
-        Grib2Writer(start_date=start_date, case_name="badname", json_path=json_path)
-
-
 def test_drivers_utils_grib2writer_create_grib2_message_basic(writer):
     msg = writer.create_grib2_message("temperature", lead=6, level=85000)
     assert msg.refDate == datetime(2025, 10, 1, 18, 0)  # noqa: DTZ001
     assert msg.unitOfForecastTime == 1
     assert msg.scaledValueOfFirstFixedSurface == 85000
+
+
+def test_drivers_utils_grib2writer_create_grib2_message_ensemble(writer_ens):
+    msg = writer_ens.create_grib2_message("temperature", lead=6, level=85000)
+    assert msg.perturbationNumber == 1
+    assert msg.typeOfEnsembleForecast == 3
+    assert msg.typeOfData == 4
+
+
+def test_drivers_utils_grib2writer_create_grib2_message_ensemble_ctrl(writer_ens_ctrl):
+    msg = writer_ens_ctrl.create_grib2_message("temperature", lead=6, level=85000)
+    assert msg.perturbationNumber == 0
+    assert msg.typeOfEnsembleForecast == 1
+    assert msg.typeOfData == 3
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_no_level(writer):
@@ -139,14 +136,14 @@ def test_drivers_utils_grib2writer_create_grib2_message_precip_cumsum(writer):
     assert msg is not None
 
 
+def test_drivers_utils_grib2writer_create_grib2_message_spfh_bad_level(writer):
+    with raises(ValueError, match="not included"):
+        writer.create_grib2_message("specific_humidity", lead=6, level=1000)
+
+
 def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_high(writer):
     msg = writer.create_grib2_message("specific_humidity", lead=6, level=5000)
     assert msg.decScaleFactor == 12
-
-
-def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_mid(writer):
-    msg = writer.create_grib2_message("specific_humidity", lead=6, level=25000)
-    assert msg.decScaleFactor == 10
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_low(writer):
@@ -154,23 +151,26 @@ def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_low(writer):
     assert msg.decScaleFactor == 8
 
 
-def test_drivers_utils_grib2writer_create_grib2_message_spfh_bad_level(writer):
-    with raises(ValueError, match="not included"):
-        writer.create_grib2_message("specific_humidity", lead=6, level=1000)
+def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_mid(writer):
+    msg = writer.create_grib2_message("specific_humidity", lead=6, level=25000)
+    assert msg.decScaleFactor == 10
 
 
-def test_drivers_utils_grib2writer_create_grib2_message_ensemble(writer_ens):
-    msg = writer_ens.create_grib2_message("temperature", lead=6, level=85000)
-    assert msg.perturbationNumber == 1
-    assert msg.typeOfEnsembleForecast == 3
-    assert msg.typeOfData == 4
+def test_drivers_utils_grib2writer_init(writer):
+    assert writer.case_name == "aigfs"
+    assert writer.start_date == datetime(2025, 10, 1, 18, tzinfo=timezone.utc)
+    assert "temperature" in writer.attrs
+    assert writer.attrs["temperature"]["templates"]["pdtn"] == 0
 
 
-def test_drivers_utils_grib2writer_create_grib2_message_ensemble_ctrl(writer_ens_ctrl):
-    msg = writer_ens_ctrl.create_grib2_message("temperature", lead=6, level=85000)
-    assert msg.perturbationNumber == 0
-    assert msg.typeOfEnsembleForecast == 1
-    assert msg.typeOfData == 3
+def test_drivers_utils_grib2writer_init_aigefs(writer_ens):
+    assert writer_ens.case_name == "aigep01"
+    assert "temperature" in writer_ens.attrs
+
+
+def test_drivers_utils_grib2writer_init_unsupported_case(json_path, start_date):
+    with raises(ValueError, match="not supported"):
+        Grib2Writer(start_date=start_date, case_name="badname", json_path=json_path)
 
 
 def test_drivers_utils_grib2writer_save_grib2(writer, ds, tmp_path, logcap):
@@ -190,50 +190,6 @@ def test_drivers_utils_grib2writer_save_grib2(writer, ds, tmp_path, logcap):
     # Pressure vars: geopotential, specific_humidity, temperature each with 2 levels = 6 msgs
     assert len(msgs) == 6
     assert "Opening GRIB2 File" in logcap.text
-
-
-def test_drivers_utils_grib2writer_save_grib2_geopotential_scaled(writer, ds, tmp_path):
-    # geopotential input is 1.0; after save_grib2 it should be divided by 9.80665
-    writer.save_grib2(ds, tmp_path)
-    # ds was mutated in place:
-    expected = 1.0 / 9.80665
-    np.testing.assert_allclose(
-        float(ds["geopotential"].isel(batch=0, time=0, level=0, lat=0, lon=0)), expected
-    )
-
-
-def test_drivers_utils_grib2writer_save_grib2_precip_scaled(writer, ds, tmp_path):
-    # total_precipitation_6hr input is 0.002; after save_grib2: clip(min=0) * 1000 = 2.0
-    writer.save_grib2(ds, tmp_path)
-    np.testing.assert_allclose(
-        float(ds["total_precipitation_6hr"].isel(batch=0, time=0, lat=0, lon=0)), 2.0
-    )
-
-
-def test_drivers_utils_grib2writer_save_grib2_spfh_clipped(writer, ds, tmp_path):
-    # Set some specific_humidity values negative to test clipping:
-    ds["specific_humidity"].values[0, 0, 0, 0, 0] = -0.01
-    writer.save_grib2(ds, tmp_path)
-    assert float(ds["specific_humidity"].isel(batch=0, time=0, level=0, lat=0, lon=0)) == 0.0
-
-
-def test_drivers_utils_grib2writer_save_grib2_lat_reversed(writer, ds, tmp_path):
-    # save_grib2 reverses lat internally; verify via grib2 output data orientation.
-    # The input lat goes 90 -> -90. After reindex, data rows are flipped.
-    writer.save_grib2(ds, tmp_path)
-    sfc_file = tmp_path / "aigfs.t18z.sfc.f006.grib2"
-    assert sfc_file.is_file()
-
-
-def test_drivers_utils_grib2writer_save_grib2_levels_in_pa(writer, ds, tmp_path):
-    writer.save_grib2(ds, tmp_path)
-    np.testing.assert_array_equal(ds["level"].values, [85000, 50000])
-
-
-def test_drivers_utils_grib2writer_save_grib2_ensemble_prefix(writer_ens, ds, tmp_path):
-    writer_ens.save_grib2(ds, tmp_path)
-    assert (tmp_path / "aigefs.t18z.sfc.f006.grib2").is_file()
-    assert (tmp_path / "aigefs.t18z.pres.f006.grib2").is_file()
 
 
 def test_drivers_utils_grib2writer_save_grib2_cumsum_aigfs(writer, tmp_path):
@@ -294,6 +250,55 @@ def test_drivers_utils_grib2writer_save_grib2_cumsum_ensemble_dropped(writer_ens
     assert len(msgs) == 0
 
 
+def test_drivers_utils_grib2writer_save_grib2_deletes_old_files(writer, ds, tmp_path):
+    # Old grib2 files are deleted before writing.
+    sfc_file = tmp_path / "aigfs.t18z.sfc.f006.grib2"
+    pres_file = tmp_path / "aigfs.t18z.pres.f006.grib2"
+    sfc_file.write_text("old")
+    pres_file.write_text("old")
+    writer.save_grib2(ds, tmp_path)
+    # Files should exist with new content (not "old"):
+    assert sfc_file.read_bytes() != b"old"
+    assert pres_file.read_bytes() != b"old"
+
+
+def test_drivers_utils_grib2writer_save_grib2_ensemble_prefix(writer_ens, ds, tmp_path):
+    writer_ens.save_grib2(ds, tmp_path)
+    assert (tmp_path / "aigefs.t18z.sfc.f006.grib2").is_file()
+    assert (tmp_path / "aigefs.t18z.pres.f006.grib2").is_file()
+
+
+def test_drivers_utils_grib2writer_save_grib2_geopotential_scaled(writer, ds, tmp_path):
+    # geopotential input is 1.0; after save_grib2 it should be divided by 9.80665
+    writer.save_grib2(ds, tmp_path)
+    # ds was mutated in place:
+    expected = 1.0 / 9.80665
+    np.testing.assert_allclose(
+        float(ds["geopotential"].isel(batch=0, time=0, level=0, lat=0, lon=0)), expected
+    )
+
+
+def test_drivers_utils_grib2writer_save_grib2_lat_reversed(writer, ds, tmp_path):
+    # save_grib2 reverses lat internally; verify via grib2 output data orientation.
+    # The input lat goes 90 -> -90. After reindex, data rows are flipped.
+    writer.save_grib2(ds, tmp_path)
+    sfc_file = tmp_path / "aigfs.t18z.sfc.f006.grib2"
+    assert sfc_file.is_file()
+
+
+def test_drivers_utils_grib2writer_save_grib2_levels_in_pa(writer, ds, tmp_path):
+    writer.save_grib2(ds, tmp_path)
+    np.testing.assert_array_equal(ds["level"].values, [85000, 50000])
+
+
+def test_drivers_utils_grib2writer_save_grib2_precip_scaled(writer, ds, tmp_path):
+    # total_precipitation_6hr input is 0.002; after save_grib2: clip(min=0) * 1000 = 2.0
+    writer.save_grib2(ds, tmp_path)
+    np.testing.assert_allclose(
+        float(ds["total_precipitation_6hr"].isel(batch=0, time=0, lat=0, lon=0)), 2.0
+    )
+
+
 def test_drivers_utils_grib2writer_save_grib2_sendecf(writer, ds, tmp_path, logcap):
     # When SENDECF is set, subprocess is called.
     script = tmp_path / "setevent.sh"
@@ -305,16 +310,11 @@ def test_drivers_utils_grib2writer_save_grib2_sendecf(writer, ds, tmp_path, logc
     assert "Running shell subprocess" in logcap.text
 
 
-def test_drivers_utils_grib2writer_save_grib2_deletes_old_files(writer, ds, tmp_path):
-    # Old grib2 files are deleted before writing.
-    sfc_file = tmp_path / "aigfs.t18z.sfc.f006.grib2"
-    pres_file = tmp_path / "aigfs.t18z.pres.f006.grib2"
-    sfc_file.write_text("old")
-    pres_file.write_text("old")
+def test_drivers_utils_grib2writer_save_grib2_spfh_clipped(writer, ds, tmp_path):
+    # Set some specific_humidity values negative to test clipping:
+    ds["specific_humidity"].values[0, 0, 0, 0, 0] = -0.01
     writer.save_grib2(ds, tmp_path)
-    # Files should exist with new content (not "old"):
-    assert sfc_file.read_bytes() != b"old"
-    assert pres_file.read_bytes() != b"old"
+    assert float(ds["specific_humidity"].isel(batch=0, time=0, level=0, lat=0, lon=0)) == 0.0
 
 
 def test_drivers_utils_grib2writer_section3():
