@@ -203,12 +203,6 @@ def test_drivers_AIGFSInference_drop_state():
 
 
 def test_drivers_AIGFSInference_predictions(driverobj, ds, weights, logcap):
-    inputs = xr.Dataset({"input_var": (["x"], [1.0])})
-    targets = xr.Dataset({"target_var": (["x"], [2.0])})
-    forcings = xr.Dataset({"forcing_var": (["x"], [3.0])})
-    diffs_stddev = xr.Dataset({"diffs_stddev": (["x"], [1.0])})
-    mean = xr.Dataset({"mean": (["x"], [2.0])})
-    stddev = xr.Dataset({"stddev": (["x"], [3.0])})
 
     @task
     def mock_ics() -> Iterator:
@@ -243,6 +237,12 @@ def test_drivers_AIGFSInference_predictions(driverobj, ds, weights, logcap):
         yield None
         ref.extend([diffs_stddev, mean, stddev])
 
+    inputs = xr.Dataset({"input_var": (["x"], [1.0])})
+    targets = xr.Dataset({"target_var": (["x"], [2.0])})
+    forcings = xr.Dataset({"forcing_var": (["x"], [3.0])})
+    diffs_stddev = xr.Dataset({"diffs_stddev": (["x"], [1.0])})
+    mean = xr.Dataset({"mean": (["x"], [2.0])})
+    stddev = xr.Dataset({"stddev": (["x"], [3.0])})
     with (
         patch.object(driverobj, "initial_conditions", Mock(wraps=mock_ics)),
         patch.object(driverobj, "inputs_targets_forcings", Mock(wraps=mock_itfs)),
@@ -269,7 +269,7 @@ def test_drivers_AIGFSInference_predictions(driverobj, ds, weights, logcap):
     assert rp_kw[0][0] == driverobj.rundir
     xr.testing.assert_identical(rp_kw[1]["inputs"], inputs)
     xr.testing.assert_identical(rp_kw[1]["forcings"], forcings)
-    assert "Predictions" in logcap.text
+    assert "predictions" in logcap.text
 
 
 def test_drivers_aigfs_inference__adjust_time(ds, logcap):
