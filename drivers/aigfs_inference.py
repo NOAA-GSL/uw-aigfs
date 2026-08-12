@@ -43,32 +43,36 @@ class AIGFSInference(DriverCycleBased):
         yield taskname
         ds = xr.Dataset()
         yield Asset(ds, lambda: bool(ds))
-        ics_path = self.config["ics_path"]
-        yield file(ics_path)
+        req = file(self.config["ics_path"])
+        yield req
         fcst_length = self.config["forecast_length"]
         fcst_freq = self.config["forecast_freq"]
-        src = xr.load_dataset(ics_path)
+        src = xr.load_dataset(req.ref)
         fcst_steps = fcst_length // fcst_freq
         src = _adjust_time(src, fcst_steps, taskname)
         ds.update(src)
         ds.attrs.update(src.attrs)
 
     @task
-    def inputs_targets_forcings(self):  # pragma: no cover
+    def inputs_targets_forcings(self):
         """
-        The input for GraphCast.
+        Inputs, targets, and forcings.
         """
         yield "inputs, targets, and forcings"
         datasets: list[xr.Dataset] = []
         yield Asset(datasets, lambda: bool(datasets))
-        yield self.initial_conditions()
-        fcst_freq = self.config["forecast_freq"]
-        fcst_length = self.config["forecast_length"]
+        reqs = {
+            "ics": self.initial_conditions(),
+            "weights": self.model_weights(),
+        }
+        yield reqs
+        freq = self.config["forecast_freq"]
+        length = self.config["forecast_length"]
         datasets.extend(
             data_utils.extract_inputs_targets_forcings(
-                self.initial_conditions().ref,
-                target_lead_times=slice(f"{fcst_freq}h", f"{fcst_length}h"),
-                **dataclasses.asdict(self.model_weights().ref[0].task_config),
+                reqs["ics"].ref,
+                target_lead_times=slice(f"{freq}h", f"{length}h"),
+                **dataclasses.asdict(reqs["weights"].ref[0].task_config),
             )
         )
 
@@ -103,9 +107,9 @@ class AIGFSInference(DriverCycleBased):
     @task
     def predictions(self):  # pragma: no cover
         """
-        GraphCast predictions.
+        Predictions.
         """
-        yield "GraphCast predictions"
+        yield "Predictions"
         path = self.rundir / "aigfs.done"
         yield Asset(path, path.is_file)
         ics = self.initial_conditions()
