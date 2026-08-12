@@ -158,40 +158,40 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 ## Repository Structure
 
 ```
-uw-aigfs/
-├── conda/                         # Managed conda installation (created by make env/devenv)
-├── docs/                          # User and contributor documentation
-├── drivers/                       # uwtools driver classes for each workflow stage
-│   ├── aigfs_ics.jsonschema       # AIGFSICs: ICS preparation driver config schema
-│   ├── aigfs_ics.py               # AIGFSICs: ICS preparation driver
-│   ├── aigfs_ics_test.py          # AIGFSICs: ICS preparation driver unit tests
-│   ├── aigfs_inference.jsonschema # AIGFSInference: forecast inference driver config schema
-│   ├── aigfs_inference.py         # AIGFSInference: forecast inference driver
-│   ├── aigfs_inference_test.py    # AIGFSInference: forecast inference driver unit tests
-│   ├── aigfs_post.jsonschema      # AIGFSPost: post-processing driver config schema
-│   ├── aigfs_post.py              # AIGFSPost: post-processing driver
-│   ├── aigfs_post_test.py         # AIGFSPost: post-processing driver unit tests
-│   └── utils/                     # Shared driver utilities (GRIB2 writing, task helpers)
-├── modulefiles/                   # Environment modulefiles (WCOSS2)
-├── parm/                          # Parameter files
-│   ├── machine/                   # Per-platform YAML overrides (e.g., ursa.yaml)
-│   ├── wflow/                     # Workflow files
-│   │   └── rocoto/                # Rocoto workflow YAML template (aigfs_base.yaml)
-│   └── wgrib2_data.yaml           # Variables and levels to extract from GFS GRIB2
-├── scripts/                       # Miscellaneous scripts
-│   └── run_post.sh                # Helper script for post-processing
-├── setup                          # Miniforge installer script (called by make conda)
-├── tests/                         # Unit tests (pytest)
-│   └── drivers/                   # Tests for driver modules
-├── ush/                           # User scripts
-│   ├── default_config.yaml        # Baseline experiment configuration
-│   ├── generate_experiment.py     # Experiment setup CLI
-│   └── validation.py              # Pydantic config validation
-├── devpkgs                        # List of additional developer package dependencies
-├── environment.yml                # Conda environment definition
-├── load_wflow_modules.sh          # Platform environment activation script
-├── Makefile                       # Developer convenience targets
-└── pyproject.toml                 # Tool configuration (ruff, pytest)
+├── bin                             # Automation tools
+│   ├── activate                    # Source to activate conda and the AIGFS environment
+│   └── run                         # Support for Makefile targets
+├── conda                           # Managed conda installation (created by make env/devenv)
+├── docs                            # User and contributor documentation
+├── drivers                         # Driver classes for workflow stages
+│   ├── aigfs_*.jsonschema          # Driver config schemas
+│   ├── aigfs_*.py                  # Driver modules
+│   ├── aigfs_*_test.py             # Driver test modules
+│   ├── conftest.py                 # Test support
+│   └── utils                       # Shared driver utilities
+├── envs                            # Definitions for conda environments
+│   ├── devpkgs.yaml                # Developer packages
+│   └── environment.yaml            # Core conda environment definition
+├── load_wflow_modules.sh           # Platform environment activation script
+├── Makefile                        # Provides automation targets
+├── modulefiles                     # Directory for system modules
+├── parm                            # Parameter files
+│   ├── machine                     # Per-platform YAML overrides
+│   ├── transfer_aigfs.list         # ???
+│   ├── wflow                       # Workflow files
+│   │   ├── ecflow                  # ecFlow workflow support
+│   │   └── rocoto                  # Rocoto workflow support
+│   └── wgrib2_data.yaml            # Variables and levels to extract from GFS GRIB2
+├── pyproject.toml                  # Code-quality tool configuration
+├── scripts                         # Miscellaneous scripts
+│   └── run_post.sh                 # Helper script for post-processing
+└── ush                             # ???
+    ├── default_config.yaml         # Baseline experiment configuration
+    ├── generate_experiment.py      # Experiment setup CLI
+    ├── generate_experiment_test.py # Tests for generate_experiment.py
+    ├── validation.py               # Pydantic config validation
+    ├── validation_test.py          # Tests for validation.py
+    └── wcoss_config.yaml           # ???
 ```
 
 ### Key Concepts
