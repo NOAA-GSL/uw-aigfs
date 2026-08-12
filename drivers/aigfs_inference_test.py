@@ -109,13 +109,11 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
     targets = xr.Dataset({"target_var": (["x"], [3, 4])})
     forcings = xr.Dataset({"forcing_var": (["x"], [5, 6])})
     with (
+        patch.object(aigfs_inference.data_utils, "extract_inputs_targets_forcings") as extract,
         patch.object(driverobj, "initial_conditions", Mock(wraps=ics)),
         patch.object(driverobj, "model_weights", Mock(wraps=mws)),
-        patch(
-            "drivers.aigfs_inference.data_utils.extract_inputs_targets_forcings",
-            return_value=(inputs, targets, forcings),
-        ) as extract,
     ):
+        extract.return_value = (inputs, targets, forcings)
         node = driverobj.inputs_targets_forcings()
     assert node.ready
     assert len(node.ref) == 3
