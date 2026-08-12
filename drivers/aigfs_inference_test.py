@@ -85,9 +85,9 @@ def test_drivers_AIGFSInference_initial_conditions(driverobj, ds, logcap):
 
 
 def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
-    inputs = xr.Dataset({"input_var": (["x"], [1, 2])})
-    targets = xr.Dataset({"target_var": (["x"], [3, 4])})
-    forcings = xr.Dataset({"forcing_var": (["x"], [5, 6])})
+    @dataclass
+    class TaskConfig:
+        input_duration: str = "12h"
 
     @task
     def ics() -> Iterator:
@@ -103,13 +103,11 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
         ref: list[graphcast.CheckPoints] = []
         yield Asset(ref, lambda: bool(ref))
         yield None
-
-        @dataclass
-        class TaskConfig:
-            input_duration: str = "12h"
-
         ref.append(Mock(task_config=TaskConfig()))
 
+    inputs = xr.Dataset({"input_var": (["x"], [1, 2])})
+    targets = xr.Dataset({"target_var": (["x"], [3, 4])})
+    forcings = xr.Dataset({"forcing_var": (["x"], [5, 6])})
     with (
         patch.object(driverobj, "initial_conditions", Mock(wraps=ics)),
         patch.object(driverobj, "model_weights", Mock(wraps=mws)),
@@ -120,8 +118,6 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
     ):
         node = driverobj.inputs_targets_forcings()
     assert node.ready
-    assert "inputs, targets, and forcings" in logcap.text
-    # node.ref is the datasets list with (inputs, targets, forcings):
     assert len(node.ref) == 3
     xr.testing.assert_identical(node.ref[0], inputs)
     xr.testing.assert_identical(node.ref[1], targets)
@@ -130,6 +126,7 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap):
     call_args = extract.call_args
     xr.testing.assert_identical(call_args[0][0], xr.Dataset({"temperature": (["x"], [10, 20])}))
     assert call_args[1]["target_lead_times"] == slice("6h", "24h")
+    assert "inputs, targets, and forcings" in logcap.text
 
 
 def test_drivers_AIGFSInference_driver_name(driverobj):
