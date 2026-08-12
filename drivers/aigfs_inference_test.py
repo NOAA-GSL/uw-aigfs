@@ -202,6 +202,76 @@ def test_drivers_AIGFSInference_drop_state():
     assert wrapped(a=1, b=2) == 3
 
 
+def test_drivers_AIGFSInference_predictions(driverobj, ds, weights, logcap):
+    inputs = xr.Dataset({"input_var": (["x"], [1.0])})
+    targets = xr.Dataset({"target_var": (["x"], [2.0])})
+    forcings = xr.Dataset({"forcing_var": (["x"], [3.0])})
+    diffs_stddev = xr.Dataset({"diffs_stddev": (["x"], [1.0])})
+    mean = xr.Dataset({"mean": (["x"], [2.0])})
+    stddev = xr.Dataset({"stddev": (["x"], [3.0])})
+
+    @task
+    def mock_ics() -> Iterator:
+        yield "mock initial_conditions"
+        ref = xr.Dataset()
+        yield Asset(ref, lambda: bool(ref))
+        yield None
+        ref.update(ds)
+        ref.attrs.update(ds.attrs)
+
+    @task
+    def mock_itfs() -> Iterator:
+        yield "mock inputs_targets_forcings"
+        ref: list[xr.Dataset] = []
+        yield Asset(ref, lambda: bool(ref))
+        yield None
+        ref.extend([inputs, targets, forcings])
+
+    @task
+    def mock_mws() -> Iterator:
+        yield "mock model_weights"
+        ref: list[graphcast.CheckPoint] = []
+        yield Asset(ref, lambda: bool(ref))
+        yield None
+        ref.append(weights)
+
+    @task
+    def mock_norm() -> Iterator:
+        yield "mock normalization_stats"
+        ref: list[xr.Dataset] = []
+        yield Asset(ref, lambda: bool(ref))
+        yield None
+        ref.extend([diffs_stddev, mean, stddev])
+
+    with (
+        patch.object(driverobj, "initial_conditions", Mock(wraps=mock_ics)),
+        patch.object(driverobj, "inputs_targets_forcings", Mock(wraps=mock_itfs)),
+        patch.object(driverobj, "model_weights", Mock(wraps=mock_mws)),
+        patch.object(driverobj, "normalization_stats", Mock(wraps=mock_norm)),
+        patch.object(aigfs_inference, "Grib2Writer") as mock_writer_cls,
+        patch.object(aigfs_inference, "rollout") as mock_rollout,
+        patch.object(aigfs_inference, "jax") as mock_jax,
+    ):
+        mock_jit_result = Mock()
+        mock_jax.jit.return_value = mock_jit_result
+        mock_jax.random.PRNGKey.return_value = "rng"
+        node = driverobj.predictions()
+    assert node.ready
+    assert node.ref.is_file()
+    # Grib2Writer was constructed with correct args:
+    mock_writer_cls.assert_called_once()
+    call_kw = mock_writer_cls.call_args[1]
+    assert call_kw["case_name"] == "aigfs"
+    assert call_kw["json_path"] == Path(driverobj.config["json_path"])
+    # rollout.chunked_prediction was called:
+    mock_rollout.chunked_prediction.assert_called_once()
+    rp_kw = mock_rollout.chunked_prediction.call_args
+    assert rp_kw[0][0] == driverobj.rundir
+    xr.testing.assert_identical(rp_kw[1]["inputs"], inputs)
+    xr.testing.assert_identical(rp_kw[1]["forcings"], forcings)
+    assert "Predictions" in logcap.text
+
+
 def test_drivers_aigfs_inference__adjust_time(ds, logcap):
     # fcst_steps=4 => needs 6 time steps, ds has 2, so the if block is entered.
     ds_check(aigfs_inference._adjust_time(ds=ds, fcst_steps=4, taskname="test"))

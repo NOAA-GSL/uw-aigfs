@@ -105,7 +105,7 @@ class AIGFSInference(DriverCycleBased):
             weights.append(checkpoint.load(f, graphcast.CheckPoint))
 
     @task
-    def predictions(self):  # pragma: no cover
+    def predictions(self):
         """
         Predictions.
         """
