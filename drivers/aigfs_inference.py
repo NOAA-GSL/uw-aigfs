@@ -211,7 +211,7 @@ def _adjust_time(ds: xr.Dataset, fcst_steps: int, taskname: str) -> xr.Dataset:
     return ds
 
 
-def _clean_ics(ds):  # pragma: no cover
+def _clean_ics(ds):
     ds = ds.drop_vars(["geopotential_at_surface", "land_sea_mask", "total_precipitation_6hr"])
     for var in ds.data_vars:
         if "long_name" in ds[var].attrs:
