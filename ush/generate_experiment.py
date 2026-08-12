@@ -7,8 +7,8 @@ import sys
 from pathlib import Path
 from typing import cast
 
-from uwtools.api import rocoto
-from uwtools.api.config import YAMLConfig, compose, realize
+from uwtools.api import config, rocoto
+from uwtools.api.config import YAMLConfig, compose
 from uwtools.api.logging import use_uwtools_logger
 
 from .validation import Config, validate
@@ -23,7 +23,7 @@ def generate_experiment_files(
     Generate the workflow manager artifacts and the experiment YAML.
     """
     workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "aigfs_base.yaml"
-    realize(
+    config.realize(
         input_config=workflow_config,
         output_file=experiment_file,
         update_config=experiment_config,
