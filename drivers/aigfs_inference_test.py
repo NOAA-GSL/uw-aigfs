@@ -340,7 +340,7 @@ def test_drivers_aigfs_inference_schema(config, logcap, tmp_path, validator, wit
     assert not ok({})
     assert "'aigfs_inference' is a required property" in logcap.text
     logcap.clear()
-    # aigfs_inference must be an object:
+    # Expecting an object:
     assert not ok(with_set(config, [], "aigfs_inference"))
     assert "is not of type 'object'" in logcap.text
     logcap.clear()
@@ -351,6 +351,7 @@ def test_drivers_aigfs_inference_schema_content(
 ):
     ok = validator(aigfs_inference, tmp_path, "properties", "aigfs_inference")
     cfg = config["aigfs_inference"]
+    # Required:
     for key in (
         "diffs_stddev_path",
         "execution",
@@ -365,10 +366,18 @@ def test_drivers_aigfs_inference_schema_content(
         assert not ok(with_del(cfg, key))
         assert f"'{key}' is a required property" in logcap.text
         logcap.clear()
+    # Optional:
     assert ok(with_del(cfg, "forecast_freq"))
+    # No additional properties:
     assert not ok(with_set(cfg, "bar", "foo"))
     assert "Additional properties are not allowed" in logcap.text
     logcap.clear()
+    # Expecting an integer:
+    for key in ("forecast_freq", "forecast_length"):
+        assert not ok(with_set(cfg, "bad", key))
+        assert "is not of type 'integer'" in logcap.text
+        logcap.clear()
+    # Expecting a string:
     for key in (
         "diffs_stddev_path",
         "ics_path",
@@ -380,8 +389,4 @@ def test_drivers_aigfs_inference_schema_content(
     ):
         assert not ok(with_set(cfg, 42, key))
         assert "is not of type 'string'" in logcap.text
-        logcap.clear()
-    for key in ("forecast_freq", "forecast_length"):
-        assert not ok(with_set(cfg, "bad", key))
-        assert "is not of type 'integer'" in logcap.text
         logcap.clear()

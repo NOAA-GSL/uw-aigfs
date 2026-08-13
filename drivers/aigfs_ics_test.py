@@ -297,7 +297,7 @@ def test_drivers_aigfs_ics_schema(config, logcap, tmp_path, validator, with_del,
     assert not ok({})
     assert "'aigfs_ics' is a required property" in logcap.text
     logcap.clear()
-    # aigfs_ics must be an object:
+    # Expecting an object:
     assert not ok(with_set(config, [], "aigfs_ics"))
     assert "is not of type 'object'" in logcap.text
     logcap.clear()
@@ -311,13 +311,16 @@ def test_drivers_aigfs_ics_schema(config, logcap, tmp_path, validator, with_del,
 def test_drivers_aigfs_ics_schema_content(config, logcap, tmp_path, validator, with_del, with_set):
     ok = validator(aigfs_ics, tmp_path, "properties", "aigfs_ics")
     cfg = config["aigfs_ics"]
+    # Required:
     for key in ("execution", "rundir", "variable_extraction_yaml"):
         assert not ok(with_del(cfg, key))
         assert f"'{key}' is a required property" in logcap.text
         logcap.clear()
+    # No additional properties:
     assert not ok(with_set(cfg, "bar", "foo"))
     assert "Additional properties are not allowed" in logcap.text
     logcap.clear()
+    # Expecting a string:
     for key in ("rundir", "variable_extraction_yaml"):
         assert not ok(with_set(cfg, 42, key))
         assert "is not of type 'string'" in logcap.text
