@@ -289,7 +289,9 @@ def test_drivers_AIGFSICs__ncfiles_to_cmds__bad_grib_filenames(varkit):
 # Schema tests
 
 
-def test_drivers_aigfs_ics_schema_aigfs_ics(config, logcap, tmp_path, validator, with_set):
+def test_drivers_aigfs_ics_schema_aigfs_ics(
+    config, logcap, tmp_path, validator, with_del, with_set
+):
     ok = validator(aigfs_ics, tmp_path)
     # Valid config passes:
     assert ok(config)
@@ -300,10 +302,16 @@ def test_drivers_aigfs_ics_schema_aigfs_ics(config, logcap, tmp_path, validator,
     # aigfs_ics must be an object:
     assert not ok(with_set(config, [], "aigfs_ics"))
     assert "is not of type 'object'" in logcap.text
+    logcap.clear()
+    # files_to_link is not required (but one of files_to_* must satisfy anyOf):
+    cfg_no_link = with_del(config, "aigfs_ics", "files_to_link")
+    # Without any files_to_* the anyOf still passes (it just checks pattern if present):
+    assert ok(with_set(cfg_no_link, {"data/x": "/y"}, "aigfs_ics", "files_to_copy"))
+    assert ok(with_set(cfg_no_link, {"data/x": "/y"}, "aigfs_ics", "files_to_hardlink"))
 
 
-def test_drivers_aigfs_ics_schema_aigfs_ics_required_keys(
-    config, logcap, tmp_path, validator, with_del
+def test_drivers_aigfs_ics_schema_aigfs_ics_content(
+    config, logcap, tmp_path, validator, with_del, with_set
 ):
     ok = validator(aigfs_ics, tmp_path, "properties", "aigfs_ics")
     cfg = config["aigfs_ics"]
@@ -311,41 +319,11 @@ def test_drivers_aigfs_ics_schema_aigfs_ics_required_keys(
         assert not ok(with_del(cfg, key))
         assert f"'{key}' is a required property" in logcap.text
         logcap.clear()
-
-
-def test_drivers_aigfs_ics_schema_aigfs_ics_additional_properties(
-    config, logcap, tmp_path, validator, with_set
-):
-    ok = validator(aigfs_ics, tmp_path, "properties", "aigfs_ics")
-    cfg = config["aigfs_ics"]
     assert not ok(with_set(cfg, "bar", "foo"))
     assert "Additional properties are not allowed" in logcap.text
-
-
-def test_drivers_aigfs_ics_schema_aigfs_ics_rundir_type(
-    config, logcap, tmp_path, validator, with_set
-):
-    ok = validator(aigfs_ics, tmp_path, "properties", "aigfs_ics")
-    cfg = config["aigfs_ics"]
+    logcap.clear()
     assert not ok(with_set(cfg, 42, "rundir"))
     assert "is not of type 'string'" in logcap.text
-
-
-def test_drivers_aigfs_ics_schema_aigfs_ics_variable_extraction_yaml_type(
-    config, logcap, tmp_path, validator, with_set
-):
-    ok = validator(aigfs_ics, tmp_path, "properties", "aigfs_ics")
-    cfg = config["aigfs_ics"]
+    logcap.clear()
     assert not ok(with_set(cfg, 42, "variable_extraction_yaml"))
     assert "is not of type 'string'" in logcap.text
-
-
-def test_drivers_aigfs_ics_schema_aigfs_ics_files_to_link(
-    config, tmp_path, validator, with_del, with_set
-):
-    ok = validator(aigfs_ics, tmp_path)
-    # files_to_link is not required (but one of files_to_* must satisfy anyOf):
-    cfg_no_link = with_del(config, "aigfs_ics", "files_to_link")
-    # Without any files_to_* the anyOf still passes (it just checks pattern if present):
-    assert ok(with_set(cfg_no_link, {"data/x": "/y"}, "aigfs_ics", "files_to_copy"))
-    assert ok(with_set(cfg_no_link, {"data/x": "/y"}, "aigfs_ics", "files_to_hardlink"))
