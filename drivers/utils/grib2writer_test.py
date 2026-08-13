@@ -280,9 +280,19 @@ def test_drivers_utils_grib2writer_save_grib2_geopotential_scaled(writer, ds, tm
 def test_drivers_utils_grib2writer_save_grib2_lat_reversed(writer, ds, tmp_path):
     # save_grib2 reverses lat internally; verify via grib2 output data orientation.
     # The input lat goes 90 -> -90. After reindex, data rows are flipped.
+    nlat = ds.sizes["lat"]
+    # Set 2m_temperature first row (lat=90) to 1.0, last row (lat=-90) to 2.0.
+    ds["2m_temperature"].values[0, 0, 0, :] = 1.0
+    ds["2m_temperature"].values[0, 0, nlat - 1, :] = 2.0
     writer.save_grib2(ds, tmp_path)
     sfc_file = tmp_path / "aigfs.t18z.sfc.f006.grib2"
-    assert sfc_file.is_file()
+    with grib2io.open(str(sfc_file)) as f:
+        msgs = list(f)
+        data = msgs[0].data
+    # After lat reversal, the original last row (value 2.0) becomes the first row in the grib2
+    # output, and the original first row (value 1.0) becomes the last row.
+    np.testing.assert_allclose(data[0, :], 2.0)
+    np.testing.assert_allclose(data[-1, :], 1.0)
 
 
 def test_drivers_utils_grib2writer_save_grib2_levels_in_pa(writer, ds, tmp_path):
