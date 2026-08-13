@@ -202,7 +202,7 @@ def test_drivers_aigfs_post_schema_aigfs_post(config, logcap, tmp_path, validato
 
 
 def test_drivers_aigfs_post_schema_aigfs_post_required_keys(
-    config, logcap, tmp_path, validator, with_del
+    config, logcap, tmp_path, validator, with_del, with_set
 ):
     ok = validator(aigfs_post, tmp_path, "properties", "aigfs_post")
     cfg = config["aigfs_post"]
@@ -210,41 +210,14 @@ def test_drivers_aigfs_post_schema_aigfs_post_required_keys(
         assert not ok(with_del(cfg, key))
         assert f"'{key}' is a required property" in logcap.text
         logcap.clear()
-
-
-def test_drivers_aigfs_post_schema_aigfs_post_deliver_to_not_required(
-    config, tmp_path, validator, with_del
-):
-    ok = validator(aigfs_post, tmp_path, "properties", "aigfs_post")
-    cfg = config["aigfs_post"]
     assert ok(with_del(cfg, "deliver_to"))
-
-
-def test_drivers_aigfs_post_schema_aigfs_post_additional_properties(
-    config, logcap, tmp_path, validator, with_set
-):
-    ok = validator(aigfs_post, tmp_path, "properties", "aigfs_post")
-    cfg = config["aigfs_post"]
     assert not ok(with_set(cfg, "bar", "foo"))
     assert "Additional properties are not allowed" in logcap.text
-
-
-def test_drivers_aigfs_post_schema_aigfs_post_string_types(
-    config, logcap, tmp_path, validator, with_set
-):
-    ok = validator(aigfs_post, tmp_path, "properties", "aigfs_post")
-    cfg = config["aigfs_post"]
+    logcap.clear()
     for key in ("deliver_to", "outputdir", "rundir"):
         assert not ok(with_set(cfg, 42, key))
         assert "is not of type 'string'" in logcap.text
         logcap.clear()
-
-
-def test_drivers_aigfs_post_schema_aigfs_post_inputfiles_type(
-    config, logcap, tmp_path, validator, with_set
-):
-    ok = validator(aigfs_post, tmp_path, "properties", "aigfs_post")
-    cfg = config["aigfs_post"]
     # inputfiles must be an array:
     assert not ok(with_set(cfg, "bad", "inputfiles"))
     assert "is not of type 'array'" in logcap.text
