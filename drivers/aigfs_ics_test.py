@@ -1,5 +1,4 @@
 from collections.abc import Iterator
-from datetime import datetime, timezone
 from itertools import product
 from pathlib import Path
 from textwrap import dedent
@@ -35,8 +34,8 @@ def config(tmp_path):
 
 
 @fixture
-def cycle():
-    return datetime(2025, 10, 1, 18, tzinfo=timezone.utc)
+def cycle(utc):
+    return utc(2025, 10, 1, 18)
 
 
 @fixture

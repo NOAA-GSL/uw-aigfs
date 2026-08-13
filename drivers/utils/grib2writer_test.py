@@ -1,6 +1,5 @@
 import json
 import os
-from datetime import datetime, timezone
 from unittest.mock import patch
 
 import grib2io  # type: ignore[import-untyped]
@@ -77,8 +76,8 @@ def json_path(tmp_path):
 
 
 @fixture
-def start_date():
-    return datetime(2025, 10, 1, 18, tzinfo=timezone.utc)
+def start_date(utc):
+    return utc(2025, 10, 1, 18)
 
 
 @fixture
@@ -99,9 +98,9 @@ def writer_ens_ctrl(json_path, start_date):
 # Tests
 
 
-def test_drivers_utils_grib2writer_create_grib2_message_basic(writer):
+def test_drivers_utils_grib2writer_create_grib2_message_basic(utc, writer):
     msg = writer.create_grib2_message("temperature", lead=6, level=85000)
-    assert msg.refDate == datetime(2025, 10, 1, 18, 0)  # noqa: DTZ001
+    assert msg.refDate == utc(2025, 10, 1, 18, 0).replace(tzinfo=None)
     assert msg.unitOfForecastTime == 1
     assert msg.scaledValueOfFirstFixedSurface == 85000
 
@@ -120,9 +119,9 @@ def test_drivers_utils_grib2writer_create_grib2_message_ensemble_ctrl(writer_ens
     assert msg.typeOfData == 3
 
 
-def test_drivers_utils_grib2writer_create_grib2_message_no_level(writer):
+def test_drivers_utils_grib2writer_create_grib2_message_no_level(utc, writer):
     msg = writer.create_grib2_message("2m_temperature", lead=12)
-    assert msg.refDate == datetime(2025, 10, 1, 18, 0)  # noqa: DTZ001
+    assert msg.refDate == utc(2025, 10, 1, 18, 0).replace(tzinfo=None)
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_precip_6hr(writer):
@@ -156,9 +155,9 @@ def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_mid(writer):
     assert msg.decScaleFactor == 10
 
 
-def test_drivers_utils_grib2writer_init(writer):
+def test_drivers_utils_grib2writer_init(utc, writer):
     assert writer.case_name == "aigfs"
-    assert writer.start_date == datetime(2025, 10, 1, 18, tzinfo=timezone.utc)
+    assert writer.start_date == utc(2025, 10, 1, 18)
     assert "temperature" in writer.attrs
     assert writer.attrs["temperature"]["templates"]["pdtn"] == 0
 
