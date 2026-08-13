@@ -296,6 +296,7 @@ def test_drivers_aigfs_ics_schema_aigfs_ics(config, logcap, tmp_path, validator,
     # Top-level aigfs_ics key is required:
     assert not ok({})
     assert "'aigfs_ics' is a required property" in logcap.text
+    logcap.clear()
     # aigfs_ics must be an object:
     assert not ok(with_set(config, [], "aigfs_ics"))
     assert "is not of type 'object'" in logcap.text

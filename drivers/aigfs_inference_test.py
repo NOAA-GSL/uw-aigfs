@@ -341,6 +341,7 @@ def test_drivers_aigfs_inference_schema_aigfs_inference(
     # Top-level aigfs_inference key is required:
     assert not ok({})
     assert "'aigfs_inference' is a required property" in logcap.text
+    logcap.clear()
     # aigfs_inference must be an object:
     assert not ok(with_set(config, [], "aigfs_inference"))
     assert "is not of type 'object'" in logcap.text

@@ -195,6 +195,7 @@ def test_drivers_aigfs_post_schema_aigfs_post(config, logcap, tmp_path, validato
     # Top-level aigfs_post key is required:
     assert not ok({})
     assert "'aigfs_post' is a required property" in logcap.text
+    logcap.clear()
     # aigfs_post must be an object:
     assert not ok(with_set(config, [], "aigfs_post"))
     assert "is not of type 'object'" in logcap.text
