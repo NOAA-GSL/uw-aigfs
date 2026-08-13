@@ -37,7 +37,7 @@ class AIGFSInference(DriverCycleBased):
     @task
     def initial_conditions(self):
         """
-        Initial conditiona.
+        Initial conditions.
         """
         taskname = "initial conditions"
         yield taskname
