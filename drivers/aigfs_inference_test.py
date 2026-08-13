@@ -2,20 +2,15 @@ from collections.abc import Iterator
 from datetime import datetime, timezone
 from itertools import product
 from pathlib import Path
-from typing import TYPE_CHECKING
 from unittest.mock import Mock, patch
 
 import numpy as np
 import xarray as xr
+from graphcast import checkpoint, graphcast  # type: ignore[import-untyped]
 from iotaa import Asset, task
 from pytest import fixture, mark
 
 from . import aigfs_inference
-
-if TYPE_CHECKING:
-    from graphcast import graphcast  # type: ignore[import-untyped]
-
-from graphcast import checkpoint, graphcast  # type: ignore[import-untyped]
 
 # Fixtures
 
