@@ -109,14 +109,14 @@ def weights(config, model_config, task_config):
 @fixture
 def mock_mws(weights):
     @task
-    def _mock_mws():
+    def mock_mws():
         yield "mock model_weights"
         ref: list[graphcast.CheckPoint] = []
         yield Asset(ref, lambda: bool(ref))
         yield None
         ref.append(weights)
 
-    return _mock_mws
+    return mock_mws
 
 
 # Tests
@@ -327,3 +327,88 @@ def ds_check(ds: xr.Dataset) -> None:
     # Original data at existing time indices is preserved, new indices are NaN:
     assert float(ds["temperature"].isel(batch=0, time=0, x=0)) == 1.0
     assert np.isnan(float(ds["temperature"].isel(batch=0, time=2, x=0)))
+
+
+# Schema tests
+
+
+def test_drivers_aigfs_inference_schema_aigfs_inference(
+    config, logcap, tmp_path, validator, with_set
+):
+    ok = validator(aigfs_inference, tmp_path)
+    # Valid config passes:
+    assert ok(config)
+    # Top-level aigfs_inference key is required:
+    assert not ok({})
+    assert "'aigfs_inference' is a required property" in logcap.text
+    # aigfs_inference must be an object:
+    assert not ok(with_set(config, [], "aigfs_inference"))
+    assert "is not of type 'object'" in logcap.text
+
+
+def test_drivers_aigfs_inference_schema_aigfs_inference_required_keys(
+    config, logcap, tmp_path, validator, with_del
+):
+    ok = validator(aigfs_inference, tmp_path, "properties", "aigfs_inference")
+    cfg = config["aigfs_inference"]
+    for key in (
+        "diffs_stddev_path",
+        "execution",
+        "forecast_length",
+        "ics_path",
+        "json_path",
+        "mean_path",
+        "model_weights_path",
+        "rundir",
+        "stddev_path",
+    ):
+        assert not ok(with_del(cfg, key))
+        assert f"'{key}' is a required property" in logcap.text
+        logcap.clear()
+
+
+def test_drivers_aigfs_inference_schema_aigfs_inference_forecast_freq_not_required(
+    config, tmp_path, validator, with_del
+):
+    ok = validator(aigfs_inference, tmp_path, "properties", "aigfs_inference")
+    cfg = config["aigfs_inference"]
+    assert ok(with_del(cfg, "forecast_freq"))
+
+
+def test_drivers_aigfs_inference_schema_aigfs_inference_additional_properties(
+    config, logcap, tmp_path, validator, with_set
+):
+    ok = validator(aigfs_inference, tmp_path, "properties", "aigfs_inference")
+    cfg = config["aigfs_inference"]
+    assert not ok(with_set(cfg, "bar", "foo"))
+    assert "Additional properties are not allowed" in logcap.text
+
+
+def test_drivers_aigfs_inference_schema_aigfs_inference_string_types(
+    config, logcap, tmp_path, validator, with_set
+):
+    ok = validator(aigfs_inference, tmp_path, "properties", "aigfs_inference")
+    cfg = config["aigfs_inference"]
+    for key in (
+        "diffs_stddev_path",
+        "ics_path",
+        "json_path",
+        "mean_path",
+        "model_weights_path",
+        "rundir",
+        "stddev_path",
+    ):
+        assert not ok(with_set(cfg, 42, key))
+        assert "is not of type 'string'" in logcap.text
+        logcap.clear()
+
+
+def test_drivers_aigfs_inference_schema_aigfs_inference_integer_types(
+    config, logcap, tmp_path, validator, with_set
+):
+    ok = validator(aigfs_inference, tmp_path, "properties", "aigfs_inference")
+    cfg = config["aigfs_inference"]
+    for key in ("forecast_freq", "forecast_length"):
+        assert not ok(with_set(cfg, "bad", key))
+        assert "is not of type 'integer'" in logcap.text
+        logcap.clear()
