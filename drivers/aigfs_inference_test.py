@@ -181,12 +181,12 @@ def test_drivers_AIGFSInference_model_weights(driverobj, weights, logcap):
     node = driverobj.model_weights()
     assert node.ready
     assert len(node.ref) == 1
-    loaded = node.ref[0]
-    np.testing.assert_array_equal(loaded.params["w"], weights.params["w"])
-    assert loaded.model_config == weights.model_config
-    assert loaded.task_config == weights.task_config
-    assert loaded.description == weights.description
-    assert loaded.license == weights.license
+    weights = node.ref[0]
+    np.testing.assert_array_equal(weights.params["w"], weights.params["w"])
+    assert weights.model_config == weights.model_config
+    assert weights.task_config == weights.task_config
+    assert weights.description == weights.description
+    assert weights.license == weights.license
     assert "model weights" in logcap.text
 
 
