@@ -4,6 +4,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 import numpy as np
+import pandas as pd
 import xarray as xr
 from graphcast import checkpoint, graphcast  # type: ignore[import-untyped]
 from iotaa import Asset, task
@@ -131,7 +132,7 @@ def test_drivers_AIGFSInference_initial_conditions(driverobj, ds, logcap):
     assert "initial conditions" in logcap.text
 
 
-def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, mock_mws, logcap):
+def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap, mock_mws):
     @task
     def ics() -> Iterator:
         yield "mock initial_conditions"
@@ -177,7 +178,7 @@ def test_drivers_AIGFSInference_normalization_stats(driverobj, logcap):
     assert "normalization stats" in logcap.text
 
 
-def test_drivers_AIGFSInference_model_weights(driverobj, weights, logcap):
+def test_drivers_AIGFSInference_model_weights(driverobj, logcap, weights):
     node = driverobj.model_weights()
     assert node.ready
     assert len(node.ref) == 1
@@ -191,7 +192,7 @@ def test_drivers_AIGFSInference_model_weights(driverobj, weights, logcap):
 
 
 @mark.parametrize("ready", list(product([True, False], repeat=1)))
-def test_drivers_AIGFSInference_provisioned_rundir(atask, ready, driverobj, logcap):
+def test_drivers_AIGFSInference_provisioned_rundir(atask, driverobj, logcap, ready):
     mocks = [Mock(wraps=atask(x)) for x in ready]
     with patch.object(driverobj, "runscript", mocks[0]) as runscript:
         node = driverobj.provisioned_rundir()
@@ -211,7 +212,7 @@ def test_drivers_AIGFSInference_drop_state():
     assert wrapped(a=1, b=2) == 3
 
 
-def test_drivers_AIGFSInference_predictions(driverobj, ds, mock_mws, logcap):
+def test_drivers_AIGFSInference_predictions(driverobj, ds, logcap, mock_mws, utc):
 
     @task
     def mock_ics() -> Iterator:
@@ -259,11 +260,11 @@ def test_drivers_AIGFSInference_predictions(driverobj, ds, mock_mws, logcap):
         node = driverobj.predictions()
     assert node.ready
     assert node.ref.is_file()
-    # Grib2Writer was constructed with correct args:
-    mock_writer_cls.assert_called_once()
-    call_kw = mock_writer_cls.call_args[1]
-    assert call_kw["case_name"] == "aigfs"
-    assert call_kw["json_path"] == Path(driverobj.config["json_path"])
+    mock_writer_cls.assert_called_once_with(
+        start_date=pd.to_datetime(utc(2025, 10, 2, 0).replace(tzinfo=None)),
+        case_name="aigfs",
+        json_path=Path(driverobj.config["json_path"]),
+    )
     # rollout.chunked_prediction was called:
     mock_rollout.chunked_prediction.assert_called_once()
     rp_kw = mock_rollout.chunked_prediction.call_args
@@ -323,7 +324,7 @@ def ds_check(ds: xr.Dataset):
     # Datetime values are absolute times starting from the original start:
     t0 = np.datetime64("2025-10-01T18:00")
     expected_datetimes = np.array([t0 + np.timedelta64(6 * i, "h") for i in range(6)])
-    np.testing.assert_array_equal(ds["datetime"].values[0], expected_datetimes)
+    np.testing.assert_array_equal(ds["datetime"].to_numpy()[0], expected_datetimes)
     # Original data at existing time indices is preserved, new indices are NaN:
     assert float(ds["temperature"].isel(batch=0, time=0, x=0)) == 1.0
     assert np.isnan(float(ds["temperature"].isel(batch=0, time=2, x=0)))
