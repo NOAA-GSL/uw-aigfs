@@ -332,9 +332,7 @@ def ds_check(ds: xr.Dataset) -> None:
 # Schema tests
 
 
-def test_drivers_aigfs_inference_schema_aigfs_inference(
-    config, logcap, tmp_path, validator, with_set
-):
+def test_drivers_aigfs_inference_schema(config, logcap, tmp_path, validator, with_set):
     ok = validator(aigfs_inference, tmp_path)
     # Valid config passes:
     assert ok(config)
@@ -345,9 +343,10 @@ def test_drivers_aigfs_inference_schema_aigfs_inference(
     # aigfs_inference must be an object:
     assert not ok(with_set(config, [], "aigfs_inference"))
     assert "is not of type 'object'" in logcap.text
+    logcap.clear()
 
 
-def test_drivers_aigfs_inference_schema_aigfs_inference_required_keys(
+def test_drivers_aigfs_inference_schema_content(
     config, logcap, tmp_path, validator, with_del, with_set
 ):
     ok = validator(aigfs_inference, tmp_path, "properties", "aigfs_inference")

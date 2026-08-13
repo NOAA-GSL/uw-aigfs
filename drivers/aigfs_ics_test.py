@@ -289,9 +289,7 @@ def test_drivers_AIGFSICs__ncfiles_to_cmds__bad_grib_filenames(varkit):
 # Schema tests
 
 
-def test_drivers_aigfs_ics_schema_aigfs_ics(
-    config, logcap, tmp_path, validator, with_del, with_set
-):
+def test_drivers_aigfs_ics_schema(config, logcap, tmp_path, validator, with_del, with_set):
     ok = validator(aigfs_ics, tmp_path)
     # Valid config passes:
     assert ok(config)
@@ -310,9 +308,7 @@ def test_drivers_aigfs_ics_schema_aigfs_ics(
     assert ok(with_set(cfg_no_link, {"data/x": "/y"}, "aigfs_ics", "files_to_hardlink"))
 
 
-def test_drivers_aigfs_ics_schema_aigfs_ics_content(
-    config, logcap, tmp_path, validator, with_del, with_set
-):
+def test_drivers_aigfs_ics_schema_content(config, logcap, tmp_path, validator, with_del, with_set):
     ok = validator(aigfs_ics, tmp_path, "properties", "aigfs_ics")
     cfg = config["aigfs_ics"]
     for key in ("execution", "rundir", "variable_extraction_yaml"):
@@ -322,8 +318,7 @@ def test_drivers_aigfs_ics_schema_aigfs_ics_content(
     assert not ok(with_set(cfg, "bar", "foo"))
     assert "Additional properties are not allowed" in logcap.text
     logcap.clear()
-    assert not ok(with_set(cfg, 42, "rundir"))
-    assert "is not of type 'string'" in logcap.text
-    logcap.clear()
-    assert not ok(with_set(cfg, 42, "variable_extraction_yaml"))
-    assert "is not of type 'string'" in logcap.text
+    for key in ("rundir", "variable_extraction_yaml"):
+        assert not ok(with_set(cfg, 42, key))
+        assert "is not of type 'string'" in logcap.text
+        logcap.clear()

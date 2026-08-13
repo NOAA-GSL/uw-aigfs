@@ -188,7 +188,7 @@ def test_drivers_AIGFSPost__idx2grib(driverobj):
 # Schema tests
 
 
-def test_drivers_aigfs_post_schema_aigfs_post(config, logcap, tmp_path, validator, with_set):
+def test_drivers_aigfs_post_schema(config, logcap, tmp_path, validator, with_set):
     ok = validator(aigfs_post, tmp_path)
     # Valid config passes:
     assert ok(config)
@@ -199,11 +199,10 @@ def test_drivers_aigfs_post_schema_aigfs_post(config, logcap, tmp_path, validato
     # aigfs_post must be an object:
     assert not ok(with_set(config, [], "aigfs_post"))
     assert "is not of type 'object'" in logcap.text
+    logcap.clear()
 
 
-def test_drivers_aigfs_post_schema_aigfs_post_required_keys(
-    config, logcap, tmp_path, validator, with_del, with_set
-):
+def test_drivers_aigfs_post_schema_content(config, logcap, tmp_path, validator, with_del, with_set):
     ok = validator(aigfs_post, tmp_path, "properties", "aigfs_post")
     cfg = config["aigfs_post"]
     for key in ("execution", "inputfiles", "outputdir", "rundir"):
@@ -221,3 +220,4 @@ def test_drivers_aigfs_post_schema_aigfs_post_required_keys(
     # inputfiles must be an array:
     assert not ok(with_set(cfg, "bad", "inputfiles"))
     assert "is not of type 'array'" in logcap.text
+    logcap.clear()
