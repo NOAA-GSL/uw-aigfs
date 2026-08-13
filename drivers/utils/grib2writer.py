@@ -108,35 +108,33 @@ class Grib2Writer:
             msg.scaledValueOfFirstFixedSurface = level
         return msg
 
-    def save_grib2(self, xarray_ds: xr.Dataset, outdir: Path) -> None:
+    def save_grib2(self, ds: xr.Dataset, outdir: Path) -> None:
         prefix = "aigefs" if self.case_name.startswith("aige") else "aigfs"
         # Convert geopotential to geopotential height.
-        xarray_ds["geopotential"] = xarray_ds["geopotential"] / 9.80665
+        ds["geopotential"] = ds["geopotential"] / 9.80665
         # Update total_precipitation_6h unit to (kg/m^2) and set min to zero.
-        if "total_precipitation_6hr" in xarray_ds:
-            xarray_ds["total_precipitation_6hr"] = (
-                xarray_ds["total_precipitation_6hr"].clip(min=0) * 1000
-            )
+        if "total_precipitation_6hr" in ds:
+            ds["total_precipitation_6hr"] = ds["total_precipitation_6hr"].clip(min=0) * 1000
         # Drop total_precipitation_cumsum for AIGEFS. Otherwise update unit to (kg/m^2) and set min
         # to zero.
-        if "total_precipitation_cumsum" in xarray_ds:
+        if "total_precipitation_cumsum" in ds:
             if self.case_name.startswith("aige"):
-                xarray_ds = xarray_ds.drop_vars("total_precipitation_cumsum")
+                ds = ds.drop_vars("total_precipitation_cumsum")
             else:
-                xarray_ds["total_precipitation_cumsum"] = (
-                    xarray_ds["total_precipitation_cumsum"].clip(min=0) * 1000
+                ds["total_precipitation_cumsum"] = (
+                    ds["total_precipitation_cumsum"].clip(min=0) * 1000
                 )
         # Set min spfh to zero.
-        if "specific_humidity" in xarray_ds:
-            xarray_ds["specific_humidity"] = xarray_ds["specific_humidity"].clip(min=0)
+        if "specific_humidity" in ds:
+            ds["specific_humidity"] = ds["specific_humidity"].clip(min=0)
         # Convert levels values from mb to Pa.
-        xarray_ds["level"] = xarray_ds["level"] * 100  # mb to Pa
-        xarray_ds = xarray_ds.squeeze(dim="batch")
+        ds["level"] = ds["level"] * 100  # mb to Pa
+        ds = ds.squeeze(dim="batch")
         # Reverse lat.
-        xarray_ds = xarray_ds.reindex(lat=xarray_ds.lat[::-1])
+        ds = ds.reindex(lat=ds.lat[::-1])
         # Set output GRIB2 file.
         cycle = self.start_date.hour
-        lead = int((xarray_ds.time.dt.total_seconds() // 3600).values[0])
+        lead = int((ds.time.dt.total_seconds() // 3600).values[0])
         outfile_sfc = outdir / f"{prefix}.t{cycle:02d}z.sfc.f{lead:03d}.grib2"
         outfile_pres = outdir / f"{prefix}.t{cycle:02d}z.pres.f{lead:03d}.grib2"
         # Delete the old files.
@@ -148,9 +146,9 @@ class Grib2Writer:
         grib2_out_pres = grib2io.open(outfile_pres, mode="w")
         logging.info(" Opening GRIB2 File for pressure level variables: %s", outfile_pres)
         # Iterate over the variable name keys in JSON file.
-        for var in sorted(xarray_ds.data_vars):
+        for var in sorted(ds.data_vars):
             # Get variable as DataArray.
-            da = xarray_ds[var]
+            da = ds[var]
             # Iterate over level:
             if "level" in da.coords:
                 for level in da.coords["level"]:
