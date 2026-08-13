@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 
 from pytest import fixture, raises
 
@@ -19,14 +19,6 @@ def kwargs(tmp_path, utc):
 @fixture
 def user(kwargs):
     return validation.User(**kwargs)
-
-
-@fixture
-def utc():
-    def f(*args):
-        return datetime(*args, tzinfo=timezone.utc)  # type: ignore[misc]
-
-    return f
 
 
 def test_ush_validation_Config(user):

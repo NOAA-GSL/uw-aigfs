@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
@@ -83,19 +83,19 @@ def test_ush_generate_experiment_prepare_configs(tmp_path):
     assert second_call[1]["realize"] is True
 
 
-def test_ush_generate_experiment_set_up_experiment_directory(logcap, tmp_path):
+def test_ush_generate_experiment_set_up_experiment_directory(logcap, tmp_path, utc):
     experiment_dir = tmp_path / "myexp"
     validated = Config(
         user=User(
             cycle_freq=timedelta(hours=6),
             experiment_dir=experiment_dir,
-            first_cycle=datetime(2025, 10, 1, 18, tzinfo=timezone.utc),
-            last_cycle=datetime(2025, 10, 2, 18, tzinfo=timezone.utc),
-            platform="test",
+            first_cycle=utc(2025, 10, 1, 18),
+            last_cycle=utc(2025, 10, 2, 18),
+            platform="ursa",
         )
     )
     result_dir, result_file = generate_experiment.set_up_experiment_directory(validated)
     assert result_dir == experiment_dir
     assert result_dir.is_dir()
     assert result_file == experiment_dir / "experiment.yaml"
-    assert "Experiment will be set up here" in logcap.text
+    assert f"Experiment will be set up here: {result_dir}" in logcap.text

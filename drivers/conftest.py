@@ -1,4 +1,5 @@
 import logging
+from datetime import datetime, timezone
 from pathlib import Path
 
 from iotaa import Asset, external
@@ -27,5 +28,13 @@ def touch():
     def f(path: Path) -> None:
         path.parent.mkdir(exist_ok=True, parents=True)
         path.touch()
+
+    return f
+
+
+@fixture
+def utc():
+    def f(*args):
+        return datetime(*args, tzinfo=timezone.utc)  # type: ignore[misc]
 
     return f
