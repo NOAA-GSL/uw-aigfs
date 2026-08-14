@@ -104,13 +104,14 @@ Supported values for `<platform>`:
 
 | Block | Purpose |
 |---|---|
-| `user` | Cycle dates, platform, experiment directory, and GFS data path |
-| `timevars` | ***Jinja2*** template variables for date/time formatting used throughout the config |
-| `prep` | ICS generation: GFS file staging and ***wgrib2*** variable extraction |
-| `forecast` | ***GraphCast*** model inference: model weights, normalization stats, and forecast parameters |
-| `post` | Post-processing: GRIB2 index generation and file delivery |
+| `app` | Application-required values: cycle dates, platform, experiment directory, etc. |
+| `forecast` | ***GraphCast*** model inference: model weights, normalization stats, and forecast parameters. |
+| `post` | Post-processing: GRIB2 index generation and file delivery. |
+| `prep` | ICS generation: GFS file staging and ***wgrib2*** variable extraction. |
+| `timevars` | ***Jinja2*** template variables for date/time formatting used throughout the config. |
+| `user` | Free-form block for user-required constants, calculated values, etc. Not schema checked. |
 
-The `platform` block supplies scheduler and account settings. A machine-specific YAML in `parm/machine/` (e.g., `parm/machine/ursa.yaml`) is automatically merged based on the value of `user.platform`.
+The `platform` block supplies scheduler and account settings. A machine-specific YAML in `parm/machine/` (e.g., `parm/machine/ursa.yaml`) is automatically merged based on the value of `app.platform`.
 
 ### User Config YAML
 
@@ -119,17 +120,18 @@ You can override any default values by providing one or more user YAML files. Th
 **Minimal required configuration:**
 
 ```yaml
-user:
-  experiment_dir: /path/to/your/experiment/directory
-  gfs_data: /path/to/gfs/data
-  platform: ursa
+app:
   first_cycle: !datetime 2025-10-21T00
   last_cycle: !datetime 2025-10-21T00
+  platform: ursa
+  rundir: /path/to/your/experiment/directory
 platform:
   account: your_hpc_account
+user:
+  gfs_data: /path/to/gfs/data
 ```
 
-> The `user.experiment_dir` and `user.gfs_data` paths must be set in your user config — they have no default values.
+> The `app.rundir` and `user.gfs_data` paths must be set in your user config — they have no default values.
 
 **Adjusting forecast length and frequency:**
 
@@ -143,7 +145,7 @@ forecast:
 **Changing the pretrained model path:**
 
 ```yaml
-platform:
+app:
   pretrained_model_path: /path/to/your/graphcast/weights
 ```
 
@@ -168,7 +170,7 @@ python ush/generate_experiment.py [additional.yaml ...] user.yaml
 
 Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `parm/default_config.yaml` and the appropriate machine YAML (`parm/machine/<platform>.yaml`) before applying your user configs.
 
-The following files are written to `user.experiment_dir`:
+The following files are written to `app.rundir`:
 
 | File | Contents |
 |---|---|
@@ -199,7 +201,7 @@ The `rocoto.db` file will not exist until `rocotorun` is run the first time. Re-
 rocotostat -w rocoto.xml -d rocoto.db
 ```
 
-Individual task logs are written to `<experiment_dir>/log/`. An overall workflow log is written to `<experiment_dir>/workflow.log`.
+Individual task logs are written to `<rundir>/log/`. An overall workflow log is written to `<rundir>/workflow.log`.
 
 The ***uwtools*** package provides a tool to help iterate through the entire workflow: `uw rocoto iterate`. See the [uwtools Rocoto tool documentation](https://uwtools.readthedocs.io/en/main/sections/user_guide/cli/tools/rocoto.html#cli-rocoto-iterate-examples) for details.
 
@@ -218,7 +220,7 @@ The `task_prep` ***Rocoto*** task runs `drivers/aigfs_ics.py` (driver class `AIG
 3. Merges the extracted netCDF files into a single initial-conditions file:
 
    ```
-   <experiment_dir>/<YYYYMMDDHH>/prep/aigfs.t<HH>z.ic.nc
+   <rundir>/<YYYYMMDDHH>/prep/aigfs.t<HH>z.ic.nc
    ```
 
    Variables are renamed and units are converted to match ***GraphCast***'s expectations (e.g., geopotential is converted from m to m²/s² by multiplying by 9.80665; total precipitation is converted from kg/m² to m by dividing by 1000).
@@ -228,14 +230,14 @@ The `task_prep` ***Rocoto*** task runs `drivers/aigfs_ics.py` (driver class `AIG
 The `task_forecast` ***Rocoto*** task runs `drivers/aigfs_inference.py` (driver class `AIGFSInference`). It depends on `task_prep` completing successfully. The task:
 
 1. Loads the initial-conditions netCDF file produced by the prep step.
-2. Loads the pre-trained ***GraphCast*** model weights (`.npz`) from `user.pretrained_model_path`.
+2. Loads the pre-trained ***GraphCast*** model weights (`.npz`) from `app.pretrained_model_path`.
 3. Loads the normalization statistics (`diffs_stddev_by_level.nc`, `mean_by_level.nc`, `stddev_by_level.nc`).
 4. Runs autoregressive ***GraphCast*** inference for `forecast.aigfs_inference.forecast_length` hours at `forecast.aigfs_inference.forecast_freq`-hour intervals.
 5. Writes GRIB2 output files to:
 
    ```
-   <experiment_dir>/<YYYYMMDDHH>/forecast/aigfs.t<HH>z.sfc.f<FFF>.grib2
-   <experiment_dir>/<YYYYMMDDHH>/forecast/aigfs.t<HH>z.pres.f<FFF>.grib2
+   <rundir>/<YYYYMMDDHH>/forecast/aigfs.t<HH>z.sfc.f<FFF>.grib2
+   <rundir>/<YYYYMMDDHH>/forecast/aigfs.t<HH>z.pres.f<FFF>.grib2
    ```
 
    where `<FFF>` is the three-digit forecast hour. A sentinel file `aigfs.done` is created when the run is complete.
@@ -253,8 +255,8 @@ The `metatask_post` ***Rocoto*** metatask fans out into one `task_post_<FFF>` jo
 Output index files are written to:
 
 ```
-<experiment_dir>/<YYYYMMDDHH>/post_<FFF>/aigfs.t<HH>z.sfc.f<FFF>.grib2.idx
-<experiment_dir>/<YYYYMMDDHH>/post_<FFF>/aigfs.t<HH>z.pres.f<FFF>.grib2.idx
+<rundir>/<YYYYMMDDHH>/post_<FFF>/aigfs.t<HH>z.sfc.f<FFF>.grib2.idx
+<rundir>/<YYYYMMDDHH>/post_<FFF>/aigfs.t<HH>z.pres.f<FFF>.grib2.idx
 ```
 
 [← Back to Index](index.md)

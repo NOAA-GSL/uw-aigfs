@@ -17,8 +17,9 @@
 # (18 days of retention). The m2 cycle requires only 12 hours back — well within
 # the retention window under normal and high-load conditions.
 
+app:
+  pretrained_model_path: '{{ user.aigfs_app }}/fix'
+  rundir: /lfs/h2/emc/stmp/{{ 'USER' | env }}/aigfs/run
 user:
   aigfs_app: /lfs/h2/emc/noscrub/{{ 'USER' | env }}/aigfs
-  experiment_dir: /lfs/h2/emc/stmp/{{ 'USER' | env }}/aigfs/run
   gfs_data: /lfs/h1/ops/prod/com/gfs/v16.3
-  pretrained_model_path: '{{ user.aigfs_app }}/fix'
