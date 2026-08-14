@@ -9,31 +9,31 @@ from .validation import Config, User
 
 
 def test_ush_generate_experiment_generate_experiment_files(tmp_path):
-    config = tmp_path / "experiment.yaml"
+    path = tmp_path / "experiment.yaml"
     experiment_config = Mock()
     with (
         patch.object(generate_experiment, "realize_config") as realize_config,
         patch.object(generate_experiment, "realize_rocoto") as realize_rocoto,
     ):
         realize_rocoto.return_value = True
-        generate_experiment.generate_experiment_files(experiment_config, config)
+        generate_experiment.generate_experiment_files(experiment_config, path)
     realize_config.assert_called_once_with(
         input_config=generate_experiment.APP_HOME / "parm" / "wflow" / "rocoto" / "aigfs_base.yaml",
-        output_file=config,
+        output_file=path,
         update_config=experiment_config,
     )
-    realize_rocoto.assert_called_once_with(config=config, output_file=tmp_path / "rocoto.xml")
+    realize_rocoto.assert_called_once_with(config=path, output_file=tmp_path / "rocoto.xml")
 
 
 def test_ush_generate_experiment_generate_experiment_files_invalid_xml(logcap, tmp_path):
-    config = tmp_path / "experiment.yaml"
+    path = tmp_path / "experiment.yaml"
     with (
         patch.object(generate_experiment, "realize_config"),
         patch.object(generate_experiment, "realize_rocoto") as realize_rocoto,
     ):
         realize_rocoto.return_value = False
         with raises(SystemExit):
-            generate_experiment.generate_experiment_files(Mock(), config)
+            generate_experiment.generate_experiment_files(Mock(), path)
     assert "Invalid Rocoto XML" in logcap.text
 
 

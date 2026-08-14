@@ -25,9 +25,7 @@ def generate_experiment_files(
     """
     workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "aigfs_base.yaml"
     realize_config(
-        input_config=workflow_config,
-        output_file=experiment_file,
-        update_config=experiment_config,
+        input_config=workflow_config, output_file=experiment_file, update_config=experiment_config
     )
     rocoto_xml = experiment_file.parent / "rocoto.xml"
     rocoto_valid = realize_rocoto(config=experiment_file, output_file=rocoto_xml)
