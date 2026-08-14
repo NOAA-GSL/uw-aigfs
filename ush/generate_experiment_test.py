@@ -12,26 +12,26 @@ def test_ush_generate_experiment_generate_experiment_files(tmp_path):
     config = tmp_path / "experiment.yaml"
     experiment_config = Mock()
     with (
-        patch.object(generate_experiment.config, "realize") as realize,
-        patch.object(generate_experiment, "rocoto") as rocoto,
+        patch.object(generate_experiment, "realize_config") as realize_config,
+        patch.object(generate_experiment, "realize_rocoto") as realize_rocoto,
     ):
-        rocoto.realize.return_value = True
+        realize_rocoto.return_value = True
         generate_experiment.generate_experiment_files(experiment_config, config)
-    realize.assert_called_once_with(
+    realize_config.assert_called_once_with(
         input_config=generate_experiment.APP_HOME / "parm" / "wflow" / "rocoto" / "aigfs_base.yaml",
         output_file=config,
         update_config=experiment_config,
     )
-    rocoto.realize.assert_called_once_with(config=config, output_file=tmp_path / "rocoto.xml")
+    realize_rocoto.assert_called_once_with(config=config, output_file=tmp_path / "rocoto.xml")
 
 
 def test_ush_generate_experiment_generate_experiment_files_invalid_xml(logcap, tmp_path):
     config = tmp_path / "experiment.yaml"
     with (
-        patch.object(generate_experiment.config, "realize"),
-        patch.object(generate_experiment, "rocoto") as rocoto,
+        patch.object(generate_experiment, "realize_config"),
+        patch.object(generate_experiment, "realize_rocoto") as realize_rocoto,
     ):
-        rocoto.realize.return_value = False
+        realize_rocoto.return_value = False
         with raises(SystemExit):
             generate_experiment.generate_experiment_files(Mock(), config)
     assert "Invalid Rocoto XML" in logcap.text

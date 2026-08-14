@@ -7,9 +7,10 @@ import sys
 from pathlib import Path
 from typing import cast
 
-from uwtools.api import config, rocoto
 from uwtools.api.config import YAMLConfig, compose
+from uwtools.api.config import realize as realize_config
 from uwtools.api.logging import use_uwtools_logger
+from uwtools.api.rocoto import realize as realize_rocoto
 
 from .validation import Config, validate
 
@@ -23,13 +24,13 @@ def generate_experiment_files(
     Generate the workflow manager artifacts and the experiment YAML.
     """
     workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "aigfs_base.yaml"
-    config.realize(
+    realize_config(
         input_config=workflow_config,
         output_file=experiment_file,
         update_config=experiment_config,
     )
     rocoto_xml = experiment_file.parent / "rocoto.xml"
-    rocoto_valid = rocoto.realize(config=experiment_file, output_file=rocoto_xml)
+    rocoto_valid = realize_rocoto(config=experiment_file, output_file=rocoto_xml)
     if not rocoto_valid:
         logging.error("Invalid Rocoto XML")
         sys.exit(1)
