@@ -175,7 +175,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 ├── Makefile                        # Provides automation targets
 ├── modulefiles                     # Directory for system modules
 ├── parm                            # Input text files
-│   ├── default_config.yaml         # Baseline experiment configuration
+│   ├── appdefaults.yaml         # Baseline experiment configuration
 │   ├── machine                     # Per-platform YAML overrides
 │   ├── user                        # User-specific YAML overrides
 │   ├── wflow                       # Workflow files
@@ -196,14 +196,14 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 
 **Drivers** (`drivers/`) implement [uwtools](https://uwtools.readthedocs.io/en/main/) driver classes using the [iotaa](https://github.com/maddenp/iotaa) task framework. Each driver exposes tasks (Python methods decorated with `@task`, `@collection`, or `@external`) that declare their inputs and outputs as `Asset` objects. The `uw execute` command (called from ***Rocoto*** job scripts) resolves and runs these tasks.
 
-**Configuration** follows the ***uwtools*** YAML model. `parm/default_config.yaml` is the baseline; it is merged with the machine YAML and any user-provided YAMLs by `ush/generate_experiment.py` using `uwtools.api.config.compose`. The resulting `experiment.yaml` is the single source of truth at runtime.
+**Configuration** follows the ***uwtools*** YAML model. `parm/appdefaults.yaml` is the baseline; it is merged with the machine YAML and any user-provided YAMLs by `ush/generate_experiment.py` using `uwtools.api.config.compose`. The resulting `experiment.yaml` is the single source of truth at runtime.
 
 **Workflow** is managed by [Rocoto](https://github.com/christopherwharrop/rocoto). The `parm/wflow/rocoto/aigfs_base.yaml` template is realized by ***uwtools*** to produce `rocoto.xml`. Task dependencies (prep → forecast → post) are expressed in that template.
 
 When adding a new workflow stage, you will typically need to:
 
 1. Add a new driver class in `drivers/`.
-2. Add corresponding configuration blocks in `parm/default_config.yaml`.
+2. Add corresponding configuration blocks in `parm/appdefaults.yaml`.
 3. Add a new task or metatask entry in `parm/wflow/rocoto/aigfs_base.yaml`.
 4. Add unit tests in `tests/drivers/`.
 5. Update this documentation.

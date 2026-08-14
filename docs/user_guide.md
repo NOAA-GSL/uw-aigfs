@@ -100,7 +100,7 @@ Supported values for `<platform>`:
 
 ### Default Configuration
 
-`parm/default_config.yaml` contains the baseline settings for all workflow stages. It is organized into top-level blocks that correspond to the workflow stages and follow the [uwtools YAML](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/index.html) conventions:
+`parm/appdefaults.yaml` contains the baseline settings for all workflow stages. It is organized into top-level blocks that correspond to the workflow stages and follow the [uwtools YAML](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/index.html) conventions:
 
 | Block      | Purpose                                                                                       |
 |------------|-----------------------------------------------------------------------------------------------|
@@ -115,7 +115,7 @@ The `platform` block supplies scheduler and account settings. A machine-specific
 
 ### User Config YAML
 
-You can override any default values by providing one or more user YAML files. These files must follow the same block structure as `default_config.yaml`, and later files take precedence over earlier ones.
+You can override any default values by providing one or more user YAML files. These files must follow the same block structure as `appdefaults.yaml`, and later files take precedence over earlier ones.
 
 **Minimal required configuration:**
 
@@ -168,7 +168,7 @@ With the environment activated (see [Setting Up the Environment](#setting-up-the
 python ush/generate_experiment.py [additional.yaml ...] user.yaml
 ```
 
-Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `parm/default_config.yaml` and the appropriate machine YAML (`parm/machine/<platform>.yaml`) before applying your user configs.
+Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `parm/appdefaults.yaml` and the appropriate machine YAML (`parm/machine/<platform>.yaml`) before applying your user configs.
 
 The following files are written to `app.rundir`:
 

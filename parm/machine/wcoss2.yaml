@@ -29,7 +29,7 @@ user:
   gfs_data: /lfs/h1/ops/prod/com/gfs/v16.3
 
 # WCOSS2-specific config overlay for uw-aigfs.
-# Fork of parm/default_config.yaml — do NOT edit default_config.yaml for WCOSS2 changes;
+# Fork of parm/appdefaults.yaml — do NOT edit appdefaults.yaml for WCOSS2 changes;
 # that file is kept intact for parallel Ursa/RDHPCS development.
 #
 # User paths use {{ 'USER' | env }} to resolve the USER environment variable at
