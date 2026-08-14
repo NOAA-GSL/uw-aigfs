@@ -9,9 +9,9 @@ workflow:
   log:
     value: "{{ user.rundir }}/workflow.log"
   entities:
+    AIGFS_APP: "{{ user.app_home }}"
     EXPERIMENT_CONFIG: "{{user.rundir}}/experiment.yaml"
     LOGDIR: "{{user.rundir}}/log"
-    AIGFS_APP: "{{ user.app_home }}"
     PLATFORM: "{{ user.platform }}"
   tasks:
     task_prep:
@@ -20,7 +20,7 @@ workflow:
         maxtries: 3
       command:
         cyclestr:
-          value: source &AIGFS_APP;/load_wflow_modules.sh &PLATFORM; && uw execute
+          value: source &AIGFS_APP;/bin/activate-&PLATFORM; && uw execute
             --module &AIGFS_APP;/drivers/aigfs_ics.py
             --classname AIGFSICs
             --task run
@@ -39,7 +39,7 @@ workflow:
         maxtries: 3
       command:
         cyclestr:
-          value: source &AIGFS_APP;/load_wflow_modules.sh &PLATFORM; && uw execute
+          value: source &AIGFS_APP;/bin/activate-&PLATFORM; && uw execute
             --module &AIGFS_APP;/drivers/aigfs_inference.py
             --classname AIGFSInference
             --task run
@@ -66,7 +66,7 @@ workflow:
           maxtries: 3
         command:
           cyclestr:
-            value: "source &AIGFS_APP;/load_wflow_modules.sh &PLATFORM; &&
+            value: "source &AIGFS_APP;/bin/activate-&PLATFORM; &&
               uw execute
               --module &AIGFS_APP;/drivers/aigfs_post.py
               --classname AIGFSPost

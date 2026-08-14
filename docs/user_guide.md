@@ -39,14 +39,14 @@ Welcome to the ***uw-aigfs*** User Guide. This guide describes how to set up you
 
 Before using ***uw-aigfs***, ensure the following are available on your system:
 
-| Requirement | Notes |
-|---|---|
-| Supported platform | Ursa or WCOSS2 |
-| Pre-trained ***GraphCast*** model weights | See your platform config for the expected path |
-| GFS GRIB2 input data | 0.25° analysis and short-range forecast files |
-| `wgrib2` | Must be loadable as a module or available in `PATH` |
-| Git | For cloning the repository |
-| `curl` | Used by the setup script to install Miniforge |
+| Requirement                               | Notes                                               |
+|-------------------------------------------|-----------------------------------------------------|
+| Supported platform                        | Ursa or WCOSS2                                      |
+| Pre-trained ***GraphCast*** model weights | See your platform config for the expected path      |
+| GFS GRIB2 input data                      | 0.25° analysis and short-range forecast files       |
+| `wgrib2`                                  | Must be loadable as a module or available in `PATH` |
+| Git                                       | For cloning the repository                          |
+| `curl`                                    | Used by the setup script to install Miniforge       |
 
 > **Note on disk space:** The conda environment installation requires several gigabytes of disk space. Consider cloning `uw-aigfs` to a location with a sufficiently large disk quota, rather than your HPC home directory.
 
@@ -82,15 +82,15 @@ make devenv
 Once the environment is built, activate it for a given platform by sourcing the module loader from the repository root:
 
 ```bash
-source load_wflow_modules.sh <platform>
+source bin/activate-<platform>
 ```
 
 Supported values for `<platform>`:
 
-| Platform | Description |
-|---|---|
-| `ursa` | Activates the locally installed conda `aigfs` environment |
-| `wcoss2` | Loads the `wflow_wcoss` module from `modulefiles/` |
+| Platform | Description                                               |
+|----------|-----------------------------------------------------------|
+| `ursa`   | Activates the locally installed conda `aigfs` environment |
+| `wcoss2` | Loads the `wflow_wcoss` module from `modulefiles/`        |
 
 > **Tip:** This `source` command must be run each time you open a new shell. The platform-specific environment it activates is also the one used by the workflow jobs at runtime.
 
@@ -102,14 +102,14 @@ Supported values for `<platform>`:
 
 `parm/default_config.yaml` contains the baseline settings for all workflow stages. It is organized into top-level blocks that correspond to the workflow stages and follow the [uwtools YAML](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/index.html) conventions:
 
-| Block | Purpose |
-|---|---|
-| `app` | Application-required values: cycle dates, platform, experiment directory, etc. |
+| Block      | Purpose                                                                                       |
+|------------|-----------------------------------------------------------------------------------------------|
+| `app`      | Application-required values: cycle dates, platform, experiment directory, etc.                |
 | `forecast` | ***GraphCast*** model inference: model weights, normalization stats, and forecast parameters. |
-| `post` | Post-processing: GRIB2 index generation and file delivery. |
-| `prep` | ICS generation: GFS file staging and ***wgrib2*** variable extraction. |
-| `timevars` | ***Jinja2*** template variables for date/time formatting used throughout the config. |
-| `user` | Free-form block for user-required constants, calculated values, etc. Not schema checked. |
+| `post`     | Post-processing: GRIB2 index generation and file delivery.                                    |
+| `prep`     | ICS generation: GFS file staging and ***wgrib2*** variable extraction.                        |
+| `timevars` | ***Jinja2*** template variables for date/time formatting used throughout the config.          |
+| `user`     | Free-form block for user-required constants, calculated values, etc. Not schema checked.      |
 
 The `platform` block supplies scheduler and account settings. A machine-specific YAML in `parm/machine/` (e.g., `parm/machine/ursa.yaml`) is automatically merged based on the value of `app.platform`.
 
@@ -172,10 +172,10 @@ Multiple YAML files may be provided; later files take precedence over earlier on
 
 The following files are written to `app.rundir`:
 
-| File | Contents |
-|---|---|
-| `experiment.yaml` | Fully realized experiment configuration |
-| `rocoto.xml` | ***Rocoto*** workflow definition, ready to run |
+| File              | Contents                                       |
+|-------------------|------------------------------------------------|
+| `experiment.yaml` | Fully realized experiment configuration        |
+| `rocoto.xml`      | ***Rocoto*** workflow definition, ready to run |
 
 If the experiment directory does not exist, it will be created. The generator validates the `user` section of the config with [Pydantic](https://docs.pydantic.dev/) and exits with an error if required fields are missing or invalid.
 

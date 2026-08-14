@@ -36,7 +36,7 @@ This installs [Miniforge](https://github.com/conda-forge/miniforge) into `conda/
 After the initial installation, activate the environment in a fresh shell with:
 
 ```bash
-source load_wflow_modules.sh <platform>
+source bin/activate-<platform>
 ```
 
 where `<platform>` is `ursa` or `wcoss2` (see the [User Guide](user_guide.md#setting-up-the-environment) for details).
@@ -159,7 +159,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 
 ```
 ├── bin                             # Automation tools
-│   ├── activate                    # Source to activate conda and the AIGFS environment
+│   ├── activate-<platform>         # Source to activate AIGFS environment for <platform>
 │   └── run                         # Support for Makefile targets
 ├── conda                           # Managed conda installation (created by make [dev]env)
 ├── docs                            # User and contributor documentation
@@ -172,7 +172,6 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 ├── envs                            # Definitions for conda environments
 │   ├── devpkgs.yaml                # Developer packages
 │   └── environment.yaml            # Core conda environment definition
-├── load_wflow_modules.sh           # Platform environment activation script
 ├── Makefile                        # Provides automation targets
 ├── modulefiles                     # Directory for system modules
 ├── parm                            # Input text files
