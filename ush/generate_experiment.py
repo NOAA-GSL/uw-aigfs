@@ -18,14 +18,14 @@ APP_HOME = Path(__file__).parent.parent.resolve()
 
 
 def generate_experiment_files(
-    experiment_config: YAMLConfig, experiment_file: Path, wflow_manager: str = "rocoto"
+    update_config: YAMLConfig, experiment_file: Path, wflow_manager: str = "rocoto"
 ) -> None:
     """
     Generate the workflow manager artifacts and the experiment YAML.
     """
     workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "base.yaml"
     realize_config(
-        input_config=workflow_config, output_file=experiment_file, update_config=experiment_config
+        input_config=workflow_config, output_file=experiment_file, update_config=update_config
     )
     rocoto_xml = experiment_file.parent / "rocoto.xml"
     rocoto_valid = realize_rocoto(config=experiment_file, output_file=rocoto_xml)
@@ -40,10 +40,10 @@ def main() -> None:
     """
     use_uwtools_logger()
     user_config_files = parse_args()
-    experiment_config = prepare_configs(user_config_files)
-    validated = validate(experiment_config.as_dict())
+    update_config = prepare_configs(user_config_files)
+    validated = validate(update_config.as_dict())
     _, experiment_file = set_up_experiment_directory(validated)
-    generate_experiment_files(experiment_config, experiment_file)
+    generate_experiment_files(update_config, experiment_file)
 
 
 def parse_args() -> list[Path]:
@@ -71,13 +71,13 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     default_config = APP_HOME / "parm" / "base.yaml"
     platform_config = APP_HOME / "parm" / "machines" / f"{machine}.yaml"
     # Make sure user_config is last to override any settings from supplementals.
-    experiment_config = compose(
+    update_config = compose(
         configs=[default_config, platform_config, *user_config_files],
         realize=True,
         output_file=os.devnull,
     )
-    experiment_config.update_from({"user": {"app_home": str(APP_HOME)}})
-    return cast(YAMLConfig, experiment_config)
+    update_config.update_from({"user": {"app_home": str(APP_HOME)}})
+    return cast(YAMLConfig, update_config)
 
 
 def set_up_experiment_directory(validated: Config) -> tuple[Path, Path]:

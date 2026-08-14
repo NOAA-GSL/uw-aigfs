@@ -10,17 +10,17 @@ from .validation import Config, User
 
 def test_ush_generate_experiment_generate_experiment_files(tmp_path):
     path = tmp_path / "aigfs.yaml"
-    experiment_config = Mock()
+    update_config = Mock()
     with (
         patch.object(generate_experiment, "realize_config") as realize_config,
         patch.object(generate_experiment, "realize_rocoto") as realize_rocoto,
     ):
         realize_rocoto.return_value = True
-        generate_experiment.generate_experiment_files(experiment_config, path)
+        generate_experiment.generate_experiment_files(update_config, path)
     realize_config.assert_called_once_with(
         input_config=generate_experiment.APP_HOME / "parm" / "wflow" / "rocoto" / "base.yaml",
         output_file=path,
-        update_config=experiment_config,
+        update_config=update_config,
     )
     realize_rocoto.assert_called_once_with(config=path, output_file=tmp_path / "rocoto.xml")
 
@@ -62,12 +62,12 @@ def test_ush_generate_experiment_parse_args():
 
 def test_ush_generate_experiment_prepare_configs(tmp_path):
     user_config_files = [tmp_path / "a.yaml"]
-    mock_experiment_config = Mock()
+    mock_update_config = Mock()
     with patch.object(generate_experiment, "compose") as compose:
-        compose.side_effect = [{"user": {"platform": "testmachine"}}, mock_experiment_config]
+        compose.side_effect = [{"user": {"platform": "testmachine"}}, mock_update_config]
         result = generate_experiment.prepare_configs(user_config_files)
-    assert result is mock_experiment_config
-    mock_experiment_config.update_from.assert_called_once_with(
+    assert result is mock_update_config
+    mock_update_config.update_from.assert_called_once_with(
         {"user": {"app_home": str(generate_experiment.APP_HOME)}}
     )
     # First call: Compose user configs.
