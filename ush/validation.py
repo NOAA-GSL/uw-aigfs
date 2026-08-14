@@ -12,10 +12,10 @@ class Config(BaseModel):
 
 class User(BaseModel):
     cycle_freq: timedelta
-    experiment_dir: Path
     first_cycle: datetime
     last_cycle: datetime
     platform: str
+    rundir: Path
 
     @model_validator(mode="after")
     def first_and_last_cycle(self) -> User:

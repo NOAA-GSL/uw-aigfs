@@ -9,10 +9,10 @@ from . import validation
 def kwargs(tmp_path, utc):
     return dict(
         cycle_freq=timedelta(hours=1),
-        experiment_dir=tmp_path,
         first_cycle=utc(2026, 1, 1, 0),
         last_cycle=utc(2026, 1, 31, 23),
         platform="ursa",
+        rundir=tmp_path,
     )
 
 

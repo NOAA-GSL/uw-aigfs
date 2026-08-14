@@ -65,7 +65,6 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     """
     Compose base, user, and platform configs.
     """
-    # Set up the experiment.
     user_config = compose(configs=cast(list[str | Path], user_config_files), output_file=os.devnull)
     machine = user_config["user"]["platform"]
     default_config = APP_HOME / "parm" / "base.yaml"
@@ -82,13 +81,13 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
 
 def set_up_rundir(validated: Config) -> tuple[Path, Path]:
     """
-    Create the experiment directory and write aigfs.yaml.
+    Create the run directory and write aigfs.yaml.
     """
-    experiment_dir = validated.user.experiment_dir
-    logging.info("Experiment will be set up here: %s", experiment_dir)
-    experiment_dir.mkdir(parents=True, exist_ok=True)
-    aigfs_config = experiment_dir / "aigfs.yaml"
-    return experiment_dir, aigfs_config
+    rundir = validated.user.rundir
+    logging.info("AIGFS will be set up here: %s", rundir)
+    rundir.mkdir(parents=True, exist_ok=True)
+    aigfs_config = rundir / "aigfs.yaml"
+    return rundir, aigfs_config
 
 
 if __name__ == "__main__":

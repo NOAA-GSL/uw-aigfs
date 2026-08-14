@@ -84,18 +84,18 @@ def test_ush_generate_experiment_prepare_configs(tmp_path):
 
 
 def test_ush_generate_experiment_set_up_rundir(logcap, tmp_path, utc):
-    experiment_dir = tmp_path / "myexp"
+    rundir = tmp_path / "myexp"
     validated = Config(
         user=User(
             cycle_freq=timedelta(hours=6),
-            experiment_dir=experiment_dir,
+            rundir=rundir,
             first_cycle=utc(2025, 10, 1, 18),
             last_cycle=utc(2025, 10, 2, 18),
             platform="ursa",
         )
     )
     result_dir, result_file = generate_experiment.set_up_rundir(validated)
-    assert result_dir == experiment_dir
+    assert result_dir == rundir
     assert result_dir.is_dir()
-    assert result_file == experiment_dir / "aigfs.yaml"
-    assert f"Experiment will be set up here: {result_dir}" in logcap.text
+    assert result_file == rundir / "aigfs.yaml"
+    assert f"AIGFS will be set up here: {result_dir}" in logcap.text
