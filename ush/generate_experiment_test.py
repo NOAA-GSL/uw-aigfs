@@ -18,7 +18,7 @@ def test_ush_generate_experiment_generate_experiment_files(tmp_path):
         realize_rocoto.return_value = True
         generate_experiment.generate_experiment_files(experiment_config, path)
     realize_config.assert_called_once_with(
-        input_config=generate_experiment.APP_HOME / "parm" / "wflow" / "rocoto" / "aigfs_base.yaml",
+        input_config=generate_experiment.APP_HOME / "parm" / "wflow" / "rocoto" / "base.yaml",
         output_file=path,
         update_config=experiment_config,
     )

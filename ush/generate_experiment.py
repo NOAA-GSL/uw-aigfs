@@ -23,7 +23,7 @@ def generate_experiment_files(
     """
     Generate the workflow manager artifacts and the experiment YAML.
     """
-    workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "aigfs_base.yaml"
+    workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "base.yaml"
     realize_config(
         input_config=workflow_config, output_file=experiment_file, update_config=experiment_config
     )
