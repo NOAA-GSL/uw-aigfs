@@ -4,7 +4,7 @@ ecflow:
     vars:
       AIGFS_APP: "{{ app.home }}"
       ECF_INCLUDE: "{{ user.aigfs_app }}/include"
-      EXPERIMENT_CONFIG: "{{user.rundir}}/experiment.yaml"
+      EXPERIMENT_CONFIG: "{{user.rundir}}/aigfs.yaml"
       PLATFORM: "{{ user.platform }}"
     suite_retro:
       family_datetimes:

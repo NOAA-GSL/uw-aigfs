@@ -172,10 +172,10 @@ Multiple YAML files may be provided; later files take precedence over earlier on
 
 The following files are written to `app.rundir`:
 
-| File              | Contents                                       |
-|-------------------|------------------------------------------------|
-| `experiment.yaml` | Fully realized experiment configuration        |
-| `rocoto.xml`      | ***Rocoto*** workflow definition, ready to run |
+| File         | Contents                                       |
+|--------------|------------------------------------------------|
+| `aigfs.yaml` | Fully realized experiment configuration        |
+| `rocoto.xml` | ***Rocoto*** workflow definition, ready to run |
 
 If the experiment directory does not exist, it will be created. The generator validates the `user` section of the config with [Pydantic](https://docs.pydantic.dev/) and exits with an error if required fields are missing or invalid.
 

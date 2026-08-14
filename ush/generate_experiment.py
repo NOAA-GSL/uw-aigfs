@@ -82,12 +82,12 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
 
 def set_up_experiment_directory(validated: Config) -> tuple[Path, Path]:
     """
-    Create the experiment directory and write experiment.yaml.
+    Create the experiment directory and write aigfs.yaml.
     """
     experiment_dir = validated.user.experiment_dir
     logging.info("Experiment will be set up here: %s", experiment_dir)
     experiment_dir.mkdir(parents=True, exist_ok=True)
-    experiment_file = experiment_dir / "experiment.yaml"
+    experiment_file = experiment_dir / "aigfs.yaml"
     return experiment_dir, experiment_file
 
 

@@ -10,7 +10,7 @@ workflow:
     value: "{{ user.rundir }}/workflow.log"
   entities:
     AIGFS_APP: "{{ app.home }}"
-    EXPERIMENT_CONFIG: "{{user.rundir}}/experiment.yaml"
+    EXPERIMENT_CONFIG: "{{user.rundir}}/aigfs.yaml"
     LOGDIR: "{{user.rundir}}/log"
     PLATFORM: "{{ user.platform }}"
   tasks:

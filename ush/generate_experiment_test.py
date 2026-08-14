@@ -9,7 +9,7 @@ from .validation import Config, User
 
 
 def test_ush_generate_experiment_generate_experiment_files(tmp_path):
-    path = tmp_path / "experiment.yaml"
+    path = tmp_path / "aigfs.yaml"
     experiment_config = Mock()
     with (
         patch.object(generate_experiment, "realize_config") as realize_config,
@@ -26,7 +26,7 @@ def test_ush_generate_experiment_generate_experiment_files(tmp_path):
 
 
 def test_ush_generate_experiment_generate_experiment_files_invalid_xml(logcap, tmp_path):
-    path = tmp_path / "experiment.yaml"
+    path = tmp_path / "aigfs.yaml"
     with (
         patch.object(generate_experiment, "realize_config"),
         patch.object(generate_experiment, "realize_rocoto") as realize_rocoto,
@@ -97,5 +97,5 @@ def test_ush_generate_experiment_set_up_experiment_directory(logcap, tmp_path, u
     result_dir, result_file = generate_experiment.set_up_experiment_directory(validated)
     assert result_dir == experiment_dir
     assert result_dir.is_dir()
-    assert result_file == experiment_dir / "experiment.yaml"
+    assert result_file == experiment_dir / "aigfs.yaml"
     assert f"Experiment will be set up here: {result_dir}" in logcap.text
