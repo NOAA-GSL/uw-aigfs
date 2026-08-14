@@ -3,7 +3,7 @@ forecast:
     execution:
       envcmds:
         - module load wflow_wcoss
-    model_weights_path: '{{ platform.pretrained_model_path }}/params/GCGFSv2_finetuned_GDAS-ERA5_0p25_13pl_mesh2to6_tp_output_only.npz'
+    model_weights_path: '{{ user.pretrained_model_path }}/params/GCGFSv2_finetuned_GDAS-ERA5_0p25_13pl_mesh2to6_tp_output_only.npz'
 platform:
   scheduler: pbs
 post:

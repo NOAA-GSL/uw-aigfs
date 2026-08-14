@@ -4,7 +4,6 @@ user:
   first_cycle: !datetime 2025-10-21T00
   gfs_data: YOUR_GFS_DATA
   last_cycle: !datetime 2025-10-21T00
-platform:
   pretrained_model_path: '{{ user.aigfs_app }}/fix'
 timevars:
   cyc: '{{ cycle.strftime("%H") }}'
@@ -42,7 +41,7 @@ prep:
     scheduler: '{{ platform.scheduler }}'
 forecast:
   aigfs_inference:
-    diffs_stddev_path: '{{ platform.pretrained_model_path }}/stats/diffs_stddev_by_level.nc'
+    diffs_stddev_path: '{{ user.pretrained_model_path }}/stats/diffs_stddev_by_level.nc'
     execution:
       batchargs:
         debug: True
@@ -57,11 +56,11 @@ forecast:
     forecast_freq: 6
     forecast_length: 120
     ics_path: '{{ prep.aigfs_ics.rundir }}/aigfs.t{{ timevars.cyc }}z.ic.nc'
-    json_path: '{{ platform.pretrained_model_path }}/tables'
-    mean_path: '{{ platform.pretrained_model_path }}/stats/mean_by_level.nc'
-    model_weights_path: '{{ platform.pretrained_model_path }}/params/GCGFSv2_finetuned - GDAS - ERA5 - resolution 0.25 - pressure levels 13 - mesh 2to6 - precipitation output only.npz'
+    json_path: '{{ user.pretrained_model_path }}/tables'
+    mean_path: '{{ user.pretrained_model_path }}/stats/mean_by_level.nc'
+    model_weights_path: '{{ user.pretrained_model_path }}/params/GCGFSv2_finetuned - GDAS - ERA5 - resolution 0.25 - pressure levels 13 - mesh 2to6 - precipitation output only.npz'
     rundir: '{{ user.experiment_dir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast'
-    stddev_path: '{{ platform.pretrained_model_path }}/stats/stddev_by_level.nc'
+    stddev_path: '{{ user.pretrained_model_path }}/stats/stddev_by_level.nc'
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
