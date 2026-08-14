@@ -76,7 +76,7 @@ def test_ush_generate_experiment_prepare_configs(tmp_path):
     second_call = compose.call_args_list[1]
     parmdir = generate_experiment.APP_HOME / "parm"
     assert second_call[1]["configs"] == [
-        parmdir / "appdefaults.yaml",
+        parmdir / "base.yaml",
         parmdir / "machines" / "testmachine.yaml",
         *user_config_files,
     ]

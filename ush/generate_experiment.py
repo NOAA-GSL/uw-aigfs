@@ -68,7 +68,7 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     # Set up the experiment.
     user_config = compose(configs=cast(list[str | Path], user_config_files), output_file=os.devnull)
     machine = user_config["user"]["platform"]
-    default_config = APP_HOME / "parm" / "appdefaults.yaml"
+    default_config = APP_HOME / "parm" / "base.yaml"
     platform_config = APP_HOME / "parm" / "machines" / f"{machine}.yaml"
     # Make sure user_config is last to override any settings from supplementals.
     experiment_config = compose(
