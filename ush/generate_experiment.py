@@ -21,7 +21,7 @@ def generate_configs(
     update_config: YAMLConfig, aigfs_config: Path, wflow_manager: str = "rocoto"
 ) -> None:
     """
-    Generate the workflow manager artifacts and the experiment YAML.
+    Generate the AIGFS config and workflow manager artifacts.
     """
     workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "base.yaml"
     realize_config(
@@ -36,13 +36,13 @@ def generate_configs(
 
 def main() -> None:
     """
-    Stage the workflow manager artifacts and experiment YAML in the experiment directory.
+    Stage the AIGFS config and workflow manager artifacts in the run directory.
     """
     use_uwtools_logger()
     user_config_files = parse_args()
     update_config = prepare_configs(user_config_files)
     validated = validate(update_config.as_dict())
-    _, aigfs_config = set_up_experiment_directory(validated)
+    _, aigfs_config = set_up_rundir(validated)
     generate_configs(update_config, aigfs_config)
 
 
@@ -50,7 +50,7 @@ def parse_args() -> list[Path]:
     """
     Parse command-line arguments.
     """
-    parser = argparse.ArgumentParser(description="Configure an experiment from user config files.")
+    parser = argparse.ArgumentParser(description="Configure AIGFS from user config files.")
     parser.add_argument(
         "user_config_files",
         help="paths to the user config files",
@@ -63,7 +63,7 @@ def parse_args() -> list[Path]:
 
 def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     """
-    Combine base, user, and platform configs into one experiment config.
+    Compose base, user, and platform configs.
     """
     # Set up the experiment.
     user_config = compose(configs=cast(list[str | Path], user_config_files), output_file=os.devnull)
@@ -80,7 +80,7 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     return cast(YAMLConfig, update_config)
 
 
-def set_up_experiment_directory(validated: Config) -> tuple[Path, Path]:
+def set_up_rundir(validated: Config) -> tuple[Path, Path]:
     """
     Create the experiment directory and write aigfs.yaml.
     """

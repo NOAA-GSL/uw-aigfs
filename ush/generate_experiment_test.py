@@ -42,16 +42,16 @@ def test_ush_generate_experiment_main():
         patch.object(generate_experiment, "generate_configs") as generate_configs,
         patch.object(generate_experiment, "parse_args") as parse_args,
         patch.object(generate_experiment, "prepare_configs") as prepare_configs,
-        patch.object(generate_experiment, "set_up_experiment_directory") as s_u_e_d,
+        patch.object(generate_experiment, "set_up_rundir") as set_up_rundir,
         patch.object(generate_experiment, "validate") as validate,
     ):
-        s_u_e_d.return_value = (Mock(), Mock())
+        set_up_rundir.return_value = (Mock(), Mock())
         generate_experiment.main()
         parse_args.assert_called_once_with()
         prepare_configs.assert_called_once_with(parse_args())
         validate.assert_called_once_with(prepare_configs().as_dict())
-        s_u_e_d.assert_called_once_with(validate())
-        generate_configs.assert_called_once_with(prepare_configs(), s_u_e_d()[1])
+        set_up_rundir.assert_called_once_with(validate())
+        generate_configs.assert_called_once_with(prepare_configs(), set_up_rundir()[1])
 
 
 def test_ush_generate_experiment_parse_args():
@@ -83,7 +83,7 @@ def test_ush_generate_experiment_prepare_configs(tmp_path):
     assert second_call[1]["realize"] is True
 
 
-def test_ush_generate_experiment_set_up_experiment_directory(logcap, tmp_path, utc):
+def test_ush_generate_experiment_set_up_rundir(logcap, tmp_path, utc):
     experiment_dir = tmp_path / "myexp"
     validated = Config(
         user=User(
@@ -94,7 +94,7 @@ def test_ush_generate_experiment_set_up_experiment_directory(logcap, tmp_path, u
             platform="ursa",
         )
     )
-    result_dir, result_file = generate_experiment.set_up_experiment_directory(validated)
+    result_dir, result_file = generate_experiment.set_up_rundir(validated)
     assert result_dir == experiment_dir
     assert result_dir.is_dir()
     assert result_file == experiment_dir / "aigfs.yaml"
