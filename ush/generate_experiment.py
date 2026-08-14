@@ -17,18 +17,18 @@ from .validation import Config, validate
 APP_HOME = Path(__file__).parent.parent.resolve()
 
 
-def generate_experiment_files(
-    update_config: YAMLConfig, experiment_file: Path, wflow_manager: str = "rocoto"
+def generate_configs(
+    update_config: YAMLConfig, aigfs_config: Path, wflow_manager: str = "rocoto"
 ) -> None:
     """
     Generate the workflow manager artifacts and the experiment YAML.
     """
     workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "base.yaml"
     realize_config(
-        input_config=workflow_config, output_file=experiment_file, update_config=update_config
+        input_config=workflow_config, output_file=aigfs_config, update_config=update_config
     )
-    rocoto_xml = experiment_file.parent / "rocoto.xml"
-    rocoto_valid = realize_rocoto(config=experiment_file, output_file=rocoto_xml)
+    rocoto_xml = aigfs_config.parent / "rocoto.xml"
+    rocoto_valid = realize_rocoto(config=aigfs_config, output_file=rocoto_xml)
     if not rocoto_valid:
         logging.error("Invalid Rocoto XML")
         sys.exit(1)
@@ -42,8 +42,8 @@ def main() -> None:
     user_config_files = parse_args()
     update_config = prepare_configs(user_config_files)
     validated = validate(update_config.as_dict())
-    _, experiment_file = set_up_experiment_directory(validated)
-    generate_experiment_files(update_config, experiment_file)
+    _, aigfs_config = set_up_experiment_directory(validated)
+    generate_configs(update_config, aigfs_config)
 
 
 def parse_args() -> list[Path]:
@@ -87,8 +87,8 @@ def set_up_experiment_directory(validated: Config) -> tuple[Path, Path]:
     experiment_dir = validated.user.experiment_dir
     logging.info("Experiment will be set up here: %s", experiment_dir)
     experiment_dir.mkdir(parents=True, exist_ok=True)
-    experiment_file = experiment_dir / "aigfs.yaml"
-    return experiment_dir, experiment_file
+    aigfs_config = experiment_dir / "aigfs.yaml"
+    return experiment_dir, aigfs_config
 
 
 if __name__ == "__main__":

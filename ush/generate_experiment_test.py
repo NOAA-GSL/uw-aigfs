@@ -8,7 +8,7 @@ from . import generate_experiment
 from .validation import Config, User
 
 
-def test_ush_generate_experiment_generate_experiment_files(tmp_path):
+def test_ush_generate_experiment_generate_configs(tmp_path):
     path = tmp_path / "aigfs.yaml"
     update_config = Mock()
     with (
@@ -16,7 +16,7 @@ def test_ush_generate_experiment_generate_experiment_files(tmp_path):
         patch.object(generate_experiment, "realize_rocoto") as realize_rocoto,
     ):
         realize_rocoto.return_value = True
-        generate_experiment.generate_experiment_files(update_config, path)
+        generate_experiment.generate_configs(update_config=update_config, aigfs_config=path)
     realize_config.assert_called_once_with(
         input_config=generate_experiment.APP_HOME / "parm" / "wflow" / "rocoto" / "base.yaml",
         output_file=path,
@@ -25,7 +25,7 @@ def test_ush_generate_experiment_generate_experiment_files(tmp_path):
     realize_rocoto.assert_called_once_with(config=path, output_file=tmp_path / "rocoto.xml")
 
 
-def test_ush_generate_experiment_generate_experiment_files_invalid_xml(logcap, tmp_path):
+def test_ush_generate_experiment_generate_configs_invalid_xml(logcap, tmp_path):
     path = tmp_path / "aigfs.yaml"
     with (
         patch.object(generate_experiment, "realize_config"),
@@ -33,13 +33,13 @@ def test_ush_generate_experiment_generate_experiment_files_invalid_xml(logcap, t
     ):
         realize_rocoto.return_value = False
         with raises(SystemExit):
-            generate_experiment.generate_experiment_files(Mock(), path)
+            generate_experiment.generate_configs(update_config=Mock(), aigfs_config=path)
     assert "Invalid Rocoto XML" in logcap.text
 
 
 def test_ush_generate_experiment_main():
     with (
-        patch.object(generate_experiment, "generate_experiment_files") as generate_experiment_files,
+        patch.object(generate_experiment, "generate_configs") as generate_configs,
         patch.object(generate_experiment, "parse_args") as parse_args,
         patch.object(generate_experiment, "prepare_configs") as prepare_configs,
         patch.object(generate_experiment, "set_up_experiment_directory") as s_u_e_d,
@@ -51,7 +51,7 @@ def test_ush_generate_experiment_main():
         prepare_configs.assert_called_once_with(parse_args())
         validate.assert_called_once_with(prepare_configs().as_dict())
         s_u_e_d.assert_called_once_with(validate())
-        generate_experiment_files.assert_called_once_with(prepare_configs(), s_u_e_d()[1])
+        generate_configs.assert_called_once_with(prepare_configs(), s_u_e_d()[1])
 
 
 def test_ush_generate_experiment_parse_args():
