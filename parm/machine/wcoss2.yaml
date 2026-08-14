@@ -21,12 +21,17 @@ prep:
       envcmds:
         - module load wflow_wcoss
     files_to_hardlink:
-      data/gfs.t{{ timevars.cyc }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/gfs.{{ timevars.yyyymmdd }}/{{ timevars.cyc }}/atmos/gfs.t{{ timevars.cyc }}z.pgrb2.0p25.f000'
-      data/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/gfs.{{ timevars.m1_yyyymmdd }}/{{ timevars.m1_cyc }}/atmos/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f000'
-      data/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/gfs.{{ timevars.m1_yyyymmdd }}/{{ timevars.m1_cyc }}/atmos/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f006'
-      data/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/gfs.{{ timevars.m2_yyyymmdd }}/{{ timevars.m2_cyc }}/atmos/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006'
+      data/gfs.t{{ timevars.cyc }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/gfs.{{ user.yyyymmdd }}/{{ timevars.cyc }}/atmos/gfs.t{{ timevars.cyc }}z.pgrb2.0p25.f000'
+      data/gfs.t{{ user.m1_cyc }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/gfs.{{ user.m1_yyyymmdd }}/{{ user.m1_cyc }}/atmos/gfs.t{{ user.m1_cyc }}z.pgrb2.0p25.f000'
+      data/gfs.t{{ user.m1_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/gfs.{{ user.m1_yyyymmdd }}/{{ user.m1_cyc }}/atmos/gfs.t{{ user.m1_cyc }}z.pgrb2.0p25.f006'
+      data/gfs.t{{ user.m2_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/gfs.{{ user.m2_yyyymmdd }}/{{ user.m2_cyc }}/atmos/gfs.t{{ user.m2_cyc }}z.pgrb2.0p25.f006'
 user:
   gfs_data: /lfs/h1/ops/prod/com/gfs/v16.3
+  m1_cyc: '{{ (cycle - app.cycle_freq).strftime("%H") }}'
+  m1_yyyymmdd: '{{ (cycle - app.cycle_freq).strftime("%Y%m%d") }}'
+  m2_cyc: '{{ (cycle - 2*app.cycle_freq).strftime("%H") }}'
+  m2_yyyymmdd: '{{ (cycle - 2*app.cycle_freq).strftime("%Y%m%d") }}'
+  yyyymmdd: '{{ cycle.strftime("%Y%m%d") }}'
 
 # WCOSS2-specific config overlay for uw-aigfs.
 # Fork of parm/appdefaults.yaml — do NOT edit appdefaults.yaml for WCOSS2 changes;

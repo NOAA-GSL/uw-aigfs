@@ -8,12 +8,6 @@ app:
 timevars:
   cyc: '{{ cycle.strftime("%H") }}'
   fff: '{{ "%03d" % (leadtime.total_seconds() // 3600) }}'
-  m1_cyc: '{{ (cycle - app.cycle_freq).strftime("%H") }}'
-  m1_yyyymmdd: '{{ (cycle - app.cycle_freq).strftime("%Y%m%d") }}'
-  m2_cyc: '{{ (cycle - 2*app.cycle_freq).strftime("%H") }}'
-  m2_yyyymmdd: '{{ (cycle - 2*app.cycle_freq).strftime("%Y%m%d") }}'
-  valid_time: "{{ (cycle + leadtime).strftime('%Y-%m-%d_%H:%M:%S') }}"
-  yyyymmdd: '{{ cycle.strftime("%Y%m%d") }}'
   yyyymmddhh: '{{ cycle.strftime("%Y%m%d%H") }}'
 prep:
   aigfs_ics:
@@ -29,11 +23,6 @@ prep:
         - source {{ app.home }}/bin/activate-{{ app.platform }}
         - module load wgrib2
       executable: uw execute --module {{ app.home }}/drivers/aigfs_ics.py --classname AIGFSICs --task merged_netcdf_files -c {{ app.rundir }}/experiment.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path prep
-    files_to_hardlink:
-      data/gfs.t{{ timevars.cyc }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/{{ timevars.yyyymmdd }}/gfs.t{{ timevars.cyc }}z.pgrb2.0p25.f000'
-      data/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/{{ timevars.m1_yyyymmdd }}/gfs.t{{ timevars.m1_cyc}}z.pgrb2.0p25.f000'
-      data/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/{{ timevars.m1_yyyymmdd }}/gfs.t{{ timevars.m1_cyc}}z.pgrb2.0p25.f006'
-      data/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/{{ timevars.m2_yyyymmdd }}/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006'
     rundir: '{{ app.rundir }}/{{ cycle.strftime("%Y%m%d%H") }}/prep'
     variable_extraction_yaml: '{{ app.home }}/parm/wgrib2_data.yaml'
   platform:
@@ -86,5 +75,3 @@ post:
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'
-user:
-  gfs_data: YOUR_GFS_DATA
