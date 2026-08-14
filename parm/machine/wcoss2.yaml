@@ -1,4 +1,5 @@
 app:
+  home: /lfs/h2/emc/noscrub/{{ 'USER' | env }}/aigfs
   pretrained_model_path: '{{ user.aigfs_app }}/fix'
   rundir: /lfs/h2/emc/stmp/{{ 'USER' | env }}/aigfs/run
 forecast:
@@ -25,7 +26,6 @@ prep:
       data/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/gfs.{{ timevars.m1_yyyymmdd }}/{{ timevars.m1_cyc }}/atmos/gfs.t{{ timevars.m1_cyc }}z.pgrb2.0p25.f006'
       data/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/gfs.{{ timevars.m2_yyyymmdd }}/{{ timevars.m2_cyc }}/atmos/gfs.t{{ timevars.m2_cyc }}z.pgrb2.0p25.f006'
 user:
-  aigfs_app: /lfs/h2/emc/noscrub/{{ 'USER' | env }}/aigfs
   gfs_data: /lfs/h1/ops/prod/com/gfs/v16.3
 
 # WCOSS2-specific config overlay for uw-aigfs.
