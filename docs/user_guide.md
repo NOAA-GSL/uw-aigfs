@@ -225,7 +225,7 @@ The `task_prep` ***Rocoto*** task runs `aigfs.drivers.ics` (driver class `AIGFSI
 
 ### Forecast: GraphCast Inference
 
-The `task_forecast` ***Rocoto*** task runs `lib/aigfs/drivers/inference.py` (driver class `AIGFSInference`). It depends on `task_prep` completing successfully. The task:
+The `task_forecast` ***Rocoto*** task runs `aigfs.drivers.inference` (driver class `AIGFSInference`). It depends on `task_prep` completing successfully. The task:
 
 1. Loads the initial-conditions netCDF file produced by the prep step.
 2. Loads the pre-trained ***GraphCast*** model weights (`.npz`) from `app.pretrained_model_path`.
@@ -244,7 +244,7 @@ The forecast job requires significant memory (default: 150 GB) due to the size o
 
 ### Post-Processing
 
-The `metatask_post` ***Rocoto*** metatask fans out into one `task_post_<FFF>` job per forecast lead time. Each post job runs `lib/aigfs/drivers/post.py` (driver class `AIGFSPost`). It:
+The `metatask_post` ***Rocoto*** metatask fans out into one `task_post_<FFF>` job per forecast lead time. Each post job runs `aigfs.drivers.post` (driver class `AIGFSPost`). It:
 
 1. Waits for the corresponding GRIB2 surface and pressure-level files to exist in the forecast directory (or for `task_forecast` to complete, whichever happens first).
 2. Generates a `wgrib2` inventory index (`.idx`) file for each GRIB2 file.

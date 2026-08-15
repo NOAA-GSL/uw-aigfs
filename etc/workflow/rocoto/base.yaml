@@ -40,7 +40,7 @@ workflow:
       command:
         cyclestr:
           value: source &AIGFS_APP;/bin/activate-&PLATFORM; && uw execute
-            --module &AIGFS_APP;/drivers/inference.py
+            --module aigfs.drivers.inference
             --classname AIGFSInference
             --task run
             --config &EXPERIMENT_CONFIG;
@@ -68,7 +68,7 @@ workflow:
           cyclestr:
             value: "source &AIGFS_APP;/bin/activate-&PLATFORM; &&
               uw execute
-              --module &AIGFS_APP;/drivers/post.py
+              --module aigfs.drivers.post
               --classname AIGFSPost
               --task run
               --config &EXPERIMENT_CONFIG;

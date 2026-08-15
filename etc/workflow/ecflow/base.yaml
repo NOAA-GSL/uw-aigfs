@@ -43,7 +43,7 @@ ecflow:
               body: |
                 source %AIGFS_APP%/bin/activate-%PLATFORM%
                 uw execute \
-                  --module %AIGFS_APP%/drivers/inference.py \
+                  --module aigfs.drivers.inference \
                   --classname AIGFSInference \
                   --task run \
                   --config %EXPERIMENT_CONFIG% \
