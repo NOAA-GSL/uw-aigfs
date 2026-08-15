@@ -5,13 +5,13 @@ workflow:
   cycledef:
     - attrs:
         group: forecast
-      spec: "{{ app.first_cycle.strftime('%Y%m%d%H%M') }} {{ app.last_cycle.strftime('%Y%m%d%H%M') }} {{app.cycle_freq}}"
+      spec: "{{ app.first_cycle.strftime('%Y%m%d%H%M') }} {{ app.last_cycle.strftime('%Y%m%d%H%M') }} {{ app.cycle_freq}}"
   log:
     value: "{{ app.rundir }}/workflow.log"
   entities:
     AIGFS_APP: "{{ app.home }}"
-    EXPERIMENT_CONFIG: "{{app.rundir}}/aigfs.yaml"
-    LOGDIR: "{{app.rundir}}"
+    EXPERIMENT_CONFIG: "{{ app.rundir}}/aigfs.yaml"
+    LOGDIR: "{{ app.rundir}}"
     PLATFORM: "{{ app.platform }}"
   tasks:
     task_prep:
