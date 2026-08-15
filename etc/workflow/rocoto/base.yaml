@@ -59,7 +59,6 @@ workflow:
     metatask_post:
       var:
         fhr: "{% for h in range(0, forecast.aigfs_inference.forecast_length + 1, forecast.aigfs_inference.forecast_freq) %}{{ ' %03d' % h }}{% endfor %}"
-        nextfhr: "{% for h in range(forecast.aigfs_inference.forecast_freq, forecast.aigfs_inference.forecast_length + forecast.aigfs_inference.forecast_freq + 1, forecast.aigfs_inference.forecast_freq) %}{{ ' %03d' % h }}{% endfor %}"
       task_post_#fhr#:
         account: "{{ platform.account }}"
         attrs:
@@ -84,16 +83,21 @@ workflow:
         memory: "{{ post.aigfs_post.execution.batchargs.memory }}"
         walltime: "{{ post.aigfs_post.execution.batchargs.walltime }}"
         dependency:
-          or:
-            and:
-              datadep_pres:
-                value:
-                  cyclestr:
-                    value: "{{ app.rundir }}/@Y@m@d@H/forecast/aigfs.t@Hz.pres.f#nextfhr#.grib2"
-              datadep_sfc:
-                value:
-                  cyclestr:
-                    value: "{{ app.rundir }}/@Y@m@d@H/forecast/aigfs.t@Hz.sfc.f#nextfhr#.grib2"
-            taskdep:
-              attrs:
-                task: forecast
+          and:
+            datadep_pres:
+              value:
+                cyclestr:
+                  value: "{{ app.rundir }}/@Y@m@d@H/forecast/aigfs.t@Hz.pres.f#fhr#.grib2"
+            datadep_sfc:
+              value:
+                cyclestr:
+                  value: "{{ app.rundir }}/@Y@m@d@H/forecast/aigfs.t@Hz.sfc.f#fhr#.grib2"
+    task_all:
+      account: "{{ platform.account }}"
+      command: /bin/true
+      cores: 1
+      dependency:
+        metataskdep:
+          attrs:
+            metatask: post
+      walltime: 00:00:01
