@@ -52,7 +52,7 @@ makeenv() {
   PIP_VERBOSE=1
   XDG_CACHE_HOME=$condadir/cache
   export PIP_VERBOSE XDG_CACHE_HOME
-  envdir=$condadir/etc/env/$env
+  envdir=$condadir/envs/$env
   if [[ -d $envdir ]]; then
     msg Using existing environment $env
   else
