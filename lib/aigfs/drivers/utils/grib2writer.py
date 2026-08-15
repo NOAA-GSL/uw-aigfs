@@ -142,9 +142,9 @@ class Grib2Writer:
             outfile.unlink(missing_ok=True)
         # Open GRIB2 file.
         grib2_out_sfc = grib2io.open(outfile_sfc, mode="w")
-        logging.info(" Opening GRIB2 File for surface variables: %s", outfile_sfc)
+        logging.info(" Opening GRIB2 file for surface variables: %s", outfile_sfc)
         grib2_out_pres = grib2io.open(outfile_pres, mode="w")
-        logging.info(" Opening GRIB2 File for pressure level variables: %s", outfile_pres)
+        logging.info(" Opening GRIB2 file for pressure level variables: %s", outfile_pres)
         # Iterate over the variable name keys in JSON file.
         for var in sorted(ds.data_vars):
             # Get variable as DataArray.
