@@ -113,7 +113,7 @@ format() {
 }
 
 jsfiles() {
-  find $(rootdir) -path $(condadir) -prune -o -type f -name "*.json*" -print
+  find $(rootdir) -path $(condadir) -prune -o -type f -name "*.json*" -print | sort
 }
 
 lint() {
@@ -132,7 +132,7 @@ msg() {
 }
 
 pyfiles() {
-  find $(rootdir) -path $(condadir) -prune -o -type f -name "*.py" -print
+  find $(rootdir) -path $(condadir) -prune -o -type f -name "*.py" -print | sort
 }
 
 rmenv() {
@@ -145,7 +145,7 @@ rmenv() {
 }
 
 shfiles() {
-  find $(rootdir) -path $(condadir) -prune -o -type f -print | while read -r x; do
+  find $(rootdir) -path $(condadir) -prune -o -type f -print | sort | while read -r x; do
     file $x | grep -q "Bourne-Again shell script" && echo $x
   done | sort
 }
@@ -196,7 +196,7 @@ rootdir() {
 }
 
 yamlfiles() {
-  find $(rootdir) -path $(condadir) -prune -o -type f -name "*.yaml" -print
+  find $(rootdir) -path $(condadir) -prune -o -type f -name "*.yaml" -print | sort | grep -v "^.*/aigfs.yaml$"
 }
 
 # Main entrypoint:
