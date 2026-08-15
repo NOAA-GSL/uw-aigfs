@@ -4,15 +4,15 @@ ecflow:
     vars:
       AIGFS_APP: "{{ app.home }}"
       ECF_INCLUDE: "{{ user.aigfs_app }}/include"
-      EXPERIMENT_CONFIG: "{{user.rundir}}/aigfs.yaml"
+      EXPERIMENT_CONFIG: "{{app.rundir}}/aigfs.yaml"
       PLATFORM: "{{ user.platform }}"
     suite_retro:
       family_datetimes:
         repeat_datetime:
           variable: CYCLE
-          start: '{{ user.first_cycle.strftime("%Y%m%dT%H%M%S") }}'
-          end: '{{ user.last_cycle.strftime("%Y%m%dT%H%M%S") }}'
-          step: '{% set f = user.cycle_freq.total_seconds() %}{{ "%02d:%02d:%02d" % (f // 3600, (f % 3600) / 60, f % 60 ) }}'
+          start: '{{ app.first_cycle.strftime("%Y%m%dT%H%M%S") }}'
+          end: '{{ app.last_cycle.strftime("%Y%m%dT%H%M%S") }}'
+          step: '{% set f = app.cycle_freq.total_seconds() %}{{ "%02d:%02d:%02d" % (f // 3600, (f % 3600) / 60, f % 60 ) }}'
         family_forecast:
           task_jaigfs_prep:
             script: &script
