@@ -67,9 +67,7 @@ def test_ush_setup_prepare_configs(tmp_path):
         compose.side_effect = [{"app": {"platform": "test"}}, mock_update_config]
         result = setup.prepare_configs(user_config_files)
     assert result is mock_update_config
-    mock_update_config.update_from.assert_called_once_with(
-        {"user": {"home": str(setup.APP_HOME)}}
-    )
+    mock_update_config.update_from.assert_called_once_with({"user": {"home": str(setup.APP_HOME)}})
     # First call: Compose user configs.
     # Second call: Compose with default, platform, and user configs.
     assert compose.call_count == 2
