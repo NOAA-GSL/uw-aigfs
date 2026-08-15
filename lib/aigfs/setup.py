@@ -12,7 +12,7 @@ from uwtools.api.rocoto import realize as realize_rocoto
 
 from aigfs.validation import Config, validate
 
-APP_HOME = Path(__file__).parent.parent.resolve()
+APP_HOME = Path(__file__).parent.parent.parent.resolve()
 
 
 def generate_configs(update_config: YAMLConfig, aigfs_config: Path, engine: str = "rocoto") -> None:
@@ -63,11 +63,11 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     """
     user_config = compose(configs=cast(list[str | Path], user_config_files), output_file=os.devnull)
     platform = user_config["app"]["platform"]
-    default_config = APP_HOME / "etc" / "base.yaml"
+    base_config = APP_HOME / "etc" / "base.yaml"
     platform_config = APP_HOME / "etc" / "platform" / f"{platform}.yaml"
     # Make sure user_config is last to override any settings from supplementals.
     update_config = compose(
-        configs=[default_config, platform_config, *user_config_files],
+        configs=[base_config, platform_config, *user_config_files],
         realize=True,
         output_file=os.devnull,
     )
