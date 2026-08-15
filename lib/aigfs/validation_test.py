@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from pytest import fixture, raises
 
-from . import validation
+from aigfs import validation
 
 
 @fixture

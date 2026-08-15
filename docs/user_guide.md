@@ -90,7 +90,7 @@ Supported values for `<platform>`:
 | Platform | Description                                               |
 |----------|-----------------------------------------------------------|
 | `ursa`   | Activates the locally installed conda `aigfs` environment |
-| `wcoss2` | Loads the `wflow_wcoss` module from `modulefiles/`        |
+| `wcoss2` | Loads the `workflow-wcoss2` module from `modulefiles/`    |
 
 > **Tip:** This `source` command must be run each time you open a new shell. The platform-specific environment it activates is also the one used by the workflow jobs at runtime.
 
@@ -100,7 +100,7 @@ Supported values for `<platform>`:
 
 ### Default Configuration
 
-`parm/base.yaml` contains the baseline settings for all workflow stages. It is organized into top-level blocks that correspond to the workflow stages and follow the [uwtools YAML](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/index.html) conventions:
+`etc/base.yaml` contains the baseline settings for all workflow stages. It is organized into top-level blocks that correspond to the workflow stages and follow the [uwtools YAML](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/index.html) conventions:
 
 | Block      | Purpose                                                                                       |
 |------------|-----------------------------------------------------------------------------------------------|
@@ -111,7 +111,7 @@ Supported values for `<platform>`:
 | `timevars` | ***Jinja2*** template variables for date/time formatting used throughout the config.          |
 | `user`     | Free-form block for user-required constants, calculated values, etc. Not schema checked.      |
 
-The `platform` block supplies scheduler and account settings. A machine-specific YAML in `parm/machine/` (e.g., `parm/machine/ursa.yaml`) is automatically merged based on the value of `app.platform`.
+The `platform` block supplies scheduler and account settings. A machine-specific YAML in `etc/machine/` (e.g., `etc/machine/ursa.yaml`) is automatically merged based on the value of `app.platform`.
 
 ### User Config YAML
 
@@ -168,7 +168,7 @@ With the environment activated (see [Setting Up the Environment](#setting-up-the
 python ush/generate_experiment.py [additional.yaml ...] user.yaml
 ```
 
-Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `parm/base.yaml` and the appropriate machine YAML (`parm/machine/<platform>.yaml`) before applying your user configs.
+Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `etc/base.yaml` and the appropriate machine YAML (`etc/machine/<platform>.yaml`) before applying your user configs.
 
 The following files are written to `app.rundir`:
 
@@ -216,7 +216,7 @@ The `task_prep` ***Rocoto*** task runs `drivers/aigfs_ics.py` (driver class `AIG
 1. Hard-links GFS GRIB2 files from `user.gfs_data` into the cycle's `prep/data/` subdirectory. The files required are:
    - Two timesteps from the previous two cycles (for temporal interpolation)
    - The analysis and short-range forecast from the current cycle
-2. Runs `wgrib2` commands (defined by `parm/wgrib2_data.yaml`) to extract meteorological variables at the required pressure levels into individual netCDF files.
+2. Runs `wgrib2` commands (defined by `etc/wgrib2.yaml`) to extract meteorological variables at the required pressure levels into individual netCDF files.
 3. Merges the extracted netCDF files into a single initial-conditions file:
 
    ```

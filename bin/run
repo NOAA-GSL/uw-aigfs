@@ -44,7 +44,7 @@ makedocs() {
 }
 
 makeenv() {
-  local condadir env
+  local condadir dir_a dir_d env envdir libdir
   condadir=$(condadir)
   env=$(env)
   bootstrap
@@ -52,11 +52,37 @@ makeenv() {
   PIP_VERBOSE=1
   XDG_CACHE_HOME=$(condadir)/cache
   export PIP_VERBOSE XDG_CACHE_HOME
-  if [[ -d $condadir/envs/$env ]]; then
+  envdir=$condadir/etc/env/$env
+  if [[ -d $envdir ]]; then
     msg Using existing environment $env
   else
     msg Creating environment $env
     conda env create --file $(envyaml) --quiet --yes
+    dir_a=$envdir/etc/conda/activate.d
+    mkdir -pv $dir_a
+    libdir=$(rootdir)/lib
+    cat <<EOF >$dir_a/aigfs.sh
+if [[ -v PYTHONPATH ]]; then
+  export AIGFS_OLD_PYTHONPATH=\$PYTHONPATH
+  export PYTHONPATH=$libdir:\$PYTHONPATH
+else
+  export PYTHONPATH=$libdir
+fi
+export AIGFS_OLD_PATH=\$PATH
+export PATH=$(rootdir)/bin:\$PATH
+EOF
+    dir_d=$envdir/etc/conda/deactivate.d
+    mkdir -pv $dir_d
+    cat <<EOF >$dir_d/aigfs.sh
+if [[ -v AIGFS_OLD_PYTHONPATH ]]; then
+  export PYTHONPATH=\$AIGFS_OLD_PYTHONPATH
+  unset AIGFS_OLD_PYTHONPATH
+else
+  unset PYTHONPATH
+fi
+export PATH=\$AIGFS_OLD_PATH
+unset AIGFS_OLD_PATH
+EOF
     msg Created environment $env
   fi
   if [[ -v DEVMODE ]]; then
@@ -135,7 +161,7 @@ typecheck() {
 unittest() {
   activate $(env)
   msg Running Python unit tests
-  pytest --cov=drivers --cov=ush --cov-report=term-missing --ignore=conda/ .
+  pytest --cov=aigfs --cov-report=term-missing --ignore=conda/ .
   conda deactivate
 }
 
@@ -159,7 +185,7 @@ env() {
 }
 
 envyaml() {
-  echo $(rootdir)/envs/environment.yaml
+  echo $(rootdir)/etc/env/environment.yaml
 }
 
 fromroot() {

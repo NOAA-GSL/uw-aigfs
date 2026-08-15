@@ -24,7 +24,7 @@ prep:
         - module load wgrib2
       executable: uw execute --module {{ app.home }}/drivers/aigfs_ics.py --classname AIGFSICs --task merged_netcdf_files -c {{ app.rundir }}/aigfs.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path prep
     rundir: '{{ app.rundir }}/{{ cycle.strftime("%Y%m%d%H") }}/prep'
-    variable_extraction_yaml: '{{ app.home }}/parm/wgrib2_data.yaml'
+    variable_extraction_yaml: '{{ app.home }}/etc/wgrib2.yaml'
   platform:
     account: '{{ platform.account }}'
     scheduler: '{{ platform.scheduler }}'

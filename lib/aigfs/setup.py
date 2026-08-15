@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import argparse
 import logging
 import os
@@ -12,18 +10,18 @@ from uwtools.api.config import realize as realize_config
 from uwtools.api.logging import use_uwtools_logger
 from uwtools.api.rocoto import realize as realize_rocoto
 
-from .validation import Config, validate
+from aigfs.validation import Config, validate
 
 APP_HOME = Path(__file__).parent.parent.resolve()
 
 
 def generate_configs(
-    update_config: YAMLConfig, aigfs_config: Path, wflow_manager: str = "rocoto"
+    update_config: YAMLConfig, aigfs_config: Path, engine: str = "rocoto"
 ) -> None:
     """
     Generate the AIGFS config and workflow manager artifacts.
     """
-    workflow_config = APP_HOME / "parm" / "wflow" / wflow_manager / "base.yaml"
+    workflow_config = APP_HOME / "etc" / "workflow" / engine / "base.yaml"
     realize_config(
         input_config=workflow_config, output_file=aigfs_config, update_config=update_config
     )
@@ -67,8 +65,8 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     """
     user_config = compose(configs=cast(list[str | Path], user_config_files), output_file=os.devnull)
     machine = user_config["user"]["platform"]
-    default_config = APP_HOME / "parm" / "base.yaml"
-    platform_config = APP_HOME / "parm" / "machines" / f"{machine}.yaml"
+    default_config = APP_HOME / "etc" / "base.yaml"
+    platform_config = APP_HOME / "etc" / "machines" / f"{machine}.yaml"
     # Make sure user_config is last to override any settings from supplementals.
     update_config = compose(
         configs=[default_config, platform_config, *user_config_files],

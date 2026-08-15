@@ -2,4 +2,4 @@
 
 run=$(readlink -f $(dirname ${BASH_SOURCE[0]}))/run
 module use $($run rootdir)/modulefiles
-module load wflow_wcoss
+module load workflow-wcoss2

@@ -63,6 +63,6 @@ ecflow:
                   module load wgrib2
                   export FH=%FHR%
                   export INPUTDIR={{ forecast.aigfs_inference.rundir }}
-                  %AIGFS_APP%/scripts/run_post.sh
+                  %AIGFS_APP%/scripts/post
               vars:
                 FHR: "{{ ec.fhr }}"

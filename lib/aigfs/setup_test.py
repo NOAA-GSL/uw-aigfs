@@ -4,8 +4,8 @@ from unittest.mock import Mock, patch
 
 from pytest import raises
 
-from . import setup
-from .validation import Config, User
+from aigfs import setup
+from aigfs.validation import Config, User
 
 
 def test_ush_setup_generate_configs(tmp_path):
@@ -18,7 +18,7 @@ def test_ush_setup_generate_configs(tmp_path):
         realize_rocoto.return_value = True
         setup.generate_configs(update_config=update_config, aigfs_config=path)
     realize_config.assert_called_once_with(
-        input_config=setup.APP_HOME / "parm" / "wflow" / "rocoto" / "base.yaml",
+        input_config=setup.APP_HOME / "etc" / "workflow" / "rocoto" / "base.yaml",
         output_file=path,
         update_config=update_config,
     )
@@ -74,10 +74,10 @@ def test_ush_setup_prepare_configs(tmp_path):
     # Second call: Compose with default, platform, and user configs.
     assert compose.call_count == 2
     second_call = compose.call_args_list[1]
-    parmdir = setup.APP_HOME / "parm"
+    etcdir = setup.APP_HOME / "etc"
     assert second_call[1]["configs"] == [
-        parmdir / "base.yaml",
-        parmdir / "machines" / "testmachine.yaml",
+        etcdir / "base.yaml",
+        etcdir / "machines" / "testmachine.yaml",
         *user_config_files,
     ]
     assert second_call[1]["realize"] is True
