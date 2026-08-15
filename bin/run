@@ -50,7 +50,7 @@ makeenv() {
   bootstrap
   activate base
   PIP_VERBOSE=1
-  XDG_CACHE_HOME=$(condadir)/cache
+  XDG_CACHE_HOME=$condadir/cache
   export PIP_VERBOSE XDG_CACHE_HOME
   envdir=$condadir/etc/env/$env
   if [[ -d $envdir ]]; then
@@ -59,7 +59,8 @@ makeenv() {
     msg Creating environment $env
     conda env create --file $(envyaml) --quiet --yes
     dir_a=$envdir/etc/conda/activate.d
-    mkdir -pv $dir_a
+    dir_d=$envdir/etc/conda/deactivate.d
+    mkdir -pv $dir_a $dir_d
     libdir=$(rootdir)/lib
     cat <<EOF >$dir_a/aigfs.sh
 if [[ -v PYTHONPATH ]]; then
@@ -71,8 +72,6 @@ fi
 export AIGFS_OLD_PATH=\$PATH
 export PATH=$(rootdir)/bin:\$PATH
 EOF
-    dir_d=$envdir/etc/conda/deactivate.d
-    mkdir -pv $dir_d
     cat <<EOF >$dir_d/aigfs.sh
 if [[ -v AIGFS_OLD_PYTHONPATH ]]; then
   export PYTHONPATH=\$AIGFS_OLD_PYTHONPATH
