@@ -170,8 +170,8 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 │   ├── env                        # Conda environment definitions
 │   │   ├── devpkgs.yaml           # Developer packages
 │   │   └── environment.yaml       # Core AIGFS environment definition
-│   ├── machine                    # Per-platform YAML overrides
 │   ├── modulefiles                # System modules
+│   ├── platform                   # Per-platform YAML overrides
 │   ├── wgrib2.yaml                # Variable, and levels to extract from GFS GRIB2
 │   └── workflow                   # Workflow files
 │       ├── ecflow                 # ecFlow workflow support
@@ -197,7 +197,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 
 **Drivers** (`drivers/`) implement [uwtools](https://uwtools.readthedocs.io/en/main/) driver classes using the [iotaa](https://github.com/maddenp/iotaa) task framework. Each driver exposes tasks (Python methods decorated with `@task`, `@collection`, or `@external`) that declare their inputs and outputs as `Asset` objects. The `uw execute` command (called from ***Rocoto*** job scripts) resolves and runs these tasks.
 
-**Configuration** follows the ***uwtools*** YAML model. `etc/base.yaml` is the baseline; it is merged with the machine YAML and any user-provided YAMLs by `ush/generate_experiment.py` using `uwtools.api.config.compose`. The resulting `aigfs.yaml` is the single source of truth at runtime.
+**Configuration** follows the ***uwtools*** YAML model. `etc/base.yaml` is the baseline; it is merged with the platform YAML and any user-provided YAMLs by `ush/generate_experiment.py` using `uwtools.api.config.compose`. The resulting `aigfs.yaml` is the single source of truth at runtime.
 
 **Workflow** is managed by [Rocoto](https://github.com/christopherwharrop/rocoto). The `etc/workflow/rocoto/base.yaml` template is realized by ***uwtools*** to produce `rocoto.xml`. Task dependencies (prep → forecast → post) are expressed in that template.
 

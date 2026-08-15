@@ -111,7 +111,7 @@ Supported values for `<platform>`:
 | `timevars` | ***Jinja2*** template variables for date/time formatting used throughout the config.          |
 | `user`     | Free-form block for user-required constants, calculated values, etc. Not schema checked.      |
 
-The `platform` block supplies scheduler and account settings. A machine-specific YAML in `etc/machine/` (e.g., `etc/machine/ursa.yaml`) is automatically merged based on the value of `app.platform`.
+The `platform` block supplies scheduler and account settings. A platform-specific YAML in `etc/platform/` (e.g., `etc/platform/ursa.yaml`) is automatically merged based on the value of `app.platform`.
 
 ### User Config YAML
 
@@ -168,7 +168,7 @@ With the environment activated (see [Setting Up the Environment](#setting-up-the
 python ush/generate_experiment.py [additional.yaml ...] user.yaml
 ```
 
-Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `etc/base.yaml` and the appropriate machine YAML (`etc/machine/<platform>.yaml`) before applying your user configs.
+Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `etc/base.yaml` and the appropriate platform YAML (`etc/platform/<platform>.yaml`) before applying your user configs.
 
 The following files are written to `app.rundir`:
 

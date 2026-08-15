@@ -64,11 +64,11 @@ def test_ush_setup_prepare_configs(tmp_path):
     user_config_files = [tmp_path / "a.yaml"]
     mock_update_config = Mock()
     with patch.object(setup, "compose") as compose:
-        compose.side_effect = [{"user": {"platform": "testmachine"}}, mock_update_config]
+        compose.side_effect = [{"app": {"platform": "test"}}, mock_update_config]
         result = setup.prepare_configs(user_config_files)
     assert result is mock_update_config
     mock_update_config.update_from.assert_called_once_with(
-        {"user": {"app_home": str(setup.APP_HOME)}}
+        {"user": {"home": str(setup.APP_HOME)}}
     )
     # First call: Compose user configs.
     # Second call: Compose with default, platform, and user configs.
@@ -77,7 +77,7 @@ def test_ush_setup_prepare_configs(tmp_path):
     etcdir = setup.APP_HOME / "etc"
     assert second_call[1]["configs"] == [
         etcdir / "base.yaml",
-        etcdir / "machines" / "testmachine.yaml",
+        etcdir / "platform" / "test.yaml",
         *user_config_files,
     ]
     assert second_call[1]["realize"] is True
