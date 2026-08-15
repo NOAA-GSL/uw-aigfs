@@ -11,7 +11,7 @@ workflow:
   entities:
     AIGFS_APP: "{{ app.home }}"
     EXPERIMENT_CONFIG: "{{app.rundir}}/aigfs.yaml"
-    LOGDIR: "{{app.rundir}}/log"
+    LOGDIR: "{{app.rundir}}"
     PLATFORM: "{{ app.platform }}"
   tasks:
     task_prep:
