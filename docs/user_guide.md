@@ -209,7 +209,7 @@ The ***uwtools*** package provides a tool to help iterate through the entire wor
 
 ### Prep: Initial Conditions Generation
 
-The `task_prep` ***Rocoto*** task runs `lib/aigfs/drivers/ics.py` (driver class `AIGFSICs`). It:
+The `task_prep` ***Rocoto*** task runs `aigfs.drivers.ics` (driver class `AIGFSICs`). It:
 
 1. Hard-links GFS GRIB2 files from `user.gfs_data` into the cycle's `prep/data/` subdirectory. The files required are:
    - Two timesteps from the previous two cycles (for temporal interpolation)

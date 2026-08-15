@@ -27,7 +27,7 @@ ecflow:
               body: |
                 source %AIGFS_APP%/bin/activate-%PLATFORM%
                 uw execute \
-                  --module %AIGFS_APP%/drivers/ics.py \
+                  --module aigfs.drivers.ics \
                   --classname AIGFSICs \
                   --task run \
                   --config %EXPERIMENT_CONFIG% \
