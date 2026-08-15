@@ -7,11 +7,11 @@ workflow:
         group: forecast
       spec: "{{ app.first_cycle.strftime('%Y%m%d%H%M') }} {{ app.last_cycle.strftime('%Y%m%d%H%M') }} {{ app.cycle_freq}}"
   log:
-    value: "{{ app.rundir }}/workflow.log"
+    value: "&LOGDIR;/workflow.log"
   entities:
     AIGFS_APP: "{{ app.home }}"
     EXPERIMENT_CONFIG: "{{ app.rundir}}/aigfs.yaml"
-    LOGDIR: "{{ app.rundir}}"
+    LOGDIR: "{{ app.rundir}}/logs"
     PLATFORM: "{{ app.platform }}"
   tasks:
     task_prep:
