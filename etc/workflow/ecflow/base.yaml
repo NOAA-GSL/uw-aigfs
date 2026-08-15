@@ -3,9 +3,9 @@ ecflow:
     scheduler: "{{ platform.scheduler }}"
     vars:
       AIGFS_APP: "{{ app.home }}"
-      ECF_INCLUDE: "{{ user.aigfs_app }}/include"
+      ECF_INCLUDE: "{{ app.home }}/include"
       EXPERIMENT_CONFIG: "{{app.rundir}}/aigfs.yaml"
-      PLATFORM: "{{ user.platform }}"
+      PLATFORM: "{{ app.platform }}"
     suite_retro:
       family_datetimes:
         repeat_datetime:

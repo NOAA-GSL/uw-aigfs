@@ -131,8 +131,6 @@ user:
   gfs_data: /path/to/gfs/data
 ```
 
-> The `app.rundir` and `user.gfs_data` paths must be set in your user config — they have no default values.
-
 **Adjusting forecast length and frequency:**
 
 ```yaml
