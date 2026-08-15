@@ -27,7 +27,7 @@ ecflow:
               body: |
                 source %AIGFS_APP%/bin/activate-%PLATFORM%
                 uw execute \
-                  --module %AIGFS_APP%/drivers/aigfs_ics.py \
+                  --module %AIGFS_APP%/drivers/ics.py \
                   --classname AIGFSICs \
                   --task run \
                   --config %EXPERIMENT_CONFIG% \
@@ -43,7 +43,7 @@ ecflow:
               body: |
                 source %AIGFS_APP%/bin/activate-%PLATFORM%
                 uw execute \
-                  --module %AIGFS_APP%/drivers/aigfs_inference.py \
+                  --module %AIGFS_APP%/drivers/inference.py \
                   --classname AIGFSInference \
                   --task run \
                   --config %EXPERIMENT_CONFIG% \
