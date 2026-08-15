@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 from pytest import raises
 
 from aigfs import setup
-from aigfs.validation import Config, User
+from aigfs.validation import App, Config
 
 
 def test_ush_setup_generate_configs(tmp_path):
@@ -67,7 +67,7 @@ def test_ush_setup_prepare_configs(tmp_path):
         compose.side_effect = [{"app": {"platform": "test"}}, mock_update_config]
         result = setup.prepare_configs(user_config_files)
     assert result is mock_update_config
-    mock_update_config.update_from.assert_called_once_with({"user": {"home": str(setup.APP_HOME)}})
+    mock_update_config.update_from.assert_called_once_with({"app": {"home": str(setup.APP_HOME)}})
     # First call: Compose user configs.
     # Second call: Compose with default, platform, and user configs.
     assert compose.call_count == 2
@@ -84,7 +84,7 @@ def test_ush_setup_prepare_configs(tmp_path):
 def test_ush_setup_set_up_rundir(logcap, tmp_path, utc):
     rundir = tmp_path / "myexp"
     validated = Config(
-        user=User(
+        app=App(
             cycle_freq=timedelta(hours=6),
             rundir=rundir,
             first_cycle=utc(2025, 10, 1, 18),

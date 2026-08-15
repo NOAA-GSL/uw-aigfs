@@ -71,7 +71,7 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
         realize=True,
         output_file=os.devnull,
     )
-    update_config.update_from({"user": {"home": str(APP_HOME)}})
+    update_config.update_from({"app": {"home": str(APP_HOME)}})
     return cast(YAMLConfig, update_config)
 
 
@@ -79,7 +79,7 @@ def set_up_rundir(validated: Config) -> tuple[Path, Path]:
     """
     Create the run directory and write aigfs.yaml.
     """
-    rundir = validated.user.rundir
+    rundir = validated.app.rundir
     logging.info("AIGFS will be set up here: %s", rundir)
     rundir.mkdir(parents=True, exist_ok=True)
     aigfs_config = rundir / "aigfs.yaml"

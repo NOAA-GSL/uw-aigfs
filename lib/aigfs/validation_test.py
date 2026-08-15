@@ -6,6 +6,11 @@ from aigfs import validation
 
 
 @fixture
+def app(kwargs):
+    return validation.App(**kwargs)
+
+
+@fixture
 def kwargs(tmp_path, utc):
     return dict(
         cycle_freq=timedelta(hours=1),
@@ -16,24 +21,19 @@ def kwargs(tmp_path, utc):
     )
 
 
-@fixture
-def user(kwargs):
-    return validation.User(**kwargs)
+def test_ush_validation_Config(app):
+    assert validation.Config(app=app)
 
 
-def test_ush_validation_Config(user):
-    assert validation.Config(user=user)
+def test_ush_validation_App(kwargs):
+    assert validation.App(**kwargs)
 
 
-def test_ush_validation_User(kwargs):
-    assert validation.User(**kwargs)
-
-
-def test_ush_validation_User_fail(kwargs, utc):
+def test_ush_validation_App_fail(kwargs, utc):
     kwargs["last_cycle"] = utc(1970, 1, 1, 0)
     with raises(ValueError, match="last_cycle cannot precede first_cycle"):
-        validation.User(**kwargs)
+        validation.App(**kwargs)
 
 
-def test_ush_validation_validate(user):
-    assert validation.validate(config=dict(user=user))
+def test_ush_validation_validate(app):
+    assert validation.validate(config=dict(app=app))
