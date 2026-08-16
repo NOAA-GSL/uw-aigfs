@@ -100,4 +100,7 @@ workflow:
         metataskdep:
           attrs:
             metatask: post
+      join:
+        cyclestr:
+          value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
       walltime: 00:00:01
