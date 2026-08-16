@@ -16,8 +16,6 @@ workflow:
   tasks:
     task_prep:
       account: "{{ platform.account }}"
-      attrs:
-        maxtries: 3
       command:
         cyclestr:
           value: source &AIGFS_APP;/bin/activate-&PLATFORM; && uw execute
