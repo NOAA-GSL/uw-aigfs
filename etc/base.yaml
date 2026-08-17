@@ -3,8 +3,8 @@ app:
   first_cycle: !datetime 2025-10-21T00
   home: YOUR AIGFS GIT CLONE
   last_cycle: !datetime 2025-10-21T00
-  pretrained_model_path: YOUR PRETRAINED MODEL DIR
-  rundir: YOUR EXPERIMENT DIR
+  pretrained_model_path: YOUR PRETRAINED MODEL DIRECTORY
+  rundir: YOUR RUN DIRECTORY
 timevars:
   cyc: '{{ cycle.strftime("%H") }}'
   fff: '{{ "%03d" % (leadtime.total_seconds() // 3600) }}'

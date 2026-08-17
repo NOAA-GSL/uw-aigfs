@@ -4,7 +4,7 @@ ecflow:
     vars:
       AIGFS_APP: "{{ app.home }}"
       ECF_INCLUDE: "{{ app.home }}/include"
-      EXPERIMENT_CONFIG: "{{ app.rundir}}/aigfs.yaml"
+      CONFIG: "{{ app.rundir}}/aigfs.yaml"
       PLATFORM: "{{ app.platform }}"
     suite_retro:
       family_datetimes:
@@ -30,7 +30,7 @@ ecflow:
                   --module aigfs.drivers.ics \
                   --classname AIGFSICs \
                   --task run \
-                  --config %EXPERIMENT_CONFIG% \
+                  --config %CONFIG% \
                   --cycle $ISOCYCLE \
                   --key-path prep
           task_jaigfs_forecast:
@@ -46,7 +46,7 @@ ecflow:
                   --module aigfs.drivers.inference \
                   --classname AIGFSInference \
                   --task run \
-                  --config %EXPERIMENT_CONFIG% \
+                  --config %CONFIG% \
                   --cycle $ISOCYCLE \
                   --key-path forecast
           family_post:

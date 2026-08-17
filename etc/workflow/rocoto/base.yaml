@@ -10,7 +10,7 @@ workflow:
     value: "&LOGDIR;/workflow.log"
   entities:
     AIGFS_APP: "{{ app.home }}"
-    EXPERIMENT_CONFIG: "{{ app.rundir}}/aigfs.yaml"
+    CONFIG: "{{ app.rundir}}/aigfs.yaml"
     LOGDIR: "{{ app.rundir}}/logs"
     PLATFORM: "{{ app.platform }}"
   tasks:
@@ -22,7 +22,7 @@ workflow:
             --module aigfs.drivers.ics
             --classname AIGFSICs
             --task run
-            --config &EXPERIMENT_CONFIG;
+            --config &CONFIG;
             --cycle @Y-@m-@dT@H
             --key-path prep
       join:
@@ -41,7 +41,7 @@ workflow:
             --module aigfs.drivers.inference
             --classname AIGFSInference
             --task run
-            --config &EXPERIMENT_CONFIG;
+            --config &CONFIG;
             --cycle @Y-@m-@dT@H
             --key-path forecast
       join:
@@ -68,7 +68,7 @@ workflow:
               --module aigfs.drivers.post
               --classname AIGFSPost
               --task run
-              --config &EXPERIMENT_CONFIG;
+              --config &CONFIG;
               --cycle @Y-@m-@dT@H
               --key-path post
               --leadtime #fhr#"
