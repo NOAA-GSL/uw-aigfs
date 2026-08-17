@@ -2,7 +2,7 @@
 
 [← Back to Index](index.md)
 
-Welcome to the ***uw-aigfs*** User Guide. This guide describes how to set up your environment, configure an experiment, and run the AIGFS workflow using the ***Rocoto*** workflow manager.
+Welcome to the ***uw-aigfs*** User Guide. This guide describes how to install, configure, and execute the AIGFS workflow using the ***Rocoto*** workflow manager.
 
 > **⚠️ Work in Progress**
 > This project is currently under active development and may undergo significant breaking changes without notice.
@@ -12,11 +12,11 @@ Welcome to the ***uw-aigfs*** User Guide. This guide describes how to set up you
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
 - [Getting Started](#getting-started)
-- [Setting Up the Environment](#setting-up-the-environment)
-- [Configuring an Experiment](#configuring-an-experiment)
+- [Installing](#installing)
+- [Configuring](#configuring)
   - [Default Configuration](#default-configuration)
   - [User Config YAML](#user-config-yaml)
-- [Generating the Experiment](#generating-the-experiment)
+  - [Set Up Final Config](#set-up-final-config)
 - [Running the Workflow](#running-the-workflow)
 - [Workflow Stages](#workflow-stages)
   - [Prep: Initial Conditions Generation](#prep-initial-conditions-generation)
@@ -63,7 +63,7 @@ cd uw-aigfs
 
 ---
 
-## Setting Up the Environment
+## Installing
 
 ***uw-aigfs*** installs and manages its own conda installation in the `conda/` subdirectory of the repository root. To build the environment, run:
 
@@ -96,7 +96,7 @@ Supported values for `<platform>`:
 
 ---
 
-## Configuring an Experiment
+## Configuring
 
 ### Default Configuration
 
@@ -124,7 +124,7 @@ app:
   first_cycle: !datetime 2025-10-21T00
   last_cycle: !datetime 2025-10-21T00
   platform: ursa
-  rundir: /path/to/your/experiment/directory
+  rundir: /path/to/your/run/directory
 platform:
   account: your_hpc_account
 user:
@@ -158,12 +158,12 @@ fix/
 
 ---
 
-## Generating the Experiment
+### Set Up Final Config
 
-With the environment activated (see [Setting Up the Environment](#setting-up-the-environment)), run the experiment generator from the repository root:
+With the environment activated (see [Installing](#installing)), and in the repository root, set up the final config:
 
 ```bash
-python ush/generate_experiment.py [additional.yaml ...] user.yaml
+setup [additional.yaml ...] user.yaml
 ```
 
 Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `etc/base.yaml` and the appropriate platform YAML (`etc/platform/<platform>.yaml`) before applying your user configs.
@@ -172,10 +172,10 @@ The following files are written to `app.rundir`:
 
 | File         | Contents                                       |
 |--------------|------------------------------------------------|
-| `aigfs.yaml` | Fully realized experiment configuration        |
+| `aigfs.yaml` | Fully realized configuration                   |
 | `rocoto.xml` | ***Rocoto*** workflow definition, ready to run |
 
-If the experiment directory does not exist, it will be created. The generator validates the `user` section of the config with [Pydantic](https://docs.pydantic.dev/) and exits with an error if required fields are missing or invalid.
+If the run directory does not exist, it will be created. The generator validates the `user` section of the config with [Pydantic](https://docs.pydantic.dev/) and exits with an error if required fields are missing or invalid.
 
 ---
 
@@ -187,7 +187,7 @@ On RDHPCS platforms, ***Rocoto*** is available via system module. Run the follow
 module load rocoto
 ```
 
-From your experiment directory, run:
+From your run directory, run:
 
 ```bash
 rocotorun -w rocoto.xml -d rocoto.db
