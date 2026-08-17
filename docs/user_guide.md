@@ -104,7 +104,7 @@ Supported values for `<platform>`:
 
 | Block      | Purpose                                                                                       |
 |------------|-----------------------------------------------------------------------------------------------|
-| `app`      | Application-required values: cycle dates, platform, experiment directory, etc.                |
+| `app`      | Application-required values.                                                                  |
 | `forecast` | ***GraphCast*** model inference: model weights, normalization stats, and forecast parameters. |
 | `post`     | Post-processing: GRIB2 index generation and file delivery.                                    |
 | `prep`     | ICS generation: GFS file staging and ***wgrib2*** variable extraction.                        |
