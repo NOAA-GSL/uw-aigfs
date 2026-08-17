@@ -22,5 +22,4 @@ module load libjpeg-turbo/2.1.0
 # Module list confirmed against run.ver (intel_ver, wgrib2_ver, libjpeg_turbo_ver)
 set venv_root /lfs/h1/ops/prod/packages/aigfs.v1.0.4/venv
 prepend-path PATH        ${venv_root}/bin
-prepend-path PYTHONPATH  ${venv_root}/aigfs
 setenv       VIRTUAL_ENV ${venv_root}
