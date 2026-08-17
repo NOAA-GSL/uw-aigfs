@@ -2,7 +2,7 @@
 
 [← Back to Index](index.md)
 
-Welcome to the ***uw-aigfs*** User Guide. This guide describes how to install, configure, and execute the AIGFS workflow using the ***Rocoto*** workflow manager.
+Welcome to the ***uw-aigfs*** User Guide. This guide describes how to install, configure, and run the AIGFS workflow using the ***Rocoto*** workflow manager.
 
 > **⚠️ Work in Progress**
 > This project is currently under active development and may undergo significant breaking changes without notice.
