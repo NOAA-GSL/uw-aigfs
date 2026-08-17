@@ -9,7 +9,7 @@ workflow:
   log:
     value: "&LOGDIR;/workflow.log"
   entities:
-    AIGFS_APP: "{{ app.home }}"
+    APPDIR: "{{ app.home }}"
     CONFIG: "{{ app.rundir}}/aigfs.yaml"
     LOGDIR: "{{ app.rundir}}/logs"
     PLATFORM: "{{ app.platform }}"
@@ -18,7 +18,7 @@ workflow:
       account: "{{ platform.account }}"
       command:
         cyclestr:
-          value: source &AIGFS_APP;/bin/activate-&PLATFORM; && uw execute
+          value: source &APPDIR;/bin/activate-&PLATFORM; && uw execute
             --module aigfs.drivers.ics
             --classname AIGFSICs
             --task run
@@ -37,7 +37,7 @@ workflow:
         maxtries: 3
       command:
         cyclestr:
-          value: source &AIGFS_APP;/bin/activate-&PLATFORM; && uw execute
+          value: source &APPDIR;/bin/activate-&PLATFORM; && uw execute
             --module aigfs.drivers.inference
             --classname AIGFSInference
             --task run
@@ -63,7 +63,7 @@ workflow:
           maxtries: 3
         command:
           cyclestr:
-            value: "source &AIGFS_APP;/bin/activate-&PLATFORM; &&
+            value: "source &APPDIR;/bin/activate-&PLATFORM; &&
               uw execute
               --module aigfs.drivers.post
               --classname AIGFSPost

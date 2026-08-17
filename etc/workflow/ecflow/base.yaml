@@ -2,7 +2,7 @@ ecflow:
   suitedef:
     scheduler: "{{ platform.scheduler }}"
     vars:
-      AIGFS_APP: "{{ app.home }}"
+      APPDIR: "{{ app.home }}"
       ECF_INCLUDE: "{{ app.home }}/include"
       CONFIG: "{{ app.rundir}}/aigfs.yaml"
       PLATFORM: "{{ app.platform }}"
@@ -25,7 +25,7 @@ ecflow:
               manual: "Prepares AIGFS ICS from GFS."
               batchargs: !dict "{{ prep.aigfs_ics.execution.batchargs }}"
               body: |
-                source %AIGFS_APP%/bin/activate-%PLATFORM%
+                source %APPDIR%/bin/activate-%PLATFORM%
                 uw execute \
                   --module aigfs.drivers.ics \
                   --classname AIGFSICs \
@@ -41,7 +41,7 @@ ecflow:
               manual: "Runs AIGFS forecast."
               batchargs: !dict "{{ forecast.aigfs_inference.execution.batchargs }}"
               body: |
-                source %AIGFS_APP%/bin/activate-%PLATFORM%
+                source %APPDIR%/bin/activate-%PLATFORM%
                 uw execute \
                   --module aigfs.drivers.inference \
                   --classname AIGFSInference \
@@ -59,10 +59,10 @@ ecflow:
                 manual: "Runs AIGFS post for {{ ec.fhr }}."
                 batchargs: !dict "{{ post.aigfs_post.execution.batchargs }}"
                 body: |
-                  source %AIGFS_APP%/bin/activate-%PLATFORM%
+                  source %APPDIR%/bin/activate-%PLATFORM%
                   module load wgrib2
                   export FH=%FHR%
                   export INPUTDIR={{ forecast.aigfs_inference.rundir }}
-                  %AIGFS_APP%/scripts/post
+                  %APPDIR%/scripts/post
               vars:
                 FHR: "{{ ec.fhr }}"
