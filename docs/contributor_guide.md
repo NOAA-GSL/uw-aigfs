@@ -201,7 +201,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 
 **Configuration** follows the ***uwtools*** YAML model. `etc/base.yaml` is the baseline; it is merged with the platform YAML and any user-provided YAMLs by `bin/setup` using `uwtools.api.config.compose`. The resulting `aigfs.yaml` is the single source of truth at runtime.
 
-**Workflow** is managed by [Rocoto](https://github.com/christopherwharrop/rocoto). The `etc/workflow/rocoto/base.yaml` template is realized by ***uwtools*** to produce `rocoto.xml`. Task dependencies (prep → forecast → post) are expressed in that template.
+**Workflow** is managed by [Rocoto](https://github.com/NOAA-GSL/rocoto). The `etc/workflow/rocoto/base.yaml` template is realized by ***uwtools*** to produce `rocoto.xml`. Task dependencies (prep → forecast → post) are expressed in that template.
 
 When adding a new workflow stage, you will typically need to:
 
