@@ -1,7 +1,3 @@
-"""
-A driver for AIGFS inference.
-"""
-
 import dataclasses
 import logging
 from collections.abc import Callable

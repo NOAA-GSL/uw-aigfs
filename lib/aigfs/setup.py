@@ -1,3 +1,7 @@
+"""
+Support for setting up AIGSF runtime assets.
+"""
+
 import argparse
 import logging
 import os

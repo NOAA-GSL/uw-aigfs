@@ -1,3 +1,7 @@
+"""
+Support for validating AIGFS configurations.
+"""
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta  # noqa: TC003
