@@ -1,5 +1,5 @@
 """
-Support for setting up AIGSF runtime assets.
+Support for setting up AIGFS runtime assets.
 """
 
 import argparse
