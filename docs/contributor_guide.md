@@ -181,7 +181,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 │       ├── conftest.py            # Unit-tests fixtures
 │       ├── drivers                # AIGFS component drivers
 │       │   ├── *.jsonschema       # Config schema
-│       │   ├── *.py               # AIFS component driver
+│       │   ├── *.py               # AIGFS component driver
 │       │   ├── *_test.py          # Unit tests
 │       │   └── utils              # Shared driver utilities
 │       │       ├── grib2writer.py # GRIB2 writing support
