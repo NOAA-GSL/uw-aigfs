@@ -7,7 +7,7 @@ forecast:
     execution:
       envcmds:
         - module load workflow-wcoss2
-    model_weights_path: '{{ app.modeldir }}/params/GCGFSv2_finetuned_GDAS-ERA5_0p25_13pl_mesh2to6_tp_output_only.npz'
+    model_weights_path: '{{ app.modeldir }}/params/weights.npz'
 platform:
   scheduler: pbs
 post:

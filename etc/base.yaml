@@ -47,7 +47,7 @@ forecast:
     ics_path: '{{ prep.aigfs_ics.rundir }}/aigfs.t{{ timevars.cyc }}z.ic.nc'
     json_path: '{{ app.modeldir }}/tables'
     mean_path: '{{ app.modeldir }}/stats/mean_by_level.nc'
-    model_weights_path: '{{ app.modeldir }}/params/GCGFSv2_finetuned - GDAS - ERA5 - resolution 0.25 - pressure levels 13 - mesh 2to6 - precipitation output only.npz'
+    model_weights_path: '{{ app.modeldir }}/params/weights.npz'
     rundir: '{{ app.rundir }}/{{ cycle.strftime("%Y%m%d%H") }}/forecast'
     stddev_path: '{{ app.modeldir }}/stats/stddev_by_level.nc'
   platform:
