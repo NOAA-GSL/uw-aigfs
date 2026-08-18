@@ -186,7 +186,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 │       │   └── utils              # Shared driver utilities
 │       │       ├── grib2writer.py # GRIB2 writing support
 │       │       └── tasks.py       # Shared driver tasks
-│       ├── setup.py               # Logic for preparing an AIGFS assets
+│       ├── setup.py               # Logic for preparing AIGFS assets
 │       └── validation.py          # Config validation
 ├── Makefile                       # Provides automation targets
 ├── pyproject.toml                 # Code-quality tool configuration
