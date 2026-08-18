@@ -13,6 +13,10 @@ from uwtools.api.utils import atomic, run_shell_cmd
 
 
 class AIGFSPost(DriverCycleLeadtimeBased):
+    """
+    A driver for post-processing AIGFS forecasts.
+    """
+
     # Public tasks
 
     @collection

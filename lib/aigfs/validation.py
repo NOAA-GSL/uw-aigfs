@@ -7,6 +7,10 @@ from pydantic import BaseModel, model_validator
 
 
 class App(BaseModel):
+    """
+    Model for the `app:` block.
+    """
+
     cycle_freq: timedelta
     first_cycle: datetime
     last_cycle: datetime
@@ -22,8 +26,15 @@ class App(BaseModel):
 
 
 class Config(BaseModel):
+    """
+    Model for the overall AIGFS config.
+    """
+
     app: App
 
 
 def validate(config: dict[str, object]) -> Config:
+    """
+    Validate a config.
+    """
     return Config.model_validate(config)
