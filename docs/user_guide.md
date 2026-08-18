@@ -71,7 +71,7 @@ cd uw-aigfs
 make env
 ```
 
-This installs [Miniforge](https://github.com/conda-forge/miniforge) and creates the `aigfs` conda environment defined by `environment.yml`.
+This installs [Miniforge](https://github.com/conda-forge/miniforge) and creates the `aigfs` conda environment defined by `environment.yaml`.
 
 For an environment that also includes developer tools (linters, test frameworks, etc.), use instead:
 
