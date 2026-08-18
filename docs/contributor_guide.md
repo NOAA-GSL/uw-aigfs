@@ -177,7 +177,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 │       ├── ecflow                 # ecFlow workflow support
 │       └── rocoto                 # Rocoto workflow support
 ├── lib                            # Python library code
-│   └── aigfs                      # The AIGFS python packag
+│   └── aigfs                      # The AIGFS python package
 │       ├── conftest.py            # Unit-tests fixtures
 │       ├── drivers                # AIGFS component drivers
 │       │   ├── *.jsonschema       # Config schema
