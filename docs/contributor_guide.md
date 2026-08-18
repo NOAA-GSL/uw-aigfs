@@ -101,7 +101,9 @@ make lint
 
 ### Unit Tests
 
-Unit tests live in the `tests/` directory. Run them with coverage reporting:
+### Unit Tests
+
+Unit tests are colocated with the modules they test. Run them with coverage reporting:
 
 ```bash
 make unittest
