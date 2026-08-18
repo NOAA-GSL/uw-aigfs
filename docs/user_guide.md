@@ -144,7 +144,7 @@ forecast:
 
 ```yaml
 app:
-  modeldir: /path/to/your/graphcast/weights
+  modeldir: /path/to/your/model/weights
 ```
 
 The `modeldir` directory is expected to contain:

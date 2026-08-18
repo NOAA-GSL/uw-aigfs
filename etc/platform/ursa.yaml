@@ -1,5 +1,5 @@
 app:
-  modeldir: /home/role.rtaigfs/weights
+  modeldir: /home/role.rtaigfs/model
 platform:
   scheduler: slurm
 prep:
