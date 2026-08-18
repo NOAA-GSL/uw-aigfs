@@ -38,6 +38,7 @@ makedocs() {
   outdir=$rootdir/docs/api
   activate $(env)
   msg Building documentation in $outdir
+  export PYTHONWARNINGS="ignore:Error parsing type annotation"
   pdoc --output-dir $outdir $rootdir/lib/aigfs
   conda deactivate
   msg Built documentation in $outdir
