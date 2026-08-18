@@ -1,6 +1,6 @@
 app:
   home: /lfs/h2/emc/noscrub/{{ 'USER' | env }}/aigfs
-  pretrained_model_path: '{{ user.aigfs_app }}/fix'
+  pretrained_model_path: '{{ app.home }}/fix'
   rundir: /lfs/h2/emc/stmp/{{ 'USER' | env }}/aigfs/run
 forecast:
   aigfs_inference:
