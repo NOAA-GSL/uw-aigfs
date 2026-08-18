@@ -39,7 +39,7 @@ After the initial installation, activate the environment in a fresh shell with:
 source bin/activate-<platform>
 ```
 
-where `<platform>` is `ursa` or `wcoss2` (see the [User Guide](user_guide.md#setting-up-the-environment) for details).
+where `<platform>` is `ursa` or `wcoss2` (see the [User Guide](user_guide.md#installing) for details).
 
 > **Note on disk space:** The conda installation requires several gigabytes of disk space. Clone `uw-aigfs` to a location with a sufficiently large disk quota — not your HPC home directory.
 
