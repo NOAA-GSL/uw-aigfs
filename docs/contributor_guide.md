@@ -205,7 +205,7 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 
 When adding a new workflow stage, you will typically need to:
 
-1. Add a new driver class in `drivers/`.
+1. Add a new driver class in `lib/aigfs/drivers/`.
 2. Add corresponding configuration blocks in `etc/base.yaml`.
 3. Add a new task or metatask entry in `etc/workflow/rocoto/base.yaml`.
 4. Add unit tests alongside the modules they test.
