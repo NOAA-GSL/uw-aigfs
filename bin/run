@@ -32,6 +32,15 @@ bootstrap() {
   fi
 }
 
+deploy() {
+  local d playbook
+  test $# -eq 0 && echo "usage: $(basename $0) ${FUNCNAME[0]} <playbook>" && exit 1
+  playbook=$1
+  d=$(rootdir)/etc/ansible
+  export ANSIBLE_CONFIG=$d/ansible.cfg
+  ansible-playbook $d/playbooks/$playbook.yaml
+}
+
 makedocs() {
   local outdir rootdir
   rootdir=$(rootdir)
