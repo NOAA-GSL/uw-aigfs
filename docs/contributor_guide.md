@@ -168,7 +168,8 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 ├── conda                          # Managed conda installation (created by make [dev]env)
 ├── docs                           # User and contributor documentation
 ├── etc                            # Configuration files, etc.
-│   ├── base.yaml                  # AIGFS app configuration defaults
+│   ├── ansible                    # Ansible deployment assets
+│   ├── app                        # AIGFS configuration files
 │   ├── env                        # Conda environment definitions
 │   │   ├── devpkgs.yaml           # Developer packages
 │   │   └── environment.yaml       # Core AIGFS environment definition
@@ -199,14 +200,14 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 
 **Drivers** (`drivers/`) implement [uwtools](https://uwtools.readthedocs.io/en/main/) driver classes using the [iotaa](https://github.com/maddenp/iotaa) task framework. Each driver exposes tasks (Python methods decorated with `@task`, `@collection`, or `@external`) that declare their inputs and outputs as `Asset` objects. The `uw execute` command (called from ***Rocoto*** job scripts) resolves and runs these tasks.
 
-**Configuration** follows the ***uwtools*** YAML model. `etc/base.yaml` is the baseline; it is merged with the platform YAML and any user-provided YAMLs by `bin/setup` using `uwtools.api.config.compose`. The resulting `aigfs.yaml` is the single source of truth at runtime.
+**Configuration** follows the ***uwtools*** YAML model. `etc/app/base.yaml` is the baseline; it is merged with the platform YAML and any user-provided YAMLs by `bin/setup` using `uwtools.api.config.compose`. The resulting `aigfs.yaml` is the single source of truth at runtime.
 
 **Workflow** is managed by [Rocoto](https://github.com/NOAA-GSL/rocoto). The `etc/workflow/rocoto/base.yaml` template is realized by ***uwtools*** to produce `rocoto.xml`. Task dependencies (prep → forecast → post) are expressed in that template.
 
 When adding a new workflow stage, you will typically need to:
 
 1. Add a new driver class in `lib/aigfs/drivers/`.
-2. Add corresponding configuration blocks in `etc/base.yaml`.
+2. Add corresponding configuration blocks in `etc/app/base.yaml`.
 3. Add a new task or metatask entry in `etc/workflow/rocoto/base.yaml`.
 4. Add unit tests alongside the modules they test.
 5. Update this documentation.

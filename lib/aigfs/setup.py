@@ -67,7 +67,7 @@ def prepare_configs(user_config_files: list[Path]) -> YAMLConfig:
     """
     user_config = compose(configs=cast(list[str | Path], user_config_files), output_file=os.devnull)
     platform = user_config["app"]["platform"]
-    base_config = _APP_HOME / "etc" / "base.yaml"
+    base_config = _APP_HOME / "etc" / "app" / "base.yaml"
     platform_config = _APP_HOME / "etc" / "platform" / f"{platform}.yaml"
     # Make sure user_config is last to override any settings from supplementals.
     update_config = compose(
