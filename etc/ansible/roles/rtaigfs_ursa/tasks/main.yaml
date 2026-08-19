@@ -57,3 +57,16 @@
     dest: "{{ rtaigfs_install_dir | realpath }}"
     remote_src: true
     creates: "{{ rtaigfs_install_dir | realpath }}/model"
+
+- name: Render rtaigfs crontab
+  ansible.builtin.template:
+    src: crontab.j2
+    dest: "{{ rtaigfs_crontab_path }}"
+    mode: "0644"
+
+- name: Install rtaigfs crontab
+  ansible.builtin.command:
+    argv:
+      - crontab
+      - "{{ rtaigfs_crontab_path }}"
+  changed_when: true
