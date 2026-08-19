@@ -61,7 +61,7 @@ go() {
   cp $log $log.last
 }
 
-rtdir=$(dirname $(dirname $(readlink -f $0)))
+rtdir=$(readlink -f $(dirname $(dirname $0)))
 log=$rtdir/rtaigfs.log
 
 # Only proceed if no other copy of this script is running:
