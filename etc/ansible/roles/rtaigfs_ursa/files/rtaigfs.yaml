@@ -1,6 +1,6 @@
 app:
   first_cycle: !datetime '{{ "CYCLE" | env }}'
-  home: '{{ "PWD" | env }}'
+  home: '{{ "REPOROOT" | env }}'
   last_cycle: !datetime '{{ "CYCLE" | env }}'
   modeldir: '{{ "MODELDIR"" | env }}'
   platform: ursa
