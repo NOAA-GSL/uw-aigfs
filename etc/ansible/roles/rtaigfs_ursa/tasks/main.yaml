@@ -10,3 +10,9 @@
     src: rtaigfs
     dest: "{{ rtaigfs_install_dir | realpath }}/rtaigfs"
     mode: "0755"
+
+- name: Install rtaigfs configuration
+  ansible.builtin.copy:
+    src: rtaigfs.yaml
+    dest: "{{ rtaigfs_install_dir | realpath }}/rtaigfs.yaml"
+    mode: "0644"
