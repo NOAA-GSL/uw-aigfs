@@ -1,4 +1,9 @@
 ---
 rtaigfs_install_dir: "{{ playbook_dir }}/../../../rtaigfs"
+rtaigfs_bin_dir: "{{ rtaigfs_install_dir | realpath }}/bin"
 rtaigfs_model_archive: aigfs-v1.1.tgz
 rtaigfs_model_archive_path: "{{ lookup('ansible.builtin.env', 'HOME') }}/models/{{ rtaigfs_model_archive }}"
+rtaigfs_babashka_installer_url: https://raw.githubusercontent.com/babashka/babashka/master/install
+rtaigfs_babashka_version: ""
+rtaigfs_babashka_download_dir: "{{ rtaigfs_install_dir | realpath }}/.cache/babashka"
+rtaigfs_babashka_installer_path: "{{ rtaigfs_babashka_download_dir }}/install"

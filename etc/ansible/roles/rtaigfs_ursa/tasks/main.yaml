@@ -5,10 +5,44 @@
     state: directory
     mode: "0755"
 
+- name: Create rtaigfs bin directory
+  ansible.builtin.file:
+    path: "{{ rtaigfs_bin_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Create Babashka download directory
+  ansible.builtin.file:
+    path: "{{ rtaigfs_babashka_download_dir }}"
+    state: directory
+    mode: "0755"
+
+- name: Download Babashka installer
+  ansible.builtin.get_url:
+    url: "{{ rtaigfs_babashka_installer_url }}"
+    dest: "{{ rtaigfs_babashka_installer_path }}"
+    mode: "0755"
+
+- name: Install Babashka bb executable
+  ansible.builtin.command:
+    argv: >-
+      {{
+        [rtaigfs_babashka_installer_path, '--dir', rtaigfs_bin_dir]
+        + (['--version', rtaigfs_babashka_version] if rtaigfs_babashka_version else [])
+        + ['--download-dir', rtaigfs_babashka_download_dir]
+      }}
+    creates: "{{ rtaigfs_bin_dir }}/bb"
+
 - name: Install rtaigfs launcher
   ansible.builtin.copy:
     src: rtaigfs
-    dest: "{{ rtaigfs_install_dir | realpath }}/rtaigfs"
+    dest: "{{ rtaigfs_bin_dir }}/rtaigfs"
+    mode: "0755"
+
+- name: Install report launcher
+  ansible.builtin.copy:
+    src: report
+    dest: "{{ rtaigfs_bin_dir }}/report"
     mode: "0755"
 
 - name: Install rtaigfs configuration
