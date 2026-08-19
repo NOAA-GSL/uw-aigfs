@@ -11,25 +11,25 @@
     state: directory
     mode: "0755"
 
-- name: Create Babashka download directory
+- name: Create bb download directory
   ansible.builtin.file:
-    path: "{{ rtaigfs_babashka_download_dir }}"
+    path: "{{ rtaigfs_bb_download_dir }}"
     state: directory
     mode: "0755"
 
-- name: Download Babashka installer
+- name: Download bb installer
   ansible.builtin.get_url:
-    url: "{{ rtaigfs_babashka_installer_url }}"
-    dest: "{{ rtaigfs_babashka_installer_path }}"
+    url: "{{ rtaigfs_bb_installer_url }}"
+    dest: "{{ rtaigfs_bb_installer_path }}"
     mode: "0755"
 
-- name: Install Babashka bb executable
+- name: Install bb bb executable
   ansible.builtin.command:
     argv: >-
       {{
-        [rtaigfs_babashka_installer_path, '--dir', rtaigfs_bin_dir]
-        + (['--version', rtaigfs_babashka_version] if rtaigfs_babashka_version else [])
-        + ['--download-dir', rtaigfs_babashka_download_dir]
+        [rtaigfs_bb_installer_path, '--dir', rtaigfs_bin_dir]
+        + (['--version', rtaigfs_bb_version] if rtaigfs_bb_version else [])
+        + ['--download-dir', rtaigfs_bb_download_dir]
       }}
     creates: "{{ rtaigfs_bin_dir }}/bb"
 
