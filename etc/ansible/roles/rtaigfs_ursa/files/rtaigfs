@@ -35,9 +35,9 @@ go() {
     RUNDIR=$runbase/$(date -ud $CYCLE +%Y%m%d)/$(date -ud $CYCLE +%H)
     export CYCLE RUNDIR
     config=$RUNDIR/aigfs.yaml
-    test -f $config || setup $rtdir/rtaigfs.yaml
+    test -f $config || (set -ex && setup $rtdir/rtaigfs.yaml)
     test -f $config || exit 1
-    rocotorun -d $RUNDIR/rocoto.db -w $RUNDIR/rocoto.xml -v
+    (set -ex && rocotorun -d $RUNDIR/rocoto.db -w $RUNDIR/rocoto.xml)
   done
 
   # Prune window:
