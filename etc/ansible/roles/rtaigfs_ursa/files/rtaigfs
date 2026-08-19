@@ -20,6 +20,7 @@ go() {
   module load rocoto
   source $basedir/bin/activate-ursa
   runbase=$basedir/run
+  mkdir -pv $runbase
 
   # Calculate timestamp for the most recent 6-hourly cycle:
 
