@@ -203,7 +203,7 @@ fromroot() {
 }
 
 rootdir() {
-  git rev-parse --show-toplevel
+  dirname $(dirname $0)
 }
 
 yamlfiles() {
