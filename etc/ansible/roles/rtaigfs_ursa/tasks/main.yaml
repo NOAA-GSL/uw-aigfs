@@ -80,6 +80,6 @@
   ansible.builtin.command:
     argv:
       - crontab
-      - -
+      - "-"
     stdin: "{{ lookup('ansible.builtin.template', 'crontab.j2') }}"
   changed_when: true
