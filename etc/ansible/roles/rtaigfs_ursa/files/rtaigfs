@@ -20,7 +20,6 @@ go() {
   module load rocoto
   source $basedir/bin/activate-ursa
   runbase=$basedir/run
-  mkdir -pv $runbase
 
   # Calculate timestamp for the most recent 6-hourly cycle:
 
@@ -33,6 +32,7 @@ go() {
     export CYCLE=$(date -ud@$(( ts - ( 21600 * n ) )) +%Y-%m-%dT%H:%M)
     export MODELDIR=$basedir/model
     export RUNDIR=$runbase/$(date -ud $CYCLE +%Y%m%d)/$(date -ud $CYCLE +%H)
+    mkdir -pv $RUNDIR
     test -f $RUNDIR/aigfs.yaml || (set -x && setup $basedir/rtaigfs.yaml)
     (
       source /etc/profile.d/profile-slurm.sh
