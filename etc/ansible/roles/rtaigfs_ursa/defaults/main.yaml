@@ -1,2 +1,4 @@
 ---
 rtaigfs_install_dir: "{{ playbook_dir }}/../../../rtaigfs"
+rtaigfs_model_archive: aigfs-v1.1.tgz
+rtaigfs_model_archive_path: "{{ lookup('ansible.builtin.env', 'HOME') }}/models/{{ rtaigfs_model_archive }}"

@@ -16,3 +16,10 @@
     src: rtaigfs.yaml
     dest: "{{ rtaigfs_install_dir | realpath }}/rtaigfs.yaml"
     mode: "0644"
+
+- name: Extract rtaigfs model archive
+  ansible.builtin.unarchive:
+    src: "{{ rtaigfs_model_archive_path }}"
+    dest: "{{ rtaigfs_install_dir | realpath }}"
+    remote_src: true
+    creates: "{{ rtaigfs_install_dir | realpath }}/model"
