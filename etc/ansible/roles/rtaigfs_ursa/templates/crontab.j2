@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH={{ rtaigfs_crontab_path_env }}
+
+*/5 * * * * {{ rtaigfs_bin_dir }}/rtaigfs
+0 15 * * * {{ rtaigfs_bin_dir }}/report
