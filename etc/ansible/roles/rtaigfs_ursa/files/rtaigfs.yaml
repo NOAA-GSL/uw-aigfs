@@ -2,7 +2,7 @@ app:
   first_cycle: !datetime '{{ "CYCLE" | env }}'
   home: '{{ "REPOROOT" | env }}'
   last_cycle: !datetime '{{ "CYCLE" | env }}'
-  modeldir: '{{ "MODELDIR"" | env }}'
+  modeldir: '{{ "MODELDIR" | env }}'
   platform: ursa
   rundir: '{{ "RUNDIR" | env }}'
 platform:
