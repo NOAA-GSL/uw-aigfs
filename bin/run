@@ -38,6 +38,7 @@ deploy() {
   playbook=$1
   d=$(rootdir)/etc/ansible
   export ANSIBLE_CONFIG=$d/ansible.cfg
+  activate base
   ansible-playbook $d/playbooks/$playbook.yaml
 }
 
