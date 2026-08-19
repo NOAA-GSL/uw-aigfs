@@ -203,7 +203,7 @@ fromroot() {
 }
 
 rootdir() {
-  dirname $(dirname $0)
+  readlink -f $(dirname $(dirname $0))
 }
 
 yamlfiles() {
