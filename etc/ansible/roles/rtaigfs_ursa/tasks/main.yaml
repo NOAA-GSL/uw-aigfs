@@ -4,3 +4,9 @@
     path: "{{ rtaigfs_install_dir | realpath }}"
     state: directory
     mode: "0755"
+
+- name: Install rtaigfs launcher
+  ansible.builtin.copy:
+    src: rtaigfs
+    dest: "{{ rtaigfs_install_dir | realpath }}/rtaigfs"
+    mode: "0755"

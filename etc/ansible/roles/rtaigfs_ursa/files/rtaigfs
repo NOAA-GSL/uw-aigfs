@@ -1,0 +1,66 @@
+#!/bin/bash
+
+set -aeuo pipefail
+
+active_cycles=4
+window_cycles=12
+
+go() {
+
+  cd $basedir
+  
+  # Truncate log:
+
+  >$log
+
+  # Set up environment:
+
+  export PS4='[$(date "+%Y-%m-%dT%H:%M:%S")]          '  
+  source /etc/profile.d/modules.sh
+  module load rocoto
+  source $basedir/bin/activate-ursa
+  runbase=$basedir/rtaigfs
+
+  # Calculate timestamp for the most recent 6-hourly cycle:
+
+  now=$(date -u +%s)
+  ts=$(( now - ( now % 21600 ) ))
+
+  # Run all in-window cycles:
+
+  for n in $(seq 0 $(( active_cycles - 1 ))); do
+    export CYCLE=$(date -ud@$(( ts - ( 21600 * n ) )) +%Y-%m-%dT%H:%M)
+    export RUNDIR=$runbase/$(date -ud $CYCLE +%Y%m%d)/$(date -ud $CYCLE +%H)
+    test -f $RUNDIR/aigfs.yaml || (set -x && setup $basedir/rtaigfs.yaml)
+    (
+      source /etc/profile.d/profile-slurm.sh
+      set -x
+      rocotorun --database $RUNDIR/rocoto.db --workflow $RUNDIR/rocoto.xml
+    )
+  done
+
+  # Prune window:
+
+  find $runbase -maxdepth 2 -mindepth 2 -type d -regextype egrep -regex "^.*/[0-9]{8}/[0-9]{2}$" | sort | while read -r x; do
+    subdir=$(echo $x | sed "s@^$runbase/@@")
+    for n in $(seq 0 $(( window_cycles - 1 ))); do
+      ok=$(date -ud@$(( ts - ( 21600 * n ) )) +%Y%m%d/%H)
+      test $subdir == $ok && break 2
+    done
+    (set -x && rm -rf $x)
+  done
+  find $runbase -maxdepth 1 -mindepth 1 -type d -empty | sort | while read -r x; do
+    (set -x && rmdir $x)
+  done
+
+  # Rotate log:
+
+  cp $log $log.last
+}
+
+basedir=$(dirname $(readlink -f $0))
+log=$basedir/rtaigfs.log
+
+# Only proceed if no other copy of this script is running:
+
+flock -n -o $(readlink -f $0) -c go >>$log 2>&1
