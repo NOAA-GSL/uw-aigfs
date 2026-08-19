@@ -1,0 +1,6 @@
+---
+- name: Create rtaigfs install directory
+  ansible.builtin.file:
+    path: "{{ rtaigfs_install_dir | realpath }}"
+    state: directory
+    mode: "0755"
