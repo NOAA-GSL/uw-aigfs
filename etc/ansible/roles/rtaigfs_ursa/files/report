@@ -3,7 +3,7 @@
 ;; -*- clj -*-
 
 (def RECIPIENTS "paul.madden@noaa.gov")
-(def RUNDIR (format "%s/run" (.getParent (io/file *file*))))
+(def RUNDIR (format "%s/rtaigfs" (.getParent (.getParent (io/file *file*)))))
 
 (require '[babashka.process :refer [process]] '[hiccup2.core :as h])
 

@@ -18,8 +18,8 @@ go() {
   export PS4='[$(date "+%Y-%m-%dT%H:%M:%S")]          '  
   source /etc/profile.d/modules.sh
   module load rocoto
-  source $basedir/bin/activate-ursa
-  runbase=$basedir/run
+  source $(git rev-parse --show-toplevel)/bin/activate-ursa
+  runbase=$basedir/rtaigfs
 
   # Calculate timestamp for the most recent 6-hourly cycle:
 
