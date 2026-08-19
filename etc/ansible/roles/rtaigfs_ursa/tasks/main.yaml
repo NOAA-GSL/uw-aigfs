@@ -33,6 +33,11 @@
       }}
     creates: "{{ rtaigfs_bin_dir }}/bb"
 
+- name: Remove bb download directory
+  ansible.builtin.file:
+    path: "{{ rtaigfs_bb_download_dir }}"
+    state: absent
+
 - name: Install rtaigfs launcher
   ansible.builtin.copy:
     src: rtaigfs
