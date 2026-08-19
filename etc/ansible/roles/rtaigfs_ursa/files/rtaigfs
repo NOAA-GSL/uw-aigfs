@@ -59,7 +59,7 @@ go() {
   cp $log $log.last
 }
 
-basedir=$(dirname $(readlink -f $0))
+basedir=$(readlink -f $(dirname $(readlink -f $0))/..)
 log=$basedir/rtaigfs.log
 
 # Only proceed if no other copy of this script is running:
