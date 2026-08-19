@@ -9,13 +9,15 @@ go() {
 
   # Truncate log:
 
-  >$log
+  true >$log
 
   # Set up environment:
 
-  export MODELDIR=$rtdir/model
-  export PS4='[$(date "+%Y-%m-%dT%H:%M:%S")]          '  
-  export REPOROOT=$(dirname $rtdir)
+  MODELDIR=$rtdir/model
+  PS4="[$(date +%Y-%m-%dT%H:%M:%S)]          "
+  REPOROOT=$(dirname $rtdir)
+  export MODELDIR PS4 REPOROOT
+  source /etc/profile.d/profile-slurm.sh
   source /etc/profile.d/modules.sh
   module load rocoto
   source $REPOROOT/bin/activate-ursa
@@ -24,19 +26,18 @@ go() {
   # Calculate timestamp for the most recent 6-hourly cycle:
 
   now=$(date -u +%s)
-  ts=$(( now - ( now % 21600 ) ))
+  ts=$((now - (now % 21600)))
 
   # Run all in-window cycles:
 
-  for n in $(seq 0 $(( active_cycles - 1 ))); do
-    export CYCLE=$(date -ud@$(( ts - ( 21600 * n ) )) +%Y-%m-%dT%H:%M)
-    export RUNDIR=$runbase/$(date -ud $CYCLE +%Y%m%d)/$(date -ud $CYCLE +%H)
-    test -f $RUNDIR/aigfs.yaml || (set -x && setup $rtdir/rtaigfs.yaml)
-    (
-      source /etc/profile.d/profile-slurm.sh
-      set -x
-      rocotorun --database $RUNDIR/rocoto.db --workflow $RUNDIR/rocoto.xml
-    )
+  for n in $(seq 0 $((active_cycles - 1))); do
+    CYCLE=$(date -ud@$((ts - (21600 * n))) +%Y-%m-%dT%H:%M)
+    RUNDIR=$runbase/$(date -ud $CYCLE +%Y%m%d)/$(date -ud $CYCLE +%H)
+    export CYCLE RUNDIR
+    config=$RUNDIR/aigfs.yaml
+    test -f $config || (set -ex && setup $rtdir/rtaigfs.yaml)
+    test -f $config || exit 1
+    (set -ex && rocotorun --database $RUNDIR/rocoto.db --workflow $RUNDIR/rocoto.xml)
   done
 
   # Prune window:
@@ -44,8 +45,8 @@ go() {
   if [[ -d $runbase ]]; then
     find $runbase -maxdepth 2 -mindepth 2 -type d -regextype egrep -regex "^.*/[0-9]{8}/[0-9]{2}$" | sort | while read -r x; do
       subdir=$(echo $x | sed "s@^$runbase/@@")
-      for n in $(seq 0 $(( window_cycles - 1 ))); do
-        ok=$(date -ud@$(( ts - ( 21600 * n ) )) +%Y%m%d/%H)
+      for n in $(seq 0 $((window_cycles - 1))); do
+        ok=$(date -ud@$((ts - (21600 * n))) +%Y%m%d/%H)
         test $subdir == $ok && break 2
       done
       (set -x && rm -rf $x)
