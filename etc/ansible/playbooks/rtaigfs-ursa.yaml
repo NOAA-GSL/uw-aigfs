@@ -3,5 +3,12 @@
   hosts: localhost
   gather_facts: false
 
+  pre_tasks:
+    - name: Create Ansible remote temp directory
+      ansible.builtin.raw: >-
+        mkdir -p "/tmp/ansible-rtaigfs-${USER}" &&
+        chmod 700 "/tmp/ansible-rtaigfs-${USER}"
+      changed_when: false
+
   roles:
     - role: rtaigfs_ursa
