@@ -5,7 +5,7 @@ app:
   platform: ursa
   rundir: '{{ "RUNDIR" | env }}'
 platform:
-  account: gsd-hpcs
+  account: gsd-fv3
 prep:
   aigfs_ics:
     files_to_hardlink:
