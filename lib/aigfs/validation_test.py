@@ -18,7 +18,6 @@ def kwargs(tmp_path, utc):
         home=tmp_path,
         last_cycle=utc(2026, 1, 31, 23),
         modeldir=tmp_path,
-        platform="ursa",
         rundir=tmp_path,
     )
 

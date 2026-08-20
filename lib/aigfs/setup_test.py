@@ -18,7 +18,7 @@ def test_setup_generate_configs(tmp_path):
         realize_rocoto.return_value = True
         setup.generate_configs(update_config=update_config, aigfs_config=path)
     realize_config.assert_called_once_with(
-        input_config=setup._APP_HOME / "etc" / "workflow" / "rocoto" / "base.yaml",
+        input_config=setup._HOME / "etc" / "workflow" / "rocoto" / "base.yaml",
         output_file=path,
         update_config=update_config,
     )
@@ -67,12 +67,12 @@ def test_setup_prepare_configs(tmp_path):
         compose.side_effect = [{"app": {"platform": "test"}}, mock_update_config]
         result = setup.prepare_configs(user_config_files)
     assert result is mock_update_config
-    mock_update_config.update_from.assert_called_once_with({"app": {"home": str(setup._APP_HOME)}})
+    mock_update_config.update_from.assert_called_once_with({"app": {"home": str(setup._HOME)}})
     # First call: Compose user configs.
     # Second call: Compose with default, platform, and user configs.
     assert compose.call_count == 2
     second_call = compose.call_args_list[1]
-    etcdir = setup._APP_HOME / "etc"
+    etcdir = setup._HOME / "etc"
     assert second_call[1]["configs"] == [
         etcdir / "base.yaml",
         etcdir / "platform" / "test.yaml",
@@ -82,7 +82,7 @@ def test_setup_prepare_configs(tmp_path):
 
 
 def test_setup_set_up_rundir(logcap, tmp_path, utc):
-    rundir = tmp_path / "myexp"
+    rundir = tmp_path / "rundir"
     validated = Config(
         app=App(
             cycle_freq=timedelta(hours=6),
@@ -90,7 +90,6 @@ def test_setup_set_up_rundir(logcap, tmp_path, utc):
             home=tmp_path,
             last_cycle=utc(2025, 10, 2, 18),
             modeldir=tmp_path,
-            platform="ursa",
             rundir=rundir,
         )
     )
