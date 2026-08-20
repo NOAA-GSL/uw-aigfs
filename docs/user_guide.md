@@ -100,7 +100,7 @@ Supported values for `<platform>`:
 
 ### Default Configuration
 
-`etc/app/base.yaml` contains the baseline settings for all workflow stages. It is organized into top-level blocks that correspond to the workflow stages and follow the [uwtools YAML](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/index.html) conventions:
+`etc/base.yaml` contains the baseline settings for all workflow stages. It is organized into top-level blocks that correspond to the workflow stages and follow the [uwtools YAML](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/components/index.html) conventions:
 
 | Block      | Purpose                                                                                       |
 |------------|-----------------------------------------------------------------------------------------------|
@@ -165,7 +165,7 @@ With the environment activated (see [Installing](#installing)), and in the repos
 setup [additional.yaml ...] user.yaml
 ```
 
-Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `etc/app/base.yaml` and the appropriate platform YAML (`etc/platform/<platform>.yaml`) before applying your user configs.
+Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `etc/base.yaml` and the appropriate platform YAML (`etc/platform/<platform>.yaml`) before applying your user configs.
 
 The following files are written to `app.rundir`:
 

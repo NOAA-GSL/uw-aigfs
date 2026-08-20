@@ -74,7 +74,7 @@ def test_setup_prepare_configs(tmp_path):
     second_call = compose.call_args_list[1]
     etcdir = setup._APP_HOME / "etc"
     assert second_call[1]["configs"] == [
-        etcdir / "app" / "base.yaml",
+        etcdir / "base.yaml",
         etcdir / "platform" / "test.yaml",
         *user_config_files,
     ]
