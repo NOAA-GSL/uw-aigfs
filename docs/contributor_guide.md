@@ -246,4 +246,30 @@ After deployment, *no manual changes* should be made to the contents of the git 
 4. If the conda installation must be updated: `rm -rf conda && make env`.
 5. Update the deployment: `make deploy playbook=rtaigfs-ursa`.
 
+The structure of a `yyyymmdd/hh` cycle run directory is as follows:
+
+```
+├── yyyymmddhh       # Cycle run root directory
+│   ├── forecast     # Run directory for forecast task
+│   ├── post_*       # Run directory for post task (one per leadtime)
+│   └── prep         # Run directory for prep step
+├── aigfs.yaml       # Fully realized AIGFS config 
+├── logs             # Rocoto logs
+│   ├── <task>.log   # Task log (one per task execution)
+│   └── workflow.log # Rocot general log
+├── rocoto.db        # Rocoto sqlite3 database
+├── rocoto_lock.db   # Rocoto database lockfile
+└── rocoto.xml       # Rocoto workflow document
+```
+
+Per-task run directories have structure and content specific to each task, but since each task is executed via a `uwtools` driver, several common files can be expected:
+
+```
+├── runscript.<driver>      # Executable driver runscript
+├── runscript.<driver>.done # A sentinel file created if driver executed successfully
+└── runscript.<driver>.out  # Driver execution output
+```
+
+Values for `<driver>` are `aigfs_ics`, `aigfs_inference`, and `aigfs_post`.
+
 [← Back to Index](index.md)
