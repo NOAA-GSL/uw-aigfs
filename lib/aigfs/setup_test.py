@@ -1,100 +1,84 @@
-from datetime import timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
 from pytest import raises
 
 from aigfs import setup
-from aigfs.validation import App, Config
 
 
-def test_setup_generate_configs(tmp_path):
-    path = tmp_path / "aigfs.yaml"
-    update_config = Mock()
-    with (
-        patch.object(setup, "realize_config") as realize_config,
-        patch.object(setup, "realize_rocoto") as realize_rocoto,
-    ):
-        realize_rocoto.return_value = True
-        setup.generate_configs(update_config=update_config, aigfs_config=path)
-    realize_config.assert_called_once_with(
-        input_config=setup._HOME / "etc" / "workflow" / "rocoto" / "base.yaml",
-        output_file=path,
-        update_config=update_config,
+def test_setup_compose_configs():
+    platform = "test"
+    user_config_files = [Path("/path/to/a.yaml")]
+    with patch.object(setup, "compose_to_dict") as compose_to_dict:
+        compose_to_dict.return_value = {"app": {"rundir": "/some/path"}}
+        result = setup.compose_configs(platform, user_config_files)
+    assert result == {"app": {"rundir": "/some/path"}}
+    compose_to_dict.assert_called_once_with(
+        [
+            setup._ETC / "base.yaml",
+            setup._ETC / "workflow" / "rocoto" / "base.yaml",
+            setup._PLATFORM / "test.yaml",
+            Path("/path/to/a.yaml"),
+        ],
+        realize=True,
     )
-    realize_rocoto.assert_called_once_with(config=path, output_file=tmp_path / "rocoto.xml")
-
-
-def test_setup_generate_configs_invalid_xml(logcap, tmp_path):
-    path = tmp_path / "aigfs.yaml"
-    with (
-        patch.object(setup, "realize_config"),
-        patch.object(setup, "realize_rocoto") as realize_rocoto,
-    ):
-        realize_rocoto.return_value = False
-        with raises(SystemExit):
-            setup.generate_configs(update_config=Mock(), aigfs_config=path)
-    assert "Invalid Rocoto XML" in logcap.text
 
 
 def test_setup_main():
     with (
-        patch.object(setup, "generate_configs") as generate_configs,
+        patch.object(setup, "compose_configs") as compose_configs,
         patch.object(setup, "parse_args") as parse_args,
-        patch.object(setup, "prepare_configs") as prepare_configs,
         patch.object(setup, "set_up_rundir") as set_up_rundir,
         patch.object(setup, "validate") as validate,
     ):
-        set_up_rundir.return_value = (Mock(), Mock())
+        args = Mock()
+        args.platform = "test"
+        args.user_config_files = [Path("/path/to/a.yaml")]
+        parse_args.return_value = args
+        compose_configs.return_value = {"app": {"key": "val"}}
         setup.main()
         parse_args.assert_called_once_with()
-        prepare_configs.assert_called_once_with(parse_args())
-        validate.assert_called_once_with(prepare_configs().as_dict())
-        set_up_rundir.assert_called_once_with(validate())
-        generate_configs.assert_called_once_with(prepare_configs(), set_up_rundir()[1])
+        compose_configs.assert_called_once_with("test", [Path("/path/to/a.yaml")])
+        validate.assert_called_once_with({"app": {"key": "val"}})
+        set_up_rundir.assert_called_once_with("test", {"app": {"key": "val"}})
 
 
 def test_setup_parse_args():
-    with patch("sys.argv", ["prog", "/path/to/a.yaml", "/path/to/b.yaml"]):
-        result = setup.parse_args()
-    assert result == [Path("/path/to/a.yaml"), Path("/path/to/b.yaml")]
+    with patch.object(setup, "_PLATFORM") as mock_platform:
+        mock_platform.glob.return_value = [Path("jet.yaml")]
+        with patch("sys.argv", ["prog", "jet", "/path/to/a.yaml", "/path/to/b.yaml"]):
+            result = setup.parse_args()
+    assert result.platform == "jet"
+    assert result.user_config_files == [Path("/path/to/a.yaml"), Path("/path/to/b.yaml")]
 
 
-def test_setup_prepare_configs(tmp_path):
-    user_config_files = [tmp_path / "a.yaml"]
-    mock_update_config = Mock()
-    with patch.object(setup, "compose") as compose:
-        compose.side_effect = [{"app": {"platform": "test"}}, mock_update_config]
-        result = setup.prepare_configs(user_config_files)
-    assert result is mock_update_config
-    mock_update_config.update_from.assert_called_once_with({"app": {"home": str(setup._HOME)}})
-    # First call: Compose user configs.
-    # Second call: Compose with default, platform, and user configs.
-    assert compose.call_count == 2
-    second_call = compose.call_args_list[1]
-    etcdir = setup._HOME / "etc"
-    assert second_call[1]["configs"] == [
-        etcdir / "base.yaml",
-        etcdir / "platform" / "test.yaml",
-        *user_config_files,
-    ]
-    assert second_call[1]["realize"] is True
-
-
-def test_setup_set_up_rundir(logcap, tmp_path, utc):
+def test_setup_set_up_rundir(logcap, tmp_path):
     rundir = tmp_path / "rundir"
-    validated = Config(
-        app=App(
-            cycle_freq=timedelta(hours=6),
-            first_cycle=utc(2025, 10, 1, 18),
-            home=tmp_path,
-            last_cycle=utc(2025, 10, 2, 18),
-            modeldir=tmp_path,
-            rundir=rundir,
-        )
+    config: dict = {"app": {"rundir": str(rundir)}}
+    with (
+        patch.object(setup, "YAMLConfig") as YAMLConfig,
+        patch.object(setup, "rocoto") as rocoto,
+    ):
+        rocoto.realize.return_value = True
+        setup.set_up_rundir("test", config)
+    assert rundir.is_dir()
+    YAMLConfig.assert_called_once_with(config)
+    YAMLConfig.return_value.dump.assert_called_once_with(rundir / "aigfs.yaml")
+    rocoto.realize.assert_called_once_with(
+        config=rundir / "aigfs.yaml", output_file=rundir / "rocoto.xml"
     )
-    result_dir, result_file = setup.set_up_rundir(validated)
-    assert result_dir == rundir
-    assert result_dir.is_dir()
-    assert result_file == rundir / "aigfs.yaml"
-    assert f"AIGFS will be set up here: {result_dir}" in logcap.text
+    assert config["app"]["platform"] == "test"
+    assert f"AIGFS will be set up here: {rundir}" in logcap.text
+
+
+def test_setup_set_up_rundir_invalid_xml(logcap, tmp_path):
+    rundir = tmp_path / "rundir"
+    config: dict = {"app": {"rundir": str(rundir)}}
+    with (
+        patch.object(setup, "YAMLConfig"),
+        patch.object(setup, "rocoto") as rocoto,
+    ):
+        rocoto.realize.return_value = False
+        with raises(SystemExit):
+            setup.set_up_rundir("test", config)
+    assert "Invalid Rocoto XML" in logcap.text
