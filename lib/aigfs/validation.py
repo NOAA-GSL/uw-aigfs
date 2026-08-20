@@ -18,7 +18,6 @@ class App(BaseModel):
     home: Path
     last_cycle: datetime
     modeldir: Path
-    platform: str
     rundir: Path
 
     @model_validator(mode="after")
