@@ -162,10 +162,10 @@ tables/ # JSON metadata file(s) for GRIB2 output
 With the environment activated (see [Installing](#installing)), and in the repository root, set up the final config:
 
 ```bash
-setup [additional.yaml ...] user.yaml
+setup platform [additional.yaml ...] user.yaml
 ```
 
-Multiple YAML files may be provided; later files take precedence over earlier ones. The generator automatically merges `etc/base.yaml` and the appropriate platform YAML (`etc/platform/<platform>.yaml`) before applying your user configs.
+Multiple YAML files may be provided; later files take precedence over earlier ones. The generator merges `etc/base.yaml` and `etc/platform/<platform>.yaml`) before applying your user configs.
 
 The following files are written to `app.rundir`:
 
