@@ -18,6 +18,7 @@ Welcome to the ***uw-aigfs*** Contributor Guide. Please familiarize yourself wit
   - [Merging](#merging)
   - [Need Help?](#need-help)
 - [Repository Structure](#repository-structure)
+- [Deploying Realtime AIGFS on Ursa](#deploying-realtime-aigfs-on-ursa)
 
 ---
 
@@ -211,5 +212,38 @@ When adding a new workflow stage, you will typically need to:
 3. Add a new task or metatask entry in `etc/workflow/rocoto/base.yaml`.
 4. Add unit tests alongside the modules they test.
 5. Update this documentation.
+
+## Deploying Realtime AIGFS on Ursa
+
+As user `role.rtaigfs`, `cd` to the appropriate scratch workspace, then:
+
+```
+$ git clone https://github.com/NOAA-GSL/uw-aigfs.git rtaigfs
+$ cd rtaigfs/
+$ make env
+$ make deploy playbook=rtaigfs-ursa
+```
+
+If these commands complete successfully, an `rtaigfs/` subdirectory should have been created and populated with assets necessary for execution of realtime AIGFS runs:
+
+```
+rtaigfs/
+├── bin              # Executables
+├── model            # AIGFS model files
+├── rtaigfs          # Root of yyyymmdd/hh cycle run directories
+├── rtaigfs.log      # Log file from latest run
+├── rtaigfs.log.last # Log file from previous run (created after first run)
+└── rtaigfs.yaml     # Parameterized configuration
+```
+
+Additionally, `crontab -l` should show entries for running AIGFS and for emailing a daily production report.
+
+After deployment, *no manual changes* should be made to the contents of the git clone or any of its subdirectories or files. All updates should be performed via the following recipe:
+
+1. Update the `uw-aigfs` git repo via PR.
+2. Unload the `role.rtaigfs` crontab: `crontab -r`.
+3. Update the git clone on Ursa: `git pull`.
+4. If the conda installation must be updated: `rm -rf conda && make env`.
+5. Update the deployment: `make deploy playbook=rtaigfs-ursa`.
 
 [← Back to Index](index.md)
