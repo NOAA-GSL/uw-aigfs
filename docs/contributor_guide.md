@@ -256,7 +256,7 @@ The structure of a `yyyymmdd/hh` cycle run directory is as follows:
 ├── aigfs.yaml       # Fully realized AIGFS config 
 ├── logs             # Rocoto logs
 │   ├── <task>.log   # Task log (one per task execution)
-│   └── workflow.log # Rocot general log
+│   └── workflow.log # Rocoto general log
 ├── rocoto.db        # Rocoto sqlite3 database
 ├── rocoto_lock.db   # Rocoto database lockfile
 └── rocoto.xml       # Rocoto workflow document
