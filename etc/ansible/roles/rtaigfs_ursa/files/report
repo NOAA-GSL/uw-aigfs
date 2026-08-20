@@ -2,7 +2,7 @@
 
 ;; -*- clj -*-
 
-(def RECIPIENTS "paul.madden@noaa.gov")
+(def RECIPIENTS "anna.smoot@noaa.gov christina.holt@noaa.gov emily.l.carpenter@noaa.gov paul.madden@noaa.gov")
 (def RUNDIR (format "%s/rtaigfs" (.getParentFile (.getParentFile (io/file *file*)))))
 
 (require '[babashka.process :refer [process]] '[hiccup2.core :as h])
