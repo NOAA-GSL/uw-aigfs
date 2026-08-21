@@ -47,6 +47,7 @@ def validate(config: dict[str, object]) -> Config:
     try:
         return Config.model_validate(config)
     except ValidationError as e:
+        logging.error("Config validation failed:")
         lines = pformat(e.errors()).split("\n")
         for line in lines:
             logging.error(line)

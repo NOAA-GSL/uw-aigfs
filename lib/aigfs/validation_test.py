@@ -46,4 +46,5 @@ def test_validation_validate_fail(kwargs, logcap):
     with raises(SystemExit) as e:
         validation.validate({"app": kwargs})
     assert e.value.code == 1
+    assert "Config validation failed:" in logcap.text
     assert "'loc': ('app', 'rundir')" in logcap.text
