@@ -165,7 +165,7 @@ With the environment activated (see [Installing](#installing)), and in the repos
 setup platform [additional.yaml ...] user.yaml
 ```
 
-Multiple YAML files may be provided; later files take precedence over earlier ones. The generator merges `etc/base.yaml` and `etc/platform/<platform>.yaml`) before applying your user configs.
+Multiple YAML files may be provided; later files take precedence over earlier ones. The `setup` script `etc/base.yaml` and `etc/platform/<platform>.yaml`) before applying your user configs.
 
 The following files are written to `app.rundir`:
 
@@ -174,7 +174,7 @@ The following files are written to `app.rundir`:
 | `aigfs.yaml` | Fully realized configuration                   |
 | `rocoto.xml` | ***Rocoto*** workflow definition, ready to run |
 
-If the run directory does not exist, it will be created. The generator validates the `user` section of the config with [Pydantic](https://docs.pydantic.dev/) and exits with an error if required fields are missing or invalid.
+If the run directory does not exist, it will be created. The `setup` script validates the `user` section of the config with [Pydantic](https://docs.pydantic.dev/) and exits with an error if required fields are missing or invalid.
 
 ---
 
