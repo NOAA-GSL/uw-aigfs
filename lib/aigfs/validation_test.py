@@ -18,13 +18,18 @@ def kwargs(tmp_path, utc):
         home=tmp_path,
         last_cycle=utc(2026, 1, 31, 23),
         modeldir=tmp_path,
-        platform="jet",
+        platform=validation.AppPlatform(name="jet"),
         rundir=tmp_path,
     )
 
 
 def test_validation_Config(app):
     assert validation.Config(app=app)
+
+
+def test_validation_Config_with_platform(app):
+    platform = validation.Platform(scheduler="slurm")
+    assert validation.Config(app=app, platform=platform)
 
 
 def test_validation_App(kwargs):
@@ -48,3 +53,38 @@ def test_validation_validate_fail(kwargs, logcap):
     assert e.value.code == 1
     assert "Config validation failed:" in logcap.text
     assert "'loc': ('app', 'rundir')" in logcap.text
+
+
+def test_validation_Platform_minimal():
+    p = validation.Platform(scheduler="slurm")
+    assert p.account is None
+
+
+def test_validation_AppPlatform_minimal():
+    p = validation.AppPlatform(name="ursa")
+    assert p.partition is None
+
+
+def test_validation_AppPlatform_with_partition():
+    p = validation.AppPlatform(
+        name="ursa",
+        partition=validation.Partition(
+            compute="u1-compute", task="u1-service", netaccess="u1-service"
+        ),
+    )
+    assert p.partition is not None
+    assert p.partition.compute == "u1-compute"
+
+
+def test_validation_Partition_all_none():
+    p = validation.Partition()
+    assert p.compute is None
+    assert p.task is None
+    assert p.netaccess is None
+
+
+def test_validation_Partition_partial():
+    p = validation.Partition(compute="u1-compute")
+    assert p.compute == "u1-compute"
+    assert p.task is None
+    assert p.netaccess is None

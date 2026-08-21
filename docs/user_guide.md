@@ -123,7 +123,8 @@ You can override any default values by providing one or more user YAML files. Th
 app:
   first_cycle: !datetime 2025-10-21T00
   last_cycle: !datetime 2025-10-21T00
-  platform: ursa
+  platform:
+    name: ursa
   rundir: /path/to/your/run/directory
 platform:
   account: your_hpc_account
