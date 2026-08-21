@@ -10,6 +10,8 @@ from pprint import pformat
 
 from pydantic import BaseModel, ValidationError, model_validator
 
+# Validation classes
+
 
 class Partition(BaseModel):
     """
@@ -21,22 +23,13 @@ class Partition(BaseModel):
     task: str | None = None
 
 
-class AppPlatform(BaseModel):
+class Platform(BaseModel):
     """
     Model for the `app.platform:` block.
     """
 
     name: str
     partition: Partition | None = None
-
-
-class Platform(BaseModel):
-    """
-    Model for the `platform:` block.
-    """
-
-    account: str | None = None
-    scheduler: str
 
 
 class App(BaseModel):
@@ -49,7 +42,7 @@ class App(BaseModel):
     home: Path
     last_cycle: datetime
     modeldir: Path
-    platform: AppPlatform
+    platform: Platform
     rundir: Path
 
     @model_validator(mode="after")
@@ -66,7 +59,9 @@ class Config(BaseModel):
     """
 
     app: App
-    platform: Platform | None = None
+
+
+# Public functions
 
 
 def validate(config: dict[str, object]) -> Config:
