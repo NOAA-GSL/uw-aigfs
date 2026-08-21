@@ -31,7 +31,8 @@ def test_setup_compose_configs(tmp_path):
         ],
         realize=True,
     )
-    assert YAMLConfig(reserved_path) == {"app": {"home": str(setup._HOMEDIR), "platform": "jet"}}
+    expected = {"app": {"home": str(setup._HOMEDIR), "platform": {"name": "jet"}}}
+    assert YAMLConfig(reserved_path) == expected
 
 
 def test_setup_main():
