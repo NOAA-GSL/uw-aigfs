@@ -74,8 +74,7 @@ def set_up_rundir(platform: str, config: dict) -> None:
     rundir.mkdir(parents=True, exist_ok=True)
     final = rundir / "aigfs.yaml"
     YAMLConfig(config).dump(final)
-    config["app"]["platform"] = platform  # NB: do not serialize to disk
-    if not rocoto.realize(config=final, output_file=rundir / "rocoto.xml"):
+    if not rocoto.realize(YAMLConfig({**config, "platform": platform}), rundir / "rocoto.xml"):
         logging.error("Invalid Rocoto XML")
         sys.exit(1)
 
