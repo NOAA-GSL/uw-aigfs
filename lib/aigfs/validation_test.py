@@ -15,9 +15,9 @@ def kwargs(tmp_path, utc):
     return dict(
         cycle_freq=timedelta(hours=1),
         first_cycle=utc(2026, 1, 1, 0),
-        home=tmp_path,
         last_cycle=utc(2026, 1, 31, 23),
         modeldir=tmp_path,
+        platform="jet",
         rundir=tmp_path,
     )
 
