@@ -44,7 +44,7 @@ def main() -> None:
     args = parse_args()
     config = compose_configs(args.platform, args.user_config_files)
     validate({"app": config["app"]})
-    set_up_rundir(args.platform, config)
+    set_up_rundir(config)
 
 
 def parse_args() -> argparse.Namespace:
@@ -70,7 +70,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def set_up_rundir(platform: str, config: dict) -> None:
+def set_up_rundir(config: dict) -> None:
     """
     Create and populate the run directory.
     """
@@ -79,7 +79,7 @@ def set_up_rundir(platform: str, config: dict) -> None:
     rundir.mkdir(parents=True, exist_ok=True)
     final = rundir / "aigfs.yaml"
     YAMLConfig(config).dump(final)
-    if not rocoto.realize(YAMLConfig({**config, "platform": platform}), rundir / "rocoto.xml"):
+    if not rocoto.realize(YAMLConfig(config), rundir / "rocoto.xml"):
         logging.error("Invalid Rocoto XML")
         sys.exit(1)
 

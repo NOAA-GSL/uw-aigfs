@@ -50,7 +50,7 @@ def test_setup_main():
         compose_configs.assert_called_once_with("jet", [Path("/path/to/a.yaml")])
         config = {"app": {"key": "val"}}
         validate.assert_called_once_with(config)
-        set_up_rundir.assert_called_once_with("jet", config)
+        set_up_rundir.assert_called_once_with(config)
 
 
 def test_setup_parse_args():
@@ -70,13 +70,12 @@ def test_setup_set_up_rundir(logcap, tmp_path):
         patch.object(setup, "rocoto") as rocoto,
     ):
         rocoto.realize.return_value = True
-        setup.set_up_rundir("jet", config)
+        setup.set_up_rundir(config)
     assert rundir.is_dir()
     assert YAMLConfig.call_args_list[0].args[0] == config
-    extended = {**config, "platform": "jet"}
-    assert YAMLConfig.call_args_list[1].args[0] == extended
+    assert YAMLConfig.call_args_list[1].args[0] == config
     YAMLConfig.return_value.dump.assert_called_once_with(rundir / "aigfs.yaml")
-    rocoto.realize.assert_called_once_with(YAMLConfig(extended), rundir / "rocoto.xml")
+    rocoto.realize.assert_called_once_with(YAMLConfig(config), rundir / "rocoto.xml")
     assert f"AIGFS will be set up here: {rundir}" in logcap.text
 
 
@@ -89,5 +88,5 @@ def test_setup_set_up_rundir_invalid_xml(logcap, tmp_path):
     ):
         rocoto.realize.return_value = False
         with raises(SystemExit):
-            setup.set_up_rundir("jet", config)
+            setup.set_up_rundir(config)
     assert "Invalid Rocoto XML" in logcap.text
