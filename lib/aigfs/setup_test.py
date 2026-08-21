@@ -15,7 +15,9 @@ def test_setup_compose_configs(tmp_path):
     ):
         compose_to_dict.return_value = {"app": {"rundir": "/some/path"}}
         reserved = tmp_path / "reserved.yaml"
-        NamedTempoaryFile().__enter__.return_value = reserved
+        tmp = Mock()
+        tmp.name = str(reserved)
+        NamedTempoaryFile().__enter__.return_value = tmp
         result = setup.compose_configs(platform, user_config_files)
     assert result == {"app": {"rundir": "/some/path"}}
     compose_to_dict.assert_called_once_with(

@@ -23,8 +23,8 @@ def compose_configs(platform: str, user_config_files: list[Path]) -> dict:
     """
     Compose and realize base, platform, and user configs.
     """
-    with NamedTemporaryFile(delete=True) as reserved:
-        assert isinstance(reserved, Path)
+    with NamedTemporaryFile(delete=True) as tmp:
+        reserved = Path(tmp.name)
         YAMLConfig({"app": {"home": str(_HOMEDIR), "platform": platform}}).dump(reserved)
         configs: list[str | Path] = [
             _ETCDIR / "base.yaml",
