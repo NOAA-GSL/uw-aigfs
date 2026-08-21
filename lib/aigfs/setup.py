@@ -6,6 +6,7 @@ import argparse
 import logging
 import sys
 from pathlib import Path
+from tempfile import NamedTemporaryFile
 
 from uwtools.api import rocoto
 from uwtools.api.config import YAMLConfig, compose_to_dict
@@ -13,22 +14,26 @@ from uwtools.api.logging import use_uwtools_logger
 
 from aigfs.validation import validate
 
-_HOME = Path(__file__).parent.parent.parent.resolve()
-_ETC = _HOME / "etc"
-_PLATFORM = _ETC / "platform"
+_HOMEDIR = Path(__file__).parent.parent.parent.resolve()
+_ETCDIR = _HOMEDIR / "etc"
+_PLATFORMDIR = _ETCDIR / "platform"
 
 
 def compose_configs(platform: str, user_config_files: list[Path]) -> dict:
     """
     Compose and realize base, platform, and user configs.
     """
-    configs: list[str | Path] = [
-        _ETC / "base.yaml",
-        _ETC / "workflow" / "rocoto" / "base.yaml",
-        _PLATFORM / f"{platform}.yaml",
-        *user_config_files,
-    ]
-    return compose_to_dict(configs, realize=True)
+    with NamedTemporaryFile(delete=True) as reserved:
+        assert isinstance(reserved, Path)
+        YAMLConfig({"app": {"home": str(_HOMEDIR), "platform": platform}}).dump(reserved)
+        configs: list[str | Path] = [
+            _ETCDIR / "base.yaml",
+            _ETCDIR / "workflow" / "rocoto" / "base.yaml",
+            _PLATFORMDIR / f"{platform}.yaml",
+            *user_config_files,
+            reserved,
+        ]
+        return compose_to_dict(configs, realize=True)
 
 
 def main() -> None:
@@ -38,7 +43,6 @@ def main() -> None:
     use_uwtools_logger()
     args = parse_args()
     config = compose_configs(args.platform, args.user_config_files)
-    config["app"].update({"home": str(_HOME), "platform": args.platform})
     validate({"app": config["app"]})
     set_up_rundir(args.platform, config)
 
@@ -47,7 +51,7 @@ def parse_args() -> argparse.Namespace:
     """
     Parse command-line arguments.
     """
-    platforms = [x.with_suffix("").name for x in _PLATFORM.glob("*.yaml")]
+    platforms = [x.with_suffix("").name for x in _PLATFORMDIR.glob("*.yaml")]
     parser = argparse.ArgumentParser(description="Configure AIGFS.")
     parser.add_argument(
         "platform",

@@ -6,19 +6,25 @@ from pytest import raises
 from aigfs import setup
 
 
-def test_setup_compose_configs():
+def test_setup_compose_configs(tmp_path):
     platform = "jet"
     user_config_files = [Path("/path/to/a.yaml")]
-    with patch.object(setup, "compose_to_dict") as compose_to_dict:
+    with (
+        patch.object(setup, "compose_to_dict") as compose_to_dict,
+        patch.object(setup, "NamedTemporaryFile") as NamedTempoaryFile,
+    ):
         compose_to_dict.return_value = {"app": {"rundir": "/some/path"}}
+        reserved = tmp_path / "reserved.yaml"
+        NamedTempoaryFile().__enter__.return_value = reserved
         result = setup.compose_configs(platform, user_config_files)
     assert result == {"app": {"rundir": "/some/path"}}
     compose_to_dict.assert_called_once_with(
         [
-            setup._ETC / "base.yaml",
-            setup._ETC / "workflow" / "rocoto" / "base.yaml",
-            setup._PLATFORM / "jet.yaml",
+            setup._ETCDIR / "base.yaml",
+            setup._ETCDIR / "workflow" / "rocoto" / "base.yaml",
+            setup._PLATFORMDIR / "jet.yaml",
             Path("/path/to/a.yaml"),
+            reserved,
         ],
         realize=True,
     )
@@ -37,13 +43,13 @@ def test_setup_main():
         setup.main()
         parse_args.assert_called_once_with()
         compose_configs.assert_called_once_with("jet", [Path("/path/to/a.yaml")])
-        config = {"app": {"key": "val", "home": str(setup._HOME), "platform": "jet"}}
+        config = {"app": {"key": "val"}}
         validate.assert_called_once_with(config)
         set_up_rundir.assert_called_once_with("jet", config)
 
 
 def test_setup_parse_args():
-    with patch.object(setup, "_PLATFORM") as mock_platform:
+    with patch.object(setup, "_PLATFORMDIR") as mock_platform:
         mock_platform.glob.return_value = [Path("jet.yaml")]
         with patch("sys.argv", ["prog", "jet", "/path/to/a.yaml", "/path/to/b.yaml"]):
             result = setup.parse_args()
