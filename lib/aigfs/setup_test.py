@@ -2,6 +2,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from pytest import raises
+from uwtools.api.config import YAMLConfig
 
 from aigfs import setup
 
@@ -14,9 +15,9 @@ def test_setup_compose_configs(tmp_path):
         patch.object(setup, "NamedTemporaryFile") as NamedTemporaryFile,
     ):
         compose_to_dict.return_value = {"app": {"rundir": "/some/path"}}
-        reserved = tmp_path / "reserved.yaml"
+        reserved_path = tmp_path / "reserved.yaml"
         tmp = Mock()
-        tmp.name = str(reserved)
+        tmp.name = str(reserved_path)
         NamedTemporaryFile().__enter__.return_value = tmp
         result = setup.compose_configs(platform, user_config_files)
     assert result == {"app": {"rundir": "/some/path"}}
@@ -26,10 +27,11 @@ def test_setup_compose_configs(tmp_path):
             setup._ETCDIR / "workflow" / "rocoto" / "base.yaml",
             setup._PLATFORMDIR / "jet.yaml",
             Path("/path/to/a.yaml"),
-            reserved,
+            reserved_path,
         ],
         realize=True,
     )
+    assert YAMLConfig(reserved_path) == {"app": {"home": str(setup._HOMEDIR), "platform": "jet"}}
 
 
 def test_setup_main():
