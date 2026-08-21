@@ -56,7 +56,7 @@ workflow:
             task: prep
     metatask_post:
       var:
-        fhr: '{% for h in range(0, forecast.aigfs_inference.forecast_length + 1, forecast.aigfs_inference.forecast_freq) %}{{ " %03d" % h }}{% endfor %}'
+        fhr: '{% for x in range(0, forecast.aigfs_inference.forecast_length + 1, forecast.aigfs_inference.forecast_freq) %}{{"%03d" | format(x)}}{% if not loop.last %} {% endif %}{% endfor %}'
       task_post_#fhr#:
         account: '{{ platform.account }}'
         attrs:
