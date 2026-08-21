@@ -44,3 +44,5 @@ workflow:
     metatask_post:
       task_post_#fhr#:
         partition: "{{ app.platform.partition.task }}"
+    task_all:
+      partition: "{{ app.platform.partition.task }}"
