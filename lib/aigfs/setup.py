@@ -38,7 +38,7 @@ def main() -> None:
     use_uwtools_logger()
     args = parse_args()
     config = compose_configs(args.platform, args.user_config_files)
-    config["app"].update({"home": _HOME, "platform": args.platform})
+    config["app"].update({"home": str(_HOME), "platform": args.platform})
     validate({"app": config["app"]})
     set_up_rundir(args.platform, config)
 

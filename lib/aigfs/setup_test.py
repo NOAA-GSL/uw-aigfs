@@ -37,7 +37,7 @@ def test_setup_main():
         setup.main()
         parse_args.assert_called_once_with()
         compose_configs.assert_called_once_with("jet", [Path("/path/to/a.yaml")])
-        config = {"app": {"key": "val", "home": setup._HOME, "platform": "jet"}}
+        config = {"app": {"key": "val", "home": str(setup._HOME), "platform": "jet"}}
         validate.assert_called_once_with(config)
         set_up_rundir.assert_called_once_with("jet", config)
 
