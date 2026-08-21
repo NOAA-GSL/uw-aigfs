@@ -2,10 +2,13 @@
 Support for validating AIGFS configurations.
 """
 
+import logging
+import sys
 from datetime import datetime, timedelta
 from pathlib import Path
+from pprint import pformat
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, ValidationError, model_validator
 
 
 class App(BaseModel):
@@ -41,4 +44,10 @@ def validate(config: dict[str, object]) -> Config:
     """
     Validate a config.
     """
-    return Config.model_validate(config)
+    try:
+        return Config.model_validate(config)
+    except ValidationError as e:
+        lines = pformat(e.errors()).split("\n")
+        for line in lines:
+            logging.error(line)
+        sys.exit(1)

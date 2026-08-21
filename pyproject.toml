@@ -52,6 +52,7 @@ ignore = [
   "S101",    # assert
   "S603",    # subprocess-without-shell-equals-true
   "TC006",   # runtime-cast-value
+  "TRY400",  # error-instead-of-exception
   "UP031",   # printf-string-formatting
 ]
 

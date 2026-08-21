@@ -39,3 +39,11 @@ def test_validation_App_fail(kwargs, utc):
 
 def test_validation_validate(app):
     assert validation.validate(config=dict(app=app))
+
+
+def test_validation_validate_fail(kwargs, logcap):
+    del kwargs["rundir"]
+    with raises(SystemExit) as e:
+        validation.validate({"app": kwargs})
+    assert e.value.code == 1
+    assert "'loc': ('app', 'rundir')" in logcap.text
