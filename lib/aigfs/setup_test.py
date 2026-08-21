@@ -11,13 +11,13 @@ def test_setup_compose_configs(tmp_path):
     user_config_files = [Path("/path/to/a.yaml")]
     with (
         patch.object(setup, "compose_to_dict") as compose_to_dict,
-        patch.object(setup, "NamedTemporaryFile") as NamedTempoaryFile,
+        patch.object(setup, "NamedTemporaryFile") as NamedTemporaryFile,
     ):
         compose_to_dict.return_value = {"app": {"rundir": "/some/path"}}
         reserved = tmp_path / "reserved.yaml"
         tmp = Mock()
         tmp.name = str(reserved)
-        NamedTempoaryFile().__enter__.return_value = tmp
+        NamedTemporaryFile().__enter__.return_value = tmp
         result = setup.compose_configs(platform, user_config_files)
     assert result == {"app": {"rundir": "/some/path"}}
     compose_to_dict.assert_called_once_with(
