@@ -165,7 +165,13 @@ With the environment activated (see [Installing](#installing)), and in the repos
 setup platform [additional.yaml ...] user.yaml
 ```
 
-Multiple YAML files may be provided; later files take precedence over earlier ones. The `setup` script `etc/base.yaml` and `etc/platform/<platform>.yaml`) before applying your user configs.
+Multiple YAML files may be provided; later files take precedence over earlier ones. The `setup` script merges, in order:
+
+#. `etc/base.yaml`
+#. The base workflow-engine config `etc/workflow/<engine>/base.yaml`
+#. The platform config `etc/platform/<platform>.yaml`
+3. A config inserting `app.home` and `app.platform` values
+#. The specified user configs
 
 The following files are written to `app.rundir`:
 
