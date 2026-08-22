@@ -127,10 +127,10 @@ app:
   model_dir: /path/to/aigfs/model/files
   platform:
     name: ursa
-    scheduler: slurm
+    scheduler:
+      account: account-name
+      name: slurm
   rundir: /path/to/your/run/directory
-platform:
-  account: your_hpc_account
 user:
   gfs_data: /path/to/gfs/data
 ```
@@ -174,7 +174,7 @@ Multiple YAML files may be provided; later files take precedence over earlier on
 1. `etc/base.yaml`
 1. The base workflow-engine config `etc/workflow/<engine>/base.yaml`
 1. The platform config `etc/platform/<platform>.yaml`
-1. A config inserting `app.home` and `app.platform` values
+1. A config inserting `app.home` and `app.platform.name` values
 1. The specified user configs
 
 The following files are written to `app.rundir`:

@@ -23,7 +23,7 @@ def kwargs(tmp_path, utc):
             partition=validation.Partition(
                 compute="p-compute", netaccess="p-netaccess", task="p-task"
             ),
-            scheduler="slurm",
+            scheduler=validation.Scheduler(account="me", name="slurm"),
         ),
         rundir=tmp_path,
     )
@@ -54,7 +54,7 @@ def test_validation_Platform_with_partition():
         partition=validation.Partition(
             compute="u1-compute", task="u1-service", netaccess="u1-service"
         ),
-        scheduler="slurm",
+        scheduler=validation.Scheduler(account="me", name="slurm"),
     )
     assert p.partition is not None
     assert p.partition.compute == "u1-compute"

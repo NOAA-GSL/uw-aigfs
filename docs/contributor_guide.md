@@ -228,7 +228,7 @@ $ make deploy playbook=rtaigfs-ursa
 
 ### Developer Testing Procedure
 
-The `rtaigfs` Ansible playbook is configured to install the crontab only for the production user, so developers can follow the procedure above to obtain an application directory, after which they can run `rtaigfs/bin/rtaigfs` iteratively to execute the workflow. Before iterating the workflow, they should verify that settings in `rtaigfs/rtaigfs.yaml` are appropriate -- especially e.g. that the batch-system `account` value is correct -- and edit as needed.
+The `rtaigfs` Ansible playbook is configured to install the crontab only for the production user, so developers can follow the procedure above to obtain an application directory, after which they can run `rtaigfs/bin/rtaigfs` iteratively to execute the workflow. Before iterating the workflow, they should verify that settings in `rtaigfs/rtaigfs.yaml` are appropriate -- especially e.g. that the `app.platform.scheduler.account` value is correct -- and edit as needed.
 
 ### Application Directory Layout
 

@@ -7,7 +7,6 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from pprint import pformat
-from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
 
@@ -20,9 +19,23 @@ class Partition(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
+
     compute: str | None = None
     netaccess: str | None = None
     task: str | None = None
+
+
+class Scheduler(BaseModel):
+    """
+    Model for the `app.platform.scheduler:` block.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    account: str | None = None
+    name: str
+
+    # PM validate name here, borrowing/sharing code from CLI.
 
 
 class Platform(BaseModel):
@@ -31,9 +44,10 @@ class Platform(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
-    name: str  # PM determine from etc/platform like in CLI (factor code out?)
+
+    name: str
     partition: Partition | None = None
-    scheduler: Literal["pbs", "slurm"]
+    scheduler: Scheduler
 
 
 class App(BaseModel):
@@ -42,6 +56,7 @@ class App(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
+
     cycle_freq: timedelta
     first_cycle: datetime
     home: Path
@@ -64,6 +79,7 @@ class Config(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
+
     app: App
     forecast: dict
     post: dict
