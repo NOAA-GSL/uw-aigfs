@@ -82,6 +82,14 @@ def test_validation_Platform(args_platform):
     assert validation.Platform(**args_platform)
 
 
+def test_validation_Platform_bad_name(args_platform, with_set):
+    with raises(ValidationError) as e:
+        validation.Platform(**with_set(args_platform, "foo", "name"))
+    assert e.value.error_count() == 1
+    msg = "Platform name must be one of"
+    assert msg in e.value.errors()[0]["msg"]
+
+
 def test_validation_App(args_app, with_del):
     obj = validation.App(**args_app)
     for key in obj.model_dump():
