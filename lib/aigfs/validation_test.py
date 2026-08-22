@@ -7,12 +7,12 @@ from aigfs import validation
 
 
 @fixture
-def app(kwargs):
-    return validation.App(**kwargs)
+def app(args_app):
+    return validation.App(**args_app)
 
 
 @fixture
-def kwargs(tmp_path, utc):
+def args_app(tmp_path, utc):
     return dict(
         cycle_freq=timedelta(hours=1),
         first_cycle=utc(2026, 1, 1, 0),
@@ -68,21 +68,29 @@ def test_validation_Scheduler_bad_type():
     assert msg in e.value.errors()[0]["msg"]
 
 
-def test_validation_App(kwargs):
-    assert validation.App(**kwargs)
+# def test_validation_Platform():
+#     obj = validation.Platform(
+#         name="ursa",
+#         partition=validation.Partition(),
+#         scheduler=validation.Scheduler(),
+#     )
 
 
-def test_validation_App_fail(kwargs, utc):
-    kwargs["last_cycle"] = utc(1970, 1, 1, 0)
+def test_validation_App(args_app):
+    assert validation.App(**args_app)
+
+
+def test_validation_App_fail(args_app, utc):
+    args_app["last_cycle"] = utc(1970, 1, 1, 0)
     with raises(ValueError, match="last_cycle cannot precede first_cycle"):
-        validation.App(**kwargs)
+        validation.App(**args_app)
 
 
 def test_validation_Config(app):
-    kwargs = dict(app=app, forecast={}, post={}, prep={}, timevars={})
-    assert validation.Config(**kwargs)
-    kwargs["user"] = {}
-    assert validation.Config(**kwargs)
+    args_app = dict(app=app, forecast={}, post={}, prep={}, timevars={})
+    assert validation.Config(**args_app)
+    args_app["user"] = {}
+    assert validation.Config(**args_app)
 
 
 def test_validation_validate(app):
@@ -92,10 +100,10 @@ def test_validation_validate(app):
     assert validation.validate(config=config)
 
 
-def test_validation_validate_fail(kwargs, logcap):
-    del kwargs["rundir"]
+def test_validation_validate_fail(args_app, logcap):
+    del args_app["rundir"]
     with raises(SystemExit) as e:
-        validation.validate({"app": kwargs})
+        validation.validate({"app": args_app})
     assert e.value.code == 1
     assert "Config validation failed:" in logcap.text
     assert "'loc': ('app', 'rundir')" in logcap.text

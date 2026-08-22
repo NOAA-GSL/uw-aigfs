@@ -56,6 +56,8 @@ class Platform(BaseModel):
     partition: Partition | None = None
     scheduler: Scheduler
 
+    # PM CHECK PLATFORM NAME
+
 
 class App(BaseModel):
     """
