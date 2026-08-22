@@ -11,5 +11,5 @@ PLATFORMDIR = ETCDIR / "platform"
 
 
 @cache
-def platforms():
+def platforms() -> list[str]:
     return [x.with_suffix("").name for x in PLATFORMDIR.glob("*.yaml")]
