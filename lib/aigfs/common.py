@@ -12,4 +12,4 @@ PLATFORMDIR = ETCDIR / "platform"
 
 @cache
 def platforms() -> list[str]:
-    return [x.with_suffix("").name for x in PLATFORMDIR.glob("*.yaml")]
+    return sorted(x.with_suffix("").name for x in PLATFORMDIR.glob("*.yaml"))
