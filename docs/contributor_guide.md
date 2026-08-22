@@ -1,4 +1,3 @@
-
 # Contributor Guide
 
 [← Back to Index](index.md)
