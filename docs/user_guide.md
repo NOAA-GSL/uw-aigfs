@@ -218,7 +218,7 @@ The ***uwtools*** package provides a tool to help iterate through the entire wor
 
 The `task_prep` ***Rocoto*** task runs `aigfs.drivers.ics` (driver class `AIGFSICs`). It:
 
-1. Hard-links GFS GRIB2 files from `user.gfs_data` into the cycle's `prep/data/` subdirectory. The files required are:
+1. Stages GFS GRIB2 into the cycle's `prep/data/` subdirectory. The files required are:
    - Two timesteps from the previous two cycles (for temporal interpolation)
    - The analysis and short-range forecast from the current cycle
 2. Runs `wgrib2` commands (defined by `etc/wgrib2.yaml`) to extract meteorological variables at the required pressure levels into individual netCDF files.
