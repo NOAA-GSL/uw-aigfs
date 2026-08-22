@@ -43,8 +43,6 @@ class Scheduler(BaseModel):
     account: str | None = None
     type: str
 
-    # PM validate name here, borrowing/sharing code from CLI.
-
 
 class Platform(BaseModel):
     """

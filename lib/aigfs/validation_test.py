@@ -39,13 +39,12 @@ def kwargs(tmp_path, utc):
 @mark.parametrize("netaccess", ["b", None])
 @mark.parametrize("task", ["c", None])
 def test_validation_Partition(compute, netaccess, task):
-    partitions = [compute, netaccess, task]
-    if any(partitions):
+    if any([compute, netaccess, task]):
         obj = validation.Partition(compute=compute, netaccess=netaccess, task=task)
         mapping = {compute: obj.compute, netaccess: obj.netaccess, task: obj.task}.items()
         for expected, actual in mapping:
             assert expected == actual
-    else:
+    else:  # if no partitions are specified
         with raises(ValidationError) as e:
             validation.Partition(compute=compute, netaccess=netaccess, task=task)
         assert e.value.error_count() == 1
