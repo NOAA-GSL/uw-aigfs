@@ -21,7 +21,7 @@ def args_app(args_platform, tmp_path, utc):
 
 @fixture
 def args_config(args_app):
-    return dict(app=args_app, forecast={}, post={}, prep={}, timevars={})
+    return dict(app=args_app, forecast={}, post={}, prep={}, timevars={}, user={})
 
 
 @fixture
@@ -82,9 +82,13 @@ def test_validation_Platform(args_platform):
     assert validation.Platform(**args_platform)
 
 
-def test_validation_App(args_app):
-    assert validation.App(**args_app)
-    # PM missing stuff, too?
+def test_validation_App(args_app, with_del):
+    obj = validation.App(**args_app)
+    for key in obj.model_dump():
+        with raises(ValidationError) as e:
+            validation.App(**with_del(args_app, key))
+        assert e.value.error_count() == 1
+        assert e.value.errors()[0]["type"] == "missing"
 
 
 def test_validation_App_fail(args_app, utc):
@@ -93,10 +97,12 @@ def test_validation_App_fail(args_app, utc):
         validation.App(**args_app)
 
 
-def test_validation_Config(args_config, with_set):
+def test_validation_Config(args_config, with_del):
     assert validation.Config(**args_config)
-    assert validation.Config(**with_set(args_config, {}, "user"))
-    # PM missing stuff, too?
+    obj = validation.Config(**with_del(args_config, "user"))
+    for key in obj.model_dump():
+        with raises(ValidationError):
+            validation.App(**with_del(args_config, key))
 
 
 def test_validation_validate(args_config, with_set):
