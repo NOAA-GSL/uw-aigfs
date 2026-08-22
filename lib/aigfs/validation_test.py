@@ -12,26 +12,36 @@ def app(args_app):
 
 
 @fixture
-def args_app(tmp_path, utc):
+def args_app(args_platform, tmp_path, utc):
     return dict(
         cycle_freq=timedelta(hours=1),
         first_cycle=utc(2026, 1, 1, 0),
         home=tmp_path,
         last_cycle=utc(2026, 1, 31, 23),
         modeldir=tmp_path,
-        platform=validation.Platform(
-            name="jet",
-            partition=validation.Partition(
-                compute="p-compute",
-                netaccess="p-netaccess",
-                task="p-task",
-            ),
-            scheduler=validation.Scheduler(
-                account="me",
-                type="slurm",
-            ),
-        ),
+        platform=validation.Platform(**args_platform),
         rundir=tmp_path,
+    )
+
+
+@fixture
+def args_partition():
+    return dict(
+        compute="p-compute",
+        netaccess="p-netaccess",
+        task="p-task",
+    )
+
+
+@fixture
+def args_platform(args_partition):
+    return dict(
+        name="jet",
+        partition=validation.Partition(**args_partition),
+        scheduler=validation.Scheduler(
+            account="me",
+            type="slurm",
+        ),
     )
 
 
