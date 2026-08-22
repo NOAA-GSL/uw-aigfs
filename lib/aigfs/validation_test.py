@@ -27,7 +27,7 @@ def kwargs(tmp_path, utc):
             ),
             scheduler=validation.Scheduler(
                 account="me",
-                name="slurm",
+                type="slurm",
             ),
         ),
         rundir=tmp_path,
@@ -48,11 +48,6 @@ def test_validation_Partition_partial():  # PM test all combinations
     assert p.netaccess is None
 
 
-# def test_validation_Platform_minimal():
-#     p = validation.Platform(name="ursa")
-#     assert p.partition is None
-
-
 def test_validation_Platform_with_partition():
     p = validation.Platform(
         name="ursa",
@@ -63,7 +58,7 @@ def test_validation_Platform_with_partition():
         ),
         scheduler=validation.Scheduler(
             account="me",
-            name="slurm",
+            type="slurm",
         ),
     )
     assert p.partition is not None

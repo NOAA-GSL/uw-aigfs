@@ -33,7 +33,7 @@ class Scheduler(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     account: str | None = None
-    name: str
+    type: str
 
     # PM validate name here, borrowing/sharing code from CLI.
 

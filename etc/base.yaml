@@ -38,7 +38,7 @@ forecast:
     stddev_path: '{{ app.modeldir }}/stats/stddev_by_level.nc'
   platform:
     account: '{{ app.platform.scheduler.account }}'
-    scheduler: '{{ app.platform.scheduler.name }}'
+    scheduler: '{{ app.platform.scheduler.type }}'
 post:
   aigfs_post:
     execution:
@@ -60,7 +60,7 @@ post:
     rundir: '{{ app.rundir }}/{{ timevars.yyyymmddhh }}/post_{{ timevars.fff }}'
   platform:
     account: '{{ app.platform.scheduler.account }}'
-    scheduler: '{{ app.platform.scheduler.name }}'
+    scheduler: '{{ app.platform.scheduler.type }}'
 prep:
   aigfs_ics:
     execution:
@@ -78,7 +78,7 @@ prep:
     variable_extraction_yaml: '{{ app.home }}/etc/wgrib2.yaml'
   platform:
     account: '{{ app.platform.scheduler.account }}'
-    scheduler: '{{ app.platform.scheduler.name }}'
+    scheduler: '{{ app.platform.scheduler.type }}'
 timevars:
   cyc: '{{ cycle.strftime("%H") }}'
   fff: '{{ "%03d" % (leadtime.total_seconds() // 3600) }}'
