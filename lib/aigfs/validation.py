@@ -24,6 +24,14 @@ class Partition(BaseModel):
     netaccess: str | None = None
     task: str | None = None
 
+    @model_validator(mode="after")
+    def at_least_one(self) -> "Partition":
+        model = self.model_dump()
+        if not any(model.values()):
+            msg = "Specify at least one partition name (%s)" % ", ".join(model.keys())
+            raise ValueError(msg)
+        return self
+
 
 class Scheduler(BaseModel):
     """

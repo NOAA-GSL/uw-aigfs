@@ -1,6 +1,7 @@
 from datetime import timedelta
 
-from pytest import fixture, raises
+from pydantic import ValidationError
+from pytest import fixture, mark, raises
 
 from aigfs import validation
 
@@ -34,35 +35,22 @@ def kwargs(tmp_path, utc):
     )
 
 
-def test_validation_Partition_all_none():  # PM at least one entry should be required
-    p = validation.Partition()
-    assert p.compute is None
-    assert p.task is None
-    assert p.netaccess is None
-
-
-def test_validation_Partition_partial():  # PM test all combinations
-    p = validation.Partition(compute="u1-compute")
-    assert p.compute == "u1-compute"
-    assert p.task is None
-    assert p.netaccess is None
-
-
-def test_validation_Platform_with_partition():
-    p = validation.Platform(
-        name="ursa",
-        partition=validation.Partition(
-            compute="u1-compute",
-            task="u1-service",
-            netaccess="u1-service",
-        ),
-        scheduler=validation.Scheduler(
-            account="me",
-            type="slurm",
-        ),
-    )
-    assert p.partition is not None
-    assert p.partition.compute == "u1-compute"
+@mark.parametrize("compute", ["a", None])
+@mark.parametrize("netaccess", ["b", None])
+@mark.parametrize("task", ["c", None])
+def test_validation_Partition(compute, netaccess, task):
+    partitions = [compute, netaccess, task]
+    if any(partitions):
+        obj = validation.Partition(compute=compute, netaccess=netaccess, task=task)
+        mapping = {compute: obj.compute, netaccess: obj.netaccess, task: obj.task}.items()
+        for expected, actual in mapping:
+            assert expected == actual
+    else:
+        with raises(ValidationError) as e:
+            validation.Partition(compute=compute, netaccess=netaccess, task=task)
+        assert e.value.error_count() == 1
+        msg = "Specify at least one partition name (compute, netaccess, task)"
+        assert msg in e.value.errors()[0]["msg"]
 
 
 def test_validation_App(kwargs):
