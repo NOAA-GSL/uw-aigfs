@@ -82,13 +82,6 @@ def test_validation_Platform(args_platform):
     assert validation.Platform(**args_platform)
 
 
-#     obj = validation.Platform(
-#         name="ursa",
-#         partition=validation.Partition(),
-#         scheduler=validation.Scheduler(),
-#     )
-
-
 def test_validation_App(args_app):
     assert validation.App(**args_app)
     # PM missing stuff, too?
@@ -100,17 +93,15 @@ def test_validation_App_fail(args_app, utc):
         validation.App(**args_app)
 
 
-def test_validation_Config(args_config):
+def test_validation_Config(args_config, with_set):
     assert validation.Config(**args_config)
-    args_config["user"] = {}
-    assert validation.Config(**args_config)
+    assert validation.Config(**with_set(args_config, {}, "user"))
     # PM missing stuff, too?
 
 
-def test_validation_validate(args_config):
+def test_validation_validate(args_config, with_set):
     assert validation.validate(config=args_config)
-    args_config["user"] = {}
-    assert validation.validate(config=args_config)
+    assert validation.validate(config=with_set(args_config, {}, "user"))
 
 
 def test_validation_validate_fail(args_app, logcap):
