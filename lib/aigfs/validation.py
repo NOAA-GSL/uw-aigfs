@@ -95,6 +95,13 @@ class App(BaseModel):
     time: Time
 
     @model_validator(mode="after")
+    def cycle_freq_greater_than_zero(self) -> "App":
+        if self.cycle_freq.total_seconds() <= 0:
+            msg = "cycle_freq must be greater than 0"
+            raise ValueError(msg)
+        return self
+
+    @model_validator(mode="after")
     def first_and_last_cycle(self) -> "App":
         if self.last_cycle < self.first_cycle:
             msg = "last_cycle cannot precede first_cycle"

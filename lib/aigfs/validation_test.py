@@ -114,7 +114,14 @@ def test_validation_App(args_app, with_del):
         assert e.value.errors()[0]["type"] == "missing"
 
 
-def test_validation_App_fail(args_app, utc):
+@mark.parametrize("hours", [0, -1])
+def test_validation_App_bad_cycle_freq(args_app, hours):
+    args_app["cycle_freq"] = timedelta(hours=hours)
+    with raises(ValueError, match="cycle_freq must be greater than 0"):
+        validation.App(**args_app)
+
+
+def test_validation_App_bad_first_vs_last_cycle(args_app, utc):
     args_app["last_cycle"] = utc(1970, 1, 1, 0)
     with raises(ValueError, match="last_cycle cannot precede first_cycle"):
         validation.App(**args_app)
