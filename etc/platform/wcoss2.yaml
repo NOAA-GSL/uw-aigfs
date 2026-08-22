@@ -43,9 +43,9 @@ user:
 # runtime — no manual substitution needed.
 #
 # GFS data note: WCOSS2 ops GFS files live at
-#   /lfs/h1/ops/prod/com/gfs/v16.3/gfs.YYYYMMDD/HH/atmos/gfs.tHHz.pgrb2.0p25.fFFF
+#   /lfs/h1/ops/prod/com/gfs/v16.3/gfs.<yyyymmdd>/<hh>/atmos/gfs.t<hh>z.pgrb2.0p25.f<fff>
 # user.gfs_data holds the versioned COMROOT base; files_to_hardlink paths include the
-# gfs.YYYYMMDD/HH/atmos/ subdirectory nesting to match the ops structure.
+# gfs.<yyyymmdd>/<hh>/atmos/ subdirectory nesting to match the ops structure.
 # Both v16.2 and v16.3 exist on WCOSS2; v16.3 is the current operational version.
 #
 # The fix/ directory (~150 GB) must be staged in the repo clone before the first run.

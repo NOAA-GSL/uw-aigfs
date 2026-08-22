@@ -1,8 +1,9 @@
+
 # Contributor Guide
 
 [← Back to Index](index.md)
 
-Welcome to the ***uw-aigfs*** Contributor Guide. Please familiarize yourself with and follow the procedures in the sections below before submitting changes.
+Welcome to the `uw-aigfs` Contributor Guide. Please familiarize yourself with and follow the procedures in the sections below before submitting changes.
 
 > **Note:** Before starting work on a new feature, bug fix, or other change, please open an [Issue](https://github.com/NOAA-GSL/uw-aigfs/issues) to propose your change and solicit feedback from other developers. This helps avoid duplicate efforts or wasted work.
 
@@ -20,13 +21,11 @@ Welcome to the ***uw-aigfs*** Contributor Guide. Please familiarize yourself wit
 - [Repository Structure](#repository-structure)
 - [Deploying Realtime AIGFS on Ursa](#deploying-realtime-aigfs-on-ursa)
 
----
-
 ## Developer Setup
 
 > **Note:** The installation of conda environments is only meant for systems other than WCOSS2.
 
-***uw-aigfs*** installs and manages its own conda installation in the `conda/` subdirectory of the repository root. To set up a development environment, run:
+`uw-aigfs` installs and manages its own conda installation in the `conda/` subdirectory of the repository root. To set up a development environment, run:
 
 ```bash
 make devenv
@@ -43,8 +42,6 @@ source bin/activate-<platform>
 where `<platform>` is `ursa` or `wcoss2`, or `conda` on a developer workstation (see the [User Guide](user_guide.md#installing) for details).
 
 > **Note on disk space:** The conda installation requires several gigabytes of disk space. Clone `uw-aigfs` to a location with a sufficiently large disk quota — not your HPC home directory.
-
----
 
 ## Code Quality
 
@@ -67,7 +64,7 @@ A useful development idiom is:
 make format && make test
 ```
 
-This formats the code, then runs the linter and unit tests. The order is intentional:
+This formats the code, then runs the linter, typecheker, and the unit tests. The order is intentional:
 
 - **`format`** catches certain syntax errors that would cause other tools to fail (and could change line numbers in their reports).
 - **`lint`** provides a fast first check for obvious errors and anti-patterns.
@@ -130,8 +127,6 @@ If you have write access to the repository, you may merge your PR yourself once 
 
 Use the _Conversation_ tab of your PR to ask for help with any difficulties you encounter during the contribution process.
 
----
-
 ## Repository Structure
 
 ```
@@ -175,11 +170,11 @@ Additionally, each Python `.py` module is accompanied by a `_test.py` unit-test 
 
 ### Key Concepts
 
-**Drivers** (`drivers/`) implement [uwtools](https://uwtools.readthedocs.io/en/main/) driver classes using the [iotaa](https://github.com/maddenp/iotaa) task framework. Each driver exposes tasks (Python methods decorated with `@task`, `@collection`, or `@external`) that declare their inputs and outputs as `Asset` objects. The `uw execute` command (called from ***Rocoto*** job scripts) resolves and runs these tasks.
+**Drivers** (`drivers/`) implement [uwtools](https://uwtools.readthedocs.io/en/main/) driver classes using the [iotaa](https://github.com/maddenp/iotaa) task framework. Each driver exposes tasks (Python methods decorated with `@task`, `@collection`, or `@external`) that declare their inputs and outputs as `Asset` objects. The `uw execute` command (called from Rocoto job scripts) resolves and runs these tasks.
 
-**Configuration** follows the ***uwtools*** YAML model. `etc/base.yaml` is the baseline; it is merged with workflow and platform configs, then with any user-provided YAML configs by `bin/setup` using `uwtools.api.config.compose`. The resulting `aigfs.yaml` is the single source of truth at runtime.
+**Configuration** follows the `uwtools` YAML model. `etc/base.yaml` is the baseline; it is merged with workflow and platform configs, then with any user-provided YAML configs by `bin/setup` using `uwtools.api.config.compose`. The resulting `aigfs.yaml` is the single source of truth at runtime.
 
-**Workflow** is managed by [Rocoto](https://github.com/NOAA-GSL/rocoto). The `etc/workflow/rocoto/base.yaml` template is realized by ***uwtools*** to produce `rocoto.xml`. Task dependencies (prep → forecast → post) are expressed in that template.
+**Workflow** is managed by [Rocoto](https://github.com/NOAA-GSL/rocoto). The `etc/workflow/rocoto/base.yaml` template is realized by `uwtools` to produce `rocoto.xml`. Task dependencies (prep → forecast → post) are expressed in that template.
 
 When adding a new workflow stage, you will typically need to:
 
