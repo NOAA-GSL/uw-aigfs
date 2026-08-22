@@ -7,6 +7,7 @@ import sys
 from datetime import datetime, timedelta
 from pathlib import Path
 from pprint import pformat
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
 
@@ -41,7 +42,7 @@ class Scheduler(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     account: str | None = None
-    type: str
+    type: Literal["pbs", "slurm"]
 
 
 class Platform(BaseModel):

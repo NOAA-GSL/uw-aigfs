@@ -52,6 +52,22 @@ def test_validation_Partition(compute, netaccess, task):
         assert msg in e.value.errors()[0]["msg"]
 
 
+def test_validation_Scheduler():
+    for val in ["pbs", "slurm"]:
+        assert validation.Scheduler(type=val).type == val  # type: ignore[arg-type]
+    obj = validation.Scheduler(account="me", type="slurm")
+    assert obj.account == "me"
+    assert obj.type == "slurm"
+
+
+def test_validation_Scheduler_bad_type():
+    with raises(ValidationError) as e:
+        validation.Scheduler(type="foo")  # type: ignore[arg-type]
+    assert e.value.error_count() == 1
+    msg = "Input should be 'pbs' or 'slurm'"
+    assert msg in e.value.errors()[0]["msg"]
+
+
 def test_validation_App(kwargs):
     assert validation.App(**kwargs)
 
