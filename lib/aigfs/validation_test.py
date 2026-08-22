@@ -5,10 +5,6 @@ from pytest import fixture, mark, raises
 
 from aigfs import validation
 
-# @fixture
-# def app(args_app):
-#     return validation.App(**args_app)
-
 
 @fixture
 def args_app(args_platform, tmp_path, utc):
@@ -21,6 +17,11 @@ def args_app(args_platform, tmp_path, utc):
         platform=validation.Platform(**args_platform),
         rundir=tmp_path,
     )
+
+
+@fixture
+def args_config(args_app):
+    return dict(app=args_app, forecast={}, post={}, prep={}, timevars={})
 
 
 @fixture
@@ -45,7 +46,8 @@ def args_scheduler():
 @mark.parametrize("compute", ["a", None])
 @mark.parametrize("netaccess", ["b", None])
 @mark.parametrize("task", ["c", None])
-def test_validation_Partition(compute, netaccess, task):
+def test_validation_Partition(args_partition, compute, netaccess, task):
+    assert validation.Partition(**args_partition)
     if any([compute, netaccess, task]):
         obj = validation.Partition(compute=compute, netaccess=netaccess, task=task)
         mapping = {compute: obj.compute, netaccess: obj.netaccess, task: obj.task}.items()
@@ -59,7 +61,8 @@ def test_validation_Partition(compute, netaccess, task):
         assert msg in e.value.errors()[0]["msg"]
 
 
-def test_validation_Scheduler():
+def test_validation_Scheduler(args_scheduler):
+    assert validation.Scheduler(**args_scheduler)
     for val in ["pbs", "slurm"]:
         assert validation.Scheduler(type=val).type == val  # type: ignore[arg-type]
     obj = validation.Scheduler(account="me", type="slurm")
@@ -75,7 +78,10 @@ def test_validation_Scheduler_bad_type():
     assert msg in e.value.errors()[0]["msg"]
 
 
-# def test_validation_Platform():
+def test_validation_Platform(args_platform):
+    assert validation.Platform(**args_platform)
+
+
 #     obj = validation.Platform(
 #         name="ursa",
 #         partition=validation.Partition(),
@@ -85,6 +91,7 @@ def test_validation_Scheduler_bad_type():
 
 def test_validation_App(args_app):
     assert validation.App(**args_app)
+    # PM missing stuff, too?
 
 
 def test_validation_App_fail(args_app, utc):
@@ -93,18 +100,17 @@ def test_validation_App_fail(args_app, utc):
         validation.App(**args_app)
 
 
-def test_validation_Config(args_app):
-    config = dict(app=args_app, forecast={}, post={}, prep={}, timevars={})
-    assert validation.Config(**config)
-    config["user"] = {}
-    assert validation.Config(**config)
+def test_validation_Config(args_config):
+    assert validation.Config(**args_config)
+    args_config["user"] = {}
+    assert validation.Config(**args_config)
+    # PM missing stuff, too?
 
 
-def test_validation_validate(args_app):
-    config = dict(app=args_app, forecast={}, post={}, prep={}, timevars={})
-    assert validation.validate(config=config)
-    config["user"] = {}
-    assert validation.validate(config=config)
+def test_validation_validate(args_config):
+    assert validation.validate(config=args_config)
+    args_config["user"] = {}
+    assert validation.validate(config=args_config)
 
 
 def test_validation_validate_fail(args_app, logcap):
