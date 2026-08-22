@@ -40,7 +40,7 @@ def main() -> None:
     use_uwtools_logger()
     args = parse_args()
     config = compose_configs(args.platform, args.user_config_files)
-    validate({"app": config["app"]})
+    validate(config)
     set_up_rundir(config)
 
 

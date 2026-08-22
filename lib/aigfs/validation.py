@@ -114,6 +114,7 @@ class Config(BaseModel):
     post: dict
     prep: dict
     user: dict | None = None
+    workflow: dict | None = None
 
 
 # Public functions
