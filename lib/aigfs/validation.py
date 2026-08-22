@@ -11,6 +11,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, ValidationError, model_validator
 
+from aigfs.common import platforms
+
 # Validation classes
 
 
@@ -56,7 +58,12 @@ class Platform(BaseModel):
     partition: Partition | None = None
     scheduler: Scheduler
 
-    # PM CHECK PLATFORM NAME
+    @model_validator(mode="after")
+    def platform_name(self) -> "Platform":
+        if self.name not in platforms():
+            msg = "Platform name must be one of: %s" % ", ".join(platforms())
+            raise ValueError(msg)
+        return self
 
 
 class App(BaseModel):

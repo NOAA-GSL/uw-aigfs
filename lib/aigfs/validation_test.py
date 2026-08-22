@@ -32,7 +32,7 @@ def args_partition():
 @fixture
 def args_platform(args_partition, args_scheduler):
     return dict(
-        name="jet",
+        name="ursa",
         partition=validation.Partition(**args_partition),
         scheduler=validation.Scheduler(**args_scheduler),
     )
