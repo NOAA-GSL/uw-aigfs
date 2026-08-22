@@ -31,7 +31,7 @@ class Platform(BaseModel):
     """
 
     model_config = ConfigDict(extra="forbid")
-    name: str
+    name: str  # PM determine from etc/platform like in CLI (factor code out?)
     partition: Partition | None = None
     scheduler: Literal["pbs", "slurm"]
 

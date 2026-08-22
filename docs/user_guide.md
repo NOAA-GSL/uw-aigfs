@@ -111,7 +111,7 @@ Supported values for `<platform>`:
 | `timevars` | ***Jinja2*** template variables for date/time formatting used throughout the config.          |
 | `user`     | Free-form block for user-required constants, calculated values, etc. Not schema checked.      |
 
-The top-level `platform` block supplies scheduler and account settings. A platform-specific YAML in `etc/platform/` (e.g., `etc/platform/ursa.yaml`) is automatically merged based on the first argument to the `setup` script.
+The `app.platform` block supplies settings about the system on which AIGFS is running, including its batch scheduler type (`pbs` or `slurm`), an optional `account` value, and optional names of paritions to use for different purposes. An `app.platform.name` value is injected by the `setup` script, and is used to merge a platform-specific YAML config from `etc/platform/` (e.g., `etc/platform/ursa.yaml`) into the final AIGFS config.
 
 ### User Config YAML
 
@@ -121,10 +121,13 @@ You can override any default values by providing one or more user YAML files. Th
 
 ```yaml
 app:
+  cycle_freq: !timedelta 6
   first_cycle: !datetime 2025-10-21T00
   last_cycle: !datetime 2025-10-21T00
+  model_dir: /path/to/aigfs/model/files
   platform:
     name: ursa
+    scheduler: slurm
   rundir: /path/to/your/run/directory
 platform:
   account: your_hpc_account

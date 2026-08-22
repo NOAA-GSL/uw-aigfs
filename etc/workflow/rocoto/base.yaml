@@ -1,7 +1,7 @@
 workflow:
   attrs:
     realtime: False
-    scheduler: '{{ platform.scheduler }}'
+    scheduler: '{{ app.platform.scheduler }}'
   cycledef:
     - attrs:
         group: forecast

@@ -10,7 +10,7 @@ app:
   #     compute: partition for CPU-heavy work # optional
   #     netaccesss: partition with internet   # optional
   #     task: parition for short/small jobs   # optional
-  #   scheduler: pbs or slurm                 # required
+  #   scheduler: pbs or slurm                 # injected by platform config
   # rundir: /path/to/root/of/run/directories  # required
 forecast:
   aigfs_inference:
@@ -36,7 +36,7 @@ forecast:
     stddev_path: '{{ app.modeldir }}/stats/stddev_by_level.nc'
   platform:
     account: '{{ platform.account }}'
-    scheduler: '{{ platform.scheduler }}'
+    scheduler: '{{ app.platform.scheduler }}'
 post:
   aigfs_post:
     execution:
@@ -58,7 +58,7 @@ post:
     rundir: '{{ app.rundir }}/{{ timevars.yyyymmddhh }}/post_{{ timevars.fff }}'
   platform:
     account: '{{ platform.account }}'
-    scheduler: '{{ platform.scheduler }}'
+    scheduler: '{{ app.platform.scheduler }}'
 prep:
   aigfs_ics:
     execution:
@@ -76,7 +76,7 @@ prep:
     variable_extraction_yaml: '{{ app.home }}/etc/wgrib2.yaml'
   platform:
     account: '{{ platform.account }}'
-    scheduler: '{{ platform.scheduler }}'
+    scheduler: '{{ app.platform.scheduler }}'
 timevars:
   cyc: '{{ cycle.strftime("%H") }}'
   fff: '{{ "%03d" % (leadtime.total_seconds() // 3600) }}'
