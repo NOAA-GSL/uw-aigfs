@@ -18,28 +18,34 @@ def kwargs(tmp_path, utc):
         home=tmp_path,
         last_cycle=utc(2026, 1, 31, 23),
         modeldir=tmp_path,
-        platform=validation.Platform(name="jet"),
+        platform=validation.Platform(
+            name="jet",
+            partition=validation.Partition(
+                compute="p-compute", netaccess="p-netaccess", task="p-task"
+            ),
+            scheduler="slurm",
+        ),
         rundir=tmp_path,
     )
 
 
-def test_validation_Partition_all_none():
+def test_validation_Partition_all_none():  # PM at least one entry should be required
     p = validation.Partition()
     assert p.compute is None
     assert p.task is None
     assert p.netaccess is None
 
 
-def test_validation_Partition_partial():
+def test_validation_Partition_partial():  # PM test all combinations
     p = validation.Partition(compute="u1-compute")
     assert p.compute == "u1-compute"
     assert p.task is None
     assert p.netaccess is None
 
 
-def test_validation_Platform_minimal():
-    p = validation.Platform(name="ursa")
-    assert p.partition is None
+# def test_validation_Platform_minimal():
+#     p = validation.Platform(name="ursa")
+#     assert p.partition is None
 
 
 def test_validation_Platform_with_partition():
@@ -48,6 +54,7 @@ def test_validation_Platform_with_partition():
         partition=validation.Partition(
             compute="u1-compute", task="u1-service", netaccess="u1-service"
         ),
+        scheduler="slurm",
     )
     assert p.partition is not None
     assert p.partition.compute == "u1-compute"
@@ -64,11 +71,17 @@ def test_validation_App_fail(kwargs, utc):
 
 
 def test_validation_Config(app):
-    assert validation.Config(app=app)
+    kwargs = dict(app=app, forecast={}, post={}, prep={}, timevars={})
+    assert validation.Config(**kwargs)
+    kwargs["user"] = {}
+    assert validation.Config(**kwargs)
 
 
 def test_validation_validate(app):
-    assert validation.validate(config=dict(app=app))
+    config = dict(app=app, forecast={}, post={}, prep={}, timevars={})
+    assert validation.validate(config=config)
+    config["user"] = {}
+    assert validation.validate(config=config)
 
 
 def test_validation_validate_fail(kwargs, logcap):

@@ -1,6 +1,9 @@
 app:
   home: /lfs/h2/emc/noscrub/{{ 'USER' | env }}/aigfs
   modeldir: '{{ app.home }}/fix'
+  platform:
+    name: wcoss2
+    scheduler: pbs
   rundir: /lfs/h2/emc/stmp/{{ 'USER' | env }}/aigfs/run
 forecast:
   aigfs_inference:
@@ -8,8 +11,6 @@ forecast:
       envcmds:
         - module load workflow-wcoss2
     model_weights_path: '{{ app.modeldir }}/params/weights.npz'
-platform:
-  scheduler: pbs
 post:
   aigfs_post:
     execution:
