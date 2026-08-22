@@ -26,23 +26,21 @@ def args_app(args_platform, tmp_path, utc):
 
 @fixture
 def args_partition():
+    return dict(compute="p-compute", netaccess="p-netaccess", task="p-task")
+
+
+@fixture
+def args_platform(args_partition, args_scheduler):
     return dict(
-        compute="p-compute",
-        netaccess="p-netaccess",
-        task="p-task",
+        name="jet",
+        partition=validation.Partition(**args_partition),
+        scheduler=validation.Scheduler(**args_scheduler),
     )
 
 
 @fixture
-def args_platform(args_partition):
-    return dict(
-        name="jet",
-        partition=validation.Partition(**args_partition),
-        scheduler=validation.Scheduler(
-            account="me",
-            type="slurm",
-        ),
-    )
+def args_scheduler():
+    return dict(account="me", type="slurm")
 
 
 @mark.parametrize("compute", ["a", None])
