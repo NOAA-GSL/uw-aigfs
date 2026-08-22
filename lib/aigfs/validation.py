@@ -66,6 +66,18 @@ class Platform(BaseModel):
         return self
 
 
+class Time(BaseModel):
+    """
+    Model for the `app.time:` block.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    fff: str
+    hh: str
+    yyyymmdd: str
+
+
 class App(BaseModel):
     """
     Model for the `app:` block.
@@ -80,6 +92,7 @@ class App(BaseModel):
     modeldir: Path
     platform: Platform
     rundir: Path
+    time: Time
 
     @model_validator(mode="after")
     def first_and_last_cycle(self) -> "App":
@@ -100,7 +113,6 @@ class Config(BaseModel):
     forecast: dict
     post: dict
     prep: dict
-    timevars: dict  # PM REMOVE
     user: dict | None = None
 
 

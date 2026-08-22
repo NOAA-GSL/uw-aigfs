@@ -7,7 +7,7 @@ from aigfs import validation
 
 
 @fixture
-def args_app(args_platform, tmp_path, utc):
+def args_app(args_platform, args_time, tmp_path, utc):
     return dict(
         cycle_freq=timedelta(hours=1),
         first_cycle=utc(2026, 1, 1, 0),
@@ -16,12 +16,13 @@ def args_app(args_platform, tmp_path, utc):
         modeldir=tmp_path,
         platform=validation.Platform(**args_platform),
         rundir=tmp_path,
+        time=validation.Time(**args_time),
     )
 
 
 @fixture
 def args_config(args_app):
-    return dict(app=args_app, forecast={}, post={}, prep={}, timevars={}, user={})
+    return dict(app=args_app, forecast={}, post={}, prep={}, user={})
 
 
 @fixture
@@ -41,6 +42,11 @@ def args_platform(args_partition, args_scheduler):
 @fixture
 def args_scheduler():
     return dict(account="me", type="slurm")
+
+
+@fixture
+def args_time():
+    return dict(fff="fff", hh="hh", yyyymmdd="yyyymmdd")
 
 
 @mark.parametrize("compute", ["a", None])
@@ -88,6 +94,15 @@ def test_validation_Platform_bad_name(args_platform, with_set):
     assert e.value.error_count() == 1
     msg = "Platform name must be one of"
     assert msg in e.value.errors()[0]["msg"]
+
+
+def test_validation_Time(args_time, with_del):
+    obj = validation.Time(**args_time)
+    for key in obj.model_dump():
+        with raises(ValidationError) as e:
+            validation.Time(**with_del(args_time, key))
+        assert e.value.error_count() == 1
+        assert e.value.errors()[0]["type"] == "missing"
 
 
 def test_validation_App(args_app, with_del):
