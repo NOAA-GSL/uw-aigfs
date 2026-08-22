@@ -5,10 +5,9 @@ from pytest import fixture, mark, raises
 
 from aigfs import validation
 
-
-@fixture
-def app(args_app):
-    return validation.App(**args_app)
+# @fixture
+# def app(args_app):
+#     return validation.App(**args_app)
 
 
 @fixture
@@ -94,15 +93,15 @@ def test_validation_App_fail(args_app, utc):
         validation.App(**args_app)
 
 
-def test_validation_Config(app):
-    args_app = dict(app=app, forecast={}, post={}, prep={}, timevars={})
-    assert validation.Config(**args_app)
-    args_app["user"] = {}
-    assert validation.Config(**args_app)
+def test_validation_Config(args_app):
+    config = dict(app=args_app, forecast={}, post={}, prep={}, timevars={})
+    assert validation.Config(**config)
+    config["user"] = {}
+    assert validation.Config(**config)
 
 
-def test_validation_validate(app):
-    config = dict(app=app, forecast={}, post={}, prep={}, timevars={})
+def test_validation_validate(args_app):
+    config = dict(app=args_app, forecast={}, post={}, prep={}, timevars={})
     assert validation.validate(config=config)
     config["user"] = {}
     assert validation.validate(config=config)
