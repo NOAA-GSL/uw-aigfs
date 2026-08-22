@@ -6,7 +6,8 @@ app:
       compute: u1-compute
       netaccess: u1-service
       task: u1-service
-    scheduler: slurm
+    scheduler:
+      type: slurm
 forecast:
   aigfs_inference:
     execution:

@@ -129,7 +129,7 @@ app:
     name: ursa
     scheduler:
       account: account-name
-      name: slurm
+      type: slurm
   rundir: /path/to/your/run/directory
 user:
   gfs_data: /path/to/gfs/data

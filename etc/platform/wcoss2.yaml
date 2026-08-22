@@ -3,7 +3,8 @@ app:
   modeldir: '{{ app.home }}/fix'
   platform:
     name: wcoss2
-    scheduler: pbs
+    scheduler:
+      type: pbs
   rundir: /lfs/h2/emc/stmp/{{ 'USER' | env }}/aigfs/run
 forecast:
   aigfs_inference:
