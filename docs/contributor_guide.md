@@ -63,7 +63,7 @@ A useful development idiom is:
 make format && make test
 ```
 
-This formats the code, then runs the linter, typecheker, and the unit tests. The order is intentional:
+This formats the code, then runs the linter, typechecker, and the unit tests. The order is intentional:
 
 - **`format`** catches certain syntax errors that would cause other tools to fail (and could change line numbers in their reports).
 - **`lint`** provides a fast first check for obvious errors and anti-patterns.
