@@ -49,7 +49,7 @@ Several `make` targets are available in an activated `aigfs` development environ
 | Target           | Description                                                                                                                                                                         |
 |------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `make docs`      | Build HTML API docs with [pdoc](https://pdoc.dev/) into `docs/api/`                                                                                                                 |
-| `make format`    | Format Python  with [ruff](https://docs.astral.sh/ruff/), Bash  with [go-shfmt](https://github.com/mvdan/sh), and JSON data with [jq](https://jqlang.org/)                          |
+| `make format`    | Format Python with [ruff](https://docs.astral.sh/ruff/), Bash with [go-shfmt](https://github.com/mvdan/sh), and JSON data with [jq](https://jqlang.org/)                          |
 | `make lint`      | Lint Python  with [ruff](https://docs.astral.sh/ruff/), Bash  with [shellcheck](https://www.shellcheck.net/), and YAML data with [yamllint](https://github.com/koalaman/shellcheck) |
 | `make typecheck` | Typecheck Python with [mypy](https://mypy-lang.org/)                                                                                                                                |
 | `make unittest`  | Run unit tests and report coverage with [pytest](https://docs.pytest.org/) and [coverage](https://coverage.readthedocs.io/en/)                                                      |
