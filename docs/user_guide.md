@@ -139,7 +139,7 @@ Notes:
 - The `app.platform.partition` values may be set if driver and Rocoto configs use them to request specific batch partitions.
 - Items labeled `User must set` are required and have no default values. Values must be provided in at least one of the YAML config files passed as arguments to the `setup` script.
 - Items labeled `User may set` are generally optional, though they may be required if they are referenced by workflow, platform, or user configs composed onto `etc/base.yaml`.
-- The `app.time.*` values are set in `etc/base.yaml`. A user config may override them, but this is unlikely to be useful.
+- The `app.time.{fff,hh,yyyymmdd}` values are set in `etc/base.yaml`. A user config may override them, but this is unlikely to be useful. This block does not support additional content, but arbitrary keys and values may be defined in the top-level `user:` block.
 - The `forecast:`, `post:` and `prep:` blocks are described by their associated JSON Schema files under `lib/aigfs/drivers`. These blocks are validated when drivers are initiated rather than by the `setup` script.
 - The `user:` block is a free-form YAML mapping that can define any values, including values dynamically calculated via Jinja2 expressions, useful to users for calculating other config values. This block is never validated.
 - The `workflow:` block configures the Rocoto workflow, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/stable/sections/user_guide/yaml/rocoto.html)
