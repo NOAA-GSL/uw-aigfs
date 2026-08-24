@@ -3,9 +3,10 @@ app:
   first_cycle: !datetime '{{ "CYCLE" | env }}'
   last_cycle: !datetime '{{ "CYCLE" | env }}'
   modeldir: '{{ "MODELDIR" | env }}'
+  platform:
+    scheduler:
+      account: gsd-fv3
   rundir: '{{ "RUNDIR" | env }}'
-platform:
-  account: gsd-fv3
 prep:
   aigfs_ics:
     files_to_hardlink:
