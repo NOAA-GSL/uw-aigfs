@@ -56,9 +56,9 @@ def test_validation_Partition(args_partition, compute, netaccess, task):
     assert validation.Partition(**args_partition)
     if any([compute, netaccess, task]):
         obj = validation.Partition(compute=compute, netaccess=netaccess, task=task)
-        mapping = {compute: obj.compute, netaccess: obj.netaccess, task: obj.task}.items()
-        for expected, actual in mapping:
-            assert expected == actual
+        assert obj.compute == compute
+        assert obj.netaccess == netaccess
+        assert obj.task == task
     else:  # if no partitions are specified
         with raises(ValidationError) as e:
             validation.Partition(compute=compute, netaccess=netaccess, task=task)
