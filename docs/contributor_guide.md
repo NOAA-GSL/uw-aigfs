@@ -55,7 +55,7 @@ Several `make` targets are available in an activated `aigfs` development environ
 | `make unittest`  | Run unit tests and report coverage with [pytest](https://docs.pytest.org/) and [coverage](https://coverage.readthedocs.io/en/)                                                      |
 | `make test`      | Equivalent to `make lint && make typecheck && make unittest`                                                                                                                        |
 
-Configuration for `ruff`, `mypy`, `pytest`, and `coverage` is provided by `pyproject.toml`, `shellcheck` by `.shellcheckrc`, and `yammllint` by `.yamllint.yaml`, and in the repo root.
+Configuration for `ruff`, `mypy`, `pytest`, and `coverage` is provided by `pyproject.toml`, `shellcheck` by `.shellcheckrc`, and `yamllint` by `.yamllint.yaml`, and in the repo root.
 
 A useful development idiom is:
 
