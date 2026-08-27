@@ -76,6 +76,11 @@ class Time(BaseModel):
 
     fff: str
     hh: str
+    m1_hh: str
+    m1_yyyymmdd: str
+    m2_hh: str
+    m2_yyyymmdd: str
+    m6h: timedelta
     yyyymmdd: str
 
 
