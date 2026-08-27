@@ -140,7 +140,7 @@ class AIGFSICs(DriverCycleBased, FileStager):
                     logging.info("Loading %s", var)
                     if not (m := re.match(rf"^.*\.t(\d\d)z{suffix}$", path.name)):
                         msg = "GRIB files don't have names expected by this driver!"
-                        raise ValueError(msg)  # PM DON'T BLOW UP THE TASK GRAPH
+                        raise ValueError(msg)
                     if load_once is True:
                         cfg["load_once"] = False
                     fmt = lambda x: re.sub(r"[|()]", ".", x).replace(":", "")
