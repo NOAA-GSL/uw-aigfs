@@ -9,7 +9,7 @@ from aigfs import validation
 @fixture
 def args_app(args_platform, args_time, tmp_path, utc):
     return dict(
-        cycle_freq=timedelta(hours=1),
+        cycle_freq=timedelta(hours=6),
         first_cycle=utc(2026, 1, 1, 0),
         home=tmp_path,
         last_cycle=utc(2026, 1, 31, 23),
@@ -115,9 +115,15 @@ def test_validation_App(args_app, with_del):
 
 
 @mark.parametrize("hours", [0, -1])
-def test_validation_App_bad_cycle_freq(args_app, hours):
+def test_validation_App_bad_cycle_freq_negative(args_app, hours):
     args_app["cycle_freq"] = timedelta(hours=hours)
     with raises(ValueError, match="cycle_freq must be greater than 0"):
+        validation.App(**args_app)
+
+
+def test_validation_App_bad_cycle_freq_not_0_mod_6(args_app):
+    args_app["cycle_freq"] = timedelta(hours=1)
+    with raises(ValueError, match="cycle_freq must be be a multiple of 6"):
         validation.App(**args_app)
 
 
