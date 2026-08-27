@@ -68,7 +68,8 @@
         style "td,th {padding: 2px; white-space: nowrap;}"]
     (h/html
       [:head [:style style]]
-      [:p (format "AIGFS Production Report: Latest %s Cycles" CYCLES)]
+      [:p [:b (format "AIGFS Production Report: Latest %s Cycles" CYCLES)]]
+      [:p (format "Run root directory: %s" RUNDIR)]
       [:table {:border 1 :style "text-align: center;"}
        [:thead (into [] [:tr [:th "Cycle"] [:th ".idx files"]])]
        [:tbody rows]]
