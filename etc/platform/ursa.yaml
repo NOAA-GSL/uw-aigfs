@@ -23,11 +23,11 @@ prep:
     execution:
       batchargs:
         partition: '{{ app.platform.partition.task }}'
-  files_to_hardlink:
-    data/gfs.t{{ app.time.hh }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/{{ user.yyyymmdd }}/gfs.t{{ app.time.hh }}z.pgrb2.0p25.f000'
-    data/gfs.t{{ user.m1_hh }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/{{ user.m1_yyyymmdd }}/gfs.t{{ user.m1_hh}}z.pgrb2.0p25.f000'
-    data/gfs.t{{ user.m1_hh }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/{{ user.m1_yyyymmdd }}/gfs.t{{ user.m1_hh}}z.pgrb2.0p25.f006'
-    data/gfs.t{{ user.m2_hh }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/{{ user.m2_yyyymmdd }}/gfs.t{{ user.m2_hh }}z.pgrb2.0p25.f006'
+    files_to_hardlink:
+      data/gfs.t{{ app.time.hh }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/{{ user.yyyymmdd }}/gfs.t{{ app.time.hh }}z.pgrb2.0p25.f000'
+      data/gfs.t{{ user.m1_hh }}z.pgrb2.0p25.f000: '{{ user.gfs_data }}/{{ user.m1_yyyymmdd }}/gfs.t{{ user.m1_hh}}z.pgrb2.0p25.f000'
+      data/gfs.t{{ user.m1_hh }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/{{ user.m1_yyyymmdd }}/gfs.t{{ user.m1_hh}}z.pgrb2.0p25.f006'
+      data/gfs.t{{ user.m2_hh }}z.pgrb2.0p25.f006: '{{ user.gfs_data }}/{{ user.m2_yyyymmdd }}/gfs.t{{ user.m2_hh }}z.pgrb2.0p25.f006'
 user:
   gfs_data: /public/data/grids/gfs/0p25deg/grib2
   m1_hh: '{{ (cycle - app.cycle_freq).strftime("%H") }}'
