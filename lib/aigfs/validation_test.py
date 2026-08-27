@@ -46,7 +46,16 @@ def args_scheduler():
 
 @fixture
 def args_time():
-    return dict(fff="fff", hh="hh", yyyymmdd="yyyymmdd")
+    return dict(
+        fff="006",
+        hh="00",
+        m1_hh="18",
+        m1_yyyymmdd="20260826",
+        m2_hh="12",
+        m2_yyyymmdd="20260826",
+        m6h=timedelta(hours=6),
+        yyyymmdd="20260827",
+    )
 
 
 @mark.parametrize("compute", ["a", None])
