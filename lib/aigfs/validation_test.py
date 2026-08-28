@@ -132,7 +132,7 @@ def test_validation_App_bad_cycle_freq_negative(args_app, hours):
 
 def test_validation_App_bad_cycle_freq_not_0_mod_6(args_app):
     args_app["cycle_freq"] = timedelta(hours=1)
-    with raises(ValueError, match="cycle_freq must be be a multiple of 6"):
+    with raises(ValueError, match="cycle_freq must be a multiple of 6"):
         validation.App(**args_app)
 
 

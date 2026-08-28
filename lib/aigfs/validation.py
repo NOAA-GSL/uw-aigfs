@@ -107,7 +107,7 @@ class App(BaseModel):
             msg = "cycle_freq must be greater than 0"
             raise ValueError(msg)
         if val.total_seconds() % (6 * 3600) != 0:
-            msg = "cycle_freq must be be a multiple of 6"
+            msg = "cycle_freq must be a multiple of 6"
             raise ValueError(msg)
         return val
 
