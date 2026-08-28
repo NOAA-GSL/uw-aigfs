@@ -9,7 +9,7 @@ from aigfs import validation
 @fixture
 def args_app(args_platform, args_time, tmp_path, utc):
     return dict(
-        cycle_freq=timedelta(hours=6),
+        cycle_freq=timedelta(hours=12),
         first_cycle=utc(2026, 1, 1, 0),
         home=tmp_path,
         last_cycle=utc(2026, 1, 31, 23),
