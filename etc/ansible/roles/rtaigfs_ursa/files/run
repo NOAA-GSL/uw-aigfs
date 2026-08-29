@@ -1,0 +1,69 @@
+#!/bin/bash
+
+set -aeuo pipefail
+
+active_cycles=4
+window_cycles=12
+
+go() {
+
+  # Truncate log:
+
+  true >$log
+
+  # Set up environment:
+
+  MODELDIR=$rtdir/model
+  PS4="[$(date +%Y-%m-%dT%H:%M:%S)]          "
+  export MODELDIR PS4
+  source /etc/profile.d/profile-slurm.sh
+  source /etc/profile.d/modules.sh
+  module load rocoto
+  source $(dirname $rtdir)/bin/activate-conda
+  cyclesdir=$rtdir/cycles
+
+  # Calculate timestamp for the most recent 6-hourly cycle:
+
+  now=$(date -u +%s)
+  ts=$((now - (now % 21600)))
+
+  # Run all in-window cycles:
+
+  for n in $(seq 0 $((active_cycles - 1))); do
+    CYCLE=$(date -ud@$((ts - (21600 * n))) +%Y-%m-%dT%H:%M)
+    RUNDIR=$cyclesdir/$(date -ud $CYCLE +%Y%m%d)/$(date -ud $CYCLE +%H)
+    export CYCLE RUNDIR
+    config_yaml=$RUNDIR/aigfs.yaml
+    rocoto_xml=$RUNDIR/rocoto.xml
+    test -f $config_yaml -a -f $rocoto_xml || (set -ex && setup ursa $rtdir/rtaigfs.yaml)
+    test -f $config_yaml -a -f $rocoto_xml || exit 1
+    (set -ex && rocotorun -d $RUNDIR/rocoto.db -w $rocoto_xml)
+  done
+
+  # Prune window:
+
+  if [[ -d $cyclesdir ]]; then
+    find $cyclesdir -maxdepth 2 -mindepth 2 -type d -regextype egrep -regex "^.*/[0-9]{8}/[0-9]{2}$" | sort | while read -r x; do
+      subdir=$(echo $x | sed "s@^$cyclesdir/@@")
+      for n in $(seq 0 $((window_cycles - 1))); do
+        ok=$(date -ud@$((ts - (21600 * n))) +%Y%m%d/%H)
+        test $subdir == $ok && break 2
+      done
+      (set -x && rm -rf $x)
+    done
+    find $cyclesdir -maxdepth 1 -mindepth 1 -type d -empty | sort | while read -r x; do
+      (set -x && rmdir $x)
+    done
+  fi
+
+  # Rotate log:
+
+  cp $log $log.last
+}
+
+rtdir=$(readlink -f $(dirname $(dirname $0)))
+log=$rtdir/rtaigfs.log
+
+# Only proceed if no other copy of this script is running:
+
+flock -n -o $(readlink -f $0) -c go >>$log 2>&1
