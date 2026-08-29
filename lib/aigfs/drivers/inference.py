@@ -112,7 +112,7 @@ class AIGFSInference(DriverCycleBased):
         Predictions.
         """
         yield "predictions"
-        path = self.rundir / "aigfs.done"
+        path = self.rundir / STR.aigfs_done
         yield Asset(path, path.is_file)
         ics = self.initial_conditions()
         itfs = self.inputs_targets_forcings()

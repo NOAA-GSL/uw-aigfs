@@ -35,22 +35,22 @@ class AIGFSICs(DriverCycleBased, FileStager):
         ds = ds.drop_dims(STR.level)
         ds = ds.rename(
             {
-                "APCP_surface": STR.total_precipitation_6hr,
+                STR.APCP_surface: STR.total_precipitation_6hr,
                 STR.HGT: STR.geopotential,
-                "HGT_surface": STR.geopotential_at_surface,
-                "LAND_surface": STR.land_sea_mask,
-                "PRMSL_meansealevel": STR.mean_sea_level_pressure,
-                "SPFH": STR.specific_humidity,
-                "TMP": STR.temperature,
-                "TMP_2maboveground": "2m_temperature",
-                "UGRD": "u_component_of_wind",
-                "UGRD_10maboveground": "10m_u_component_of_wind",
-                "VGRD": "v_component_of_wind",
-                "VGRD_10maboveground": "10m_v_component_of_wind",
-                "VVEL": STR.vertical_velocity,
+                STR.HGT_surface: STR.geopotential_at_surface,
+                STR.LAND_surface: STR.land_sea_mask,
+                STR.PRMSL_meansealevel: STR.mean_sea_level_pressure,
+                STR.SPFH: STR.specific_humidity,
+                STR.TMP: STR.temperature,
+                STR.TMP_2maboveground: STR.two_m_temperature,
+                STR.UGRD: STR.u_component_of_wind,
+                STR.UGRD_10maboveground: STR.ten_m_u_component_of_wind,
+                STR.VGRD: STR.v_component_of_wind,
+                STR.VGRD_10maboveground: STR.ten_m_v_component_of_wind,
+                STR.VVEL: STR.vertical_velocity,
                 STR.latitude: STR.lat,
                 STR.longitude: STR.lon,
-                "plevel": STR.level,
+                STR.plevel: STR.level,
             }
         )
         ds = ds.assign_coords(datetime=ds.time)

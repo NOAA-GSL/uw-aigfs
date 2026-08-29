@@ -28,7 +28,7 @@ def ds() -> xr.Dataset:
     ones_pres = np.ones((1, 1, 2, nlat, nlon), dtype="float32")
     return xr.Dataset(
         {
-            "2m_temperature": (["batch", "time", "lat", "lon"], ones_sfc.copy()),
+            STR.two_m_temperature: (["batch", "time", "lat", "lon"], ones_sfc.copy()),
             "geopotential": (["batch", "time", "level", "lat", "lon"], ones_pres.copy()),
             "temperature": (["batch", "time", "level", "lat", "lon"], ones_pres.copy()),
             "specific_humidity": (["batch", "time", "level", "lat", "lon"], ones_pres * 0.01),
@@ -48,32 +48,32 @@ def ds() -> xr.Dataset:
 def json_path(tmp_path):
     table = {
         "temperature": {
-            "templates": {"pdtn": 0, "drtn": 40},
-            "attrs": {"discipline": 0, "parameterCategory": 0, "parameterNumber": 0},
+            STR.templates: {STR.pdtn: 0, STR.drtn: 40},
+            STR.attrs: {"discipline": 0, "parameterCategory": 0, "parameterNumber": 0},
         },
         "specific_humidity": {
-            "templates": {"pdtn": 0, "drtn": 40},
-            "attrs": {"discipline": 0, "parameterCategory": 1, "parameterNumber": 0},
+            STR.templates: {STR.pdtn: 0, STR.drtn: 40},
+            STR.attrs: {"discipline": 0, "parameterCategory": 1, "parameterNumber": 0},
         },
         "total_precipitation_6hr": {
-            "templates": {"pdtn": 8, "drtn": 40},
-            "attrs": {"discipline": 0, "parameterCategory": 1, "parameterNumber": 8},
+            STR.templates: {STR.pdtn: 8, STR.drtn: 40},
+            STR.attrs: {"discipline": 0, "parameterCategory": 1, "parameterNumber": 8},
         },
         "total_precipitation_cumsum": {
-            "templates": {"pdtn": 8, "drtn": 40},
-            "attrs": {"discipline": 0, "parameterCategory": 1, "parameterNumber": 8},
+            STR.templates: {STR.pdtn: 8, STR.drtn: 40},
+            STR.attrs: {"discipline": 0, "parameterCategory": 1, "parameterNumber": 8},
         },
         "geopotential": {
-            "templates": {"pdtn": 0, "drtn": 40},
-            "attrs": {"discipline": 0, "parameterCategory": 3, "parameterNumber": 5},
+            STR.templates: {STR.pdtn: 0, STR.drtn: 40},
+            STR.attrs: {"discipline": 0, "parameterCategory": 3, "parameterNumber": 5},
         },
-        "2m_temperature": {
-            "templates": {"pdtn": 0, "drtn": 40},
-            "attrs": {"discipline": 0, "parameterCategory": 0, "parameterNumber": 0},
+        STR.two_m_temperature: {
+            STR.templates: {STR.pdtn: 0, STR.drtn: 40},
+            STR.attrs: {"discipline": 0, "parameterCategory": 0, "parameterNumber": 0},
         },
     }
-    (tmp_path / "tables_aigfs.json").write_text(json.dumps(table))
-    (tmp_path / "tables_aigefs.json").write_text(json.dumps(table))
+    (tmp_path / STR.tables_aigfs_json).write_text(json.dumps(table))
+    (tmp_path / STR.tables_aigefs_json).write_text(json.dumps(table))
     return tmp_path
 
 
@@ -122,7 +122,7 @@ def test_drivers_utils_grib2writer_create_grib2_message_ensemble_ctrl(writer_ens
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_no_level(utc, writer):
-    msg = writer.create_grib2_message("2m_temperature", lead=12)
+    msg = writer.create_grib2_message(STR.two_m_temperature, lead=12)
     assert msg.refDate == utc(2025, 10, 1, 18, 0).replace(tzinfo=None)
 
 
@@ -161,7 +161,7 @@ def test_drivers_utils_grib2writer_init(utc, writer):
     assert writer.case_name == STR.aigfs
     assert writer.start_date == utc(2025, 10, 1, 18)
     assert "temperature" in writer.attrs
-    assert writer.attrs["temperature"]["templates"]["pdtn"] == 0
+    assert writer.attrs["temperature"][STR.templates][STR.pdtn] == 0
 
 
 def test_drivers_utils_grib2writer_init_aigefs(writer_ens):
@@ -284,8 +284,8 @@ def test_drivers_utils_grib2writer_save_grib2_lat_reversed(writer, ds, tmp_path)
     # The input lat goes 90 -> -90. After reindex, data rows are flipped.
     nlat = ds.sizes["lat"]
     # Set 2m_temperature first row (lat=90) to 1.0, last row (lat=-90) to 2.0.
-    ds["2m_temperature"].values[0, 0, 0, :] = 1.0
-    ds["2m_temperature"].values[0, 0, nlat - 1, :] = 2.0
+    ds[STR.two_m_temperature].values[0, 0, 0, :] = 1.0
+    ds[STR.two_m_temperature].values[0, 0, nlat - 1, :] = 2.0
     writer.save_grib2(ds, tmp_path)
     sfc_file = tmp_path / "aigfs.t18z.sfc.f006.grib2"
     with grib2io.open(str(sfc_file)) as f:

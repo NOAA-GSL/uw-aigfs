@@ -116,7 +116,7 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
 
         def ds_atm(varnames: list[str], time: np.datetime64) -> xr.Dataset:
             data_vars: dict = {
-                v: (["time", "plevel", "latitude", "longitude"], np.ones((1, 3, 1, 1)))
+                v: (["time", STR.plevel, "latitude", "longitude"], np.ones((1, 3, 1, 1)))
                 for v in varnames
             }
             data_vars["_dummy"] = (["level"], np.zeros(1))  # to exercise drop_dims("level")
@@ -124,7 +124,7 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
                 data_vars,
                 coords={
                     "time": [time],
-                    "plevel": np.array([200.0, 850.0, 1000.0], dtype="float64"),
+                    STR.plevel: np.array([200.0, 850.0, 1000.0], dtype="float64"),
                     "level": [0.0],
                     "latitude": lat,
                     "longitude": lon,
@@ -148,22 +148,22 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
         datasets: dict[str, xr.Dataset] = {}
         for ncfile in ncfiles:
             name = ncfile.name
-            if "HGT_surface" in name:
-                datasets[name] = ds_sfc("HGT_surface", t0)
+            if STR.HGT_surface in name:
+                datasets[name] = ds_sfc(STR.HGT_surface, t0)
             elif "TMP_2_m_above_ground" in name:
-                datasets[name] = ds_sfc("TMP_2maboveground", t0)
+                datasets[name] = ds_sfc(STR.TMP_2maboveground, t0)
             elif "PRMSL_mean_sea_level" in name:
-                datasets[name] = ds_sfc("PRMSL_meansealevel", t0)
+                datasets[name] = ds_sfc(STR.PRMSL_meansealevel, t0)
             elif "VGRD.UGRD_10_m_above_ground" in name:
-                ds = ds_sfc("UGRD_10maboveground", t0)
-                ds["VGRD_10maboveground"] = ds["UGRD_10maboveground"].copy()
+                ds = ds_sfc(STR.UGRD_10maboveground, t0)
+                ds[STR.VGRD_10maboveground] = ds[STR.UGRD_10maboveground].copy()
                 datasets[name] = ds
             elif "SPFH.VVEL" in name:
-                datasets[name] = ds_atm(["SPFH", "VVEL", "VGRD", "UGRD", "HGT", "TMP"], t0)
-            elif "LAND_surface" in name:
-                datasets[name] = ds_sfc("LAND_surface", t6)
+                datasets[name] = ds_atm([STR.SPFH, STR.VVEL, STR.VGRD, STR.UGRD, STR.HGT, STR.TMP], t0)
+            elif STR.LAND_surface in name:
+                datasets[name] = ds_sfc(STR.LAND_surface, t6)
             else:
-                datasets[name] = ds_sfc("APCP_surface", t6)
+                datasets[name] = ds_sfc(STR.APCP_surface, t6)
         for ncfile in ncfiles:
             ncfile.parent.mkdir(exist_ok=True, parents=True)
             datasets[ncfile.name].to_netcdf(ncfile)
@@ -183,17 +183,17 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
         STR.mean_sea_level_pressure,
         STR.specific_humidity,
         STR.temperature,
-        "2m_temperature",
-        "u_component_of_wind",
-        "10m_u_component_of_wind",
-        "v_component_of_wind",
-        "10m_v_component_of_wind",
+        STR.two_m_temperature,
+        STR.u_component_of_wind,
+        STR.ten_m_u_component_of_wind,
+        STR.v_component_of_wind,
+        STR.ten_m_v_component_of_wind,
         STR.vertical_velocity,
     ]
     for name in renamed:
         assert name in ds.data_vars
     # Original GRIB names should not be present:
-    for name in ["HGT", "HGT_surface", "LAND_surface", "APCP_surface", "TMP", "SPFH"]:
+    for name in [STR.HGT, STR.HGT_surface, STR.LAND_surface, STR.APCP_surface, STR.TMP, STR.SPFH]:
         assert name not in ds.data_vars
     # Coordinate types were converted:
     assert ds[STR.lat].dtype == np.float32

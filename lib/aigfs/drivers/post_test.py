@@ -6,6 +6,7 @@ from iotaa import Asset, Node, external, task
 from pytest import fixture
 
 from aigfs.drivers import post
+from aigfs.strings import STR
 
 # Fixtures
 
@@ -152,7 +153,7 @@ def test_drivers_AIGFSPost_driver_name(driverobj):
 def test_drivers_AIGFSPost_output(driverobj):
     do = Path(driverobj.config["outputdir"])
     assert driverobj.output == {
-        "idx": [do / "aigfs.t00z.sfc.f006.grib2.idx", do / "aigfs.t00z.pres.f006.grib2.idx"]
+        STR.idx: [do / "aigfs.t00z.sfc.f006.grib2.idx", do / "aigfs.t00z.pres.f006.grib2.idx"]
     }
 
 

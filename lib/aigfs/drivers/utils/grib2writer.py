@@ -49,10 +49,10 @@ class Grib2Writer:
         self.case_name = case_name
         if self.case_name == STR.aigfs:
             assert json_path
-            table_file = json_path / "tables_aigfs.json"
+            table_file = json_path / STR.tables_aigfs_json
         elif self.case_name.startswith(STR.aige):
             assert json_path
-            table_file = json_path / "tables_aigefs.json"
+            table_file = json_path / STR.tables_aigefs_json
         else:
             msg = f"name {self.case_name} is not supported."
             raise ValueError(msg)
@@ -73,11 +73,11 @@ class Grib2Writer:
         # Create GRIB2 message.
         msg = grib2io.Grib2Message(
             section3=SECTION3,
-            pdtn=self.attrs[var]["templates"]["pdtn"],
-            drtn=self.attrs[var]["templates"]["drtn"],
+            pdtn=self.attrs[var][STR.templates][STR.pdtn],
+            drtn=self.attrs[var][STR.templates][STR.drtn],
         )
         # Set GRIB2 attributes from json table.
-        for k, v in self.attrs[var]["attrs"].items():
+        for k, v in self.attrs[var][STR.attrs].items():
             setattr(msg, k, v)
         # Set GRIB2 attributes for ensemble members.
         if self.case_name.startswith(STR.aige):
