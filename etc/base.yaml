@@ -37,10 +37,9 @@ post:
   aigfs_post:
     execution:
       batchargs:
+        cores: 1
         debug: True
         memory: 4GB
-        nodes: 1
-        tasks_per_node: 1
         walltime: 00:01:00
       envcmds:
         - source {{ app.home }}/bin/activate-{{ app.platform.name }}
@@ -59,11 +58,10 @@ prep:
   aigfs_ics:
     execution:
       batchargs:
+        cores: 1
         debug: True
         memory: 10GB
-        nodes: 1
-        tasks_per_node: 1
-        walltime: 00:01:00
+        walltime: 00:05:00
       envcmds:
         - source {{ app.home }}/bin/activate-{{ app.platform.name }}
         - module load wgrib2
