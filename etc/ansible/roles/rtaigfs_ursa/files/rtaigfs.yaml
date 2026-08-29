@@ -36,3 +36,15 @@ workflow:
             attrs:
               offset: "03:45:00" # Current 0h forecasts hit /public at 3:42.
             value: "@Y@m@d@H@M@S"
+    metatask_post:
+      task_post_#fhr#:
+        dependency:
+          and:
+            datadep_pres:
+              value:
+                cyclestr:
+                  value: '{{ app.rundir }}/forecast/aigfs.t@Hz.pres.f#fhr#.grib2'
+            datadep_sfc:
+              value:
+                cyclestr:
+                  value: '{{ app.rundir }}/forecast/aigfs.t@Hz.sfc.f#fhr#.grib2'
