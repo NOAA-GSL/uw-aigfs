@@ -44,7 +44,6 @@
     (fs/path RUNDIR
              (yyyymmdd cycle)
              (hh cycle)
-             (str (yyyymmdd cycle) (hh cycle))
              "forecast")
     "*.idx"))
 
