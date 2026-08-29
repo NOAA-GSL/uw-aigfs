@@ -9,6 +9,7 @@ from iotaa import Asset, external, task
 from pytest import fixture, mark, raises
 
 from aigfs.drivers import ics
+from aigfs.strings import STR
 
 # Fixtures
 
@@ -175,19 +176,19 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
     ds = xr.open_dataset(node.ref)
     # Variables were renamed from GRIB names to descriptive names:
     renamed = [
-        "total_precipitation_6hr",
-        "geopotential",
-        "geopotential_at_surface",
-        "land_sea_mask",
-        "mean_sea_level_pressure",
-        "specific_humidity",
-        "temperature",
+        STR.total_precipitation_6hr,
+        STR.geopotential,
+        STR.geopotential_at_surface,
+        STR.land_sea_mask,
+        STR.mean_sea_level_pressure,
+        STR.specific_humidity,
+        STR.temperature,
         "2m_temperature",
         "u_component_of_wind",
         "10m_u_component_of_wind",
         "v_component_of_wind",
         "10m_v_component_of_wind",
-        "vertical_velocity",
+        STR.vertical_velocity,
     ]
     for name in renamed:
         assert name in ds.data_vars
@@ -195,28 +196,28 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
     for name in ["HGT", "HGT_surface", "LAND_surface", "APCP_surface", "TMP", "SPFH"]:
         assert name not in ds.data_vars
     # Coordinate types were converted:
-    assert ds["lat"].dtype == np.float32
-    assert ds["lon"].dtype == np.float32
-    assert ds["level"].dtype == np.int32
+    assert ds[STR.lat].dtype == np.float32
+    assert ds[STR.lon].dtype == np.float32
+    assert ds[STR.level].dtype == np.int32
     # Level values are the pressure levels:
-    np.testing.assert_array_equal(ds["level"].values, [200, 850, 1000])
+    np.testing.assert_array_equal(ds[STR.level].values, [200, 850, 1000])
     # Time is relative (first time step is zero):
-    assert ds["time"].values[0] == np.timedelta64(0)
+    assert ds[STR.time].values[0] == np.timedelta64(0)
     # batch dimension was added:
-    assert "batch" in ds.dims
+    assert STR.batch in ds.dims
     # datetime coordinate exists with batch dimension:
-    assert "datetime" in ds.coords
-    assert "batch" in ds["datetime"].dims
+    assert STR.datetime in ds.coords
+    assert STR.batch in ds[STR.datetime].dims
     # geopotential_at_surface was scaled by 9.80665 and has no time dim (selected one time):
-    assert "time" not in ds["geopotential_at_surface"].dims
-    np.testing.assert_allclose(ds["geopotential_at_surface"].values.flat[0], 9.80665)
+    assert STR.time not in ds[STR.geopotential_at_surface].dims
+    np.testing.assert_allclose(ds[STR.geopotential_at_surface].values.flat[0], 9.80665)
     # land_sea_mask was selected at one time (no time dim):
-    assert "time" not in ds["land_sea_mask"].dims
+    assert STR.time not in ds[STR.land_sea_mask].dims
     # geopotential (on pressure levels) was scaled by 9.80665:
-    np.testing.assert_allclose(ds["geopotential"].values.flat[0], 9.80665)
+    np.testing.assert_allclose(ds[STR.geopotential].values.flat[0], 9.80665)
     # total_precipitation_6hr was divided by 1000 (use last time since it's from f006):
     np.testing.assert_allclose(
-        float(ds["total_precipitation_6hr"].isel(batch=0, time=-1).values.flat[0]), 0.001
+        float(ds[STR.total_precipitation_6hr].isel(batch=0, time=-1).values.flat[0]), 0.001
     )
     ds.close()
 
@@ -321,7 +322,7 @@ def test_drivers_ics_schema_content(config, logcap, tmp_path, validator, with_de
     assert "Additional properties are not allowed" in logcap.text
     logcap.clear()
     # Expecting a string:
-    for key in ("rundir", "variable_extraction_yaml"):
+    for key in ("rundir", STR.variable_extraction_yaml):
         assert not ok(with_set(cfg, 42, key))
         assert "is not of type 'string'" in logcap.text
         logcap.clear()

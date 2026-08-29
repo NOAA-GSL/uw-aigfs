@@ -7,6 +7,8 @@ import numpy as np
 import xarray as xr
 from pytest import fixture, raises
 
+from aigfs.strings import STR
+
 from .grib2writer import SECTION3, Grib2Writer
 
 # Fixtures
@@ -82,7 +84,7 @@ def start_date(utc):
 
 @fixture
 def writer(json_path, start_date):
-    return Grib2Writer(start_date=start_date, case_name="aigfs", json_path=json_path)
+    return Grib2Writer(start_date=start_date, case_name=STR.aigfs, json_path=json_path)
 
 
 @fixture
@@ -156,7 +158,7 @@ def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_mid(writer):
 
 
 def test_drivers_utils_grib2writer_init(utc, writer):
-    assert writer.case_name == "aigfs"
+    assert writer.case_name == STR.aigfs
     assert writer.start_date == utc(2025, 10, 1, 18)
     assert "temperature" in writer.attrs
     assert writer.attrs["temperature"]["templates"]["pdtn"] == 0

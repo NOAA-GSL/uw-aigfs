@@ -5,11 +5,12 @@ from unittest.mock import Mock, patch
 from pytest import raises
 
 from aigfs import setup
+from aigfs.strings import STR
 from aigfs.validation import App, Config
 
 
 def test_ush_setup_generate_configs(tmp_path):
-    path = tmp_path / "aigfs.yaml"
+    path = tmp_path / STR.aigfs_yaml
     update_config = Mock()
     with (
         patch.object(setup, "realize_config") as realize_config,
@@ -18,15 +19,15 @@ def test_ush_setup_generate_configs(tmp_path):
         realize_rocoto.return_value = True
         setup.generate_configs(update_config=update_config, aigfs_config=path)
     realize_config.assert_called_once_with(
-        input_config=setup._APP_HOME / "etc" / "workflow" / "rocoto" / "base.yaml",
+        input_config=setup._APP_HOME / STR.etc / STR.workflow / STR.rocoto / STR.base_yaml,
         output_file=path,
         update_config=update_config,
     )
-    realize_rocoto.assert_called_once_with(config=path, output_file=tmp_path / "rocoto.xml")
+    realize_rocoto.assert_called_once_with(config=path, output_file=tmp_path / STR.rocoto_xml)
 
 
 def test_ush_setup_generate_configs_invalid_xml(logcap, tmp_path):
-    path = tmp_path / "aigfs.yaml"
+    path = tmp_path / STR.aigfs_yaml
     with (
         patch.object(setup, "realize_config"),
         patch.object(setup, "realize_rocoto") as realize_rocoto,
@@ -64,18 +65,20 @@ def test_ush_setup_prepare_configs(tmp_path):
     user_config_files = [tmp_path / "a.yaml"]
     mock_update_config = Mock()
     with patch.object(setup, "compose") as compose:
-        compose.side_effect = [{"app": {"platform": "test"}}, mock_update_config]
+        compose.side_effect = [{STR.app: {STR.platform: "test"}}, mock_update_config]
         result = setup.prepare_configs(user_config_files)
     assert result is mock_update_config
-    mock_update_config.update_from.assert_called_once_with({"app": {"home": str(setup._APP_HOME)}})
+    mock_update_config.update_from.assert_called_once_with(
+        {STR.app: {STR.home: str(setup._APP_HOME)}}
+    )
     # First call: Compose user configs.
     # Second call: Compose with default, platform, and user configs.
     assert compose.call_count == 2
     second_call = compose.call_args_list[1]
-    etcdir = setup._APP_HOME / "etc"
+    etcdir = setup._APP_HOME / STR.etc
     assert second_call[1]["configs"] == [
-        etcdir / "base.yaml",
-        etcdir / "platform" / "test.yaml",
+        etcdir / STR.base_yaml,
+        etcdir / STR.platform / "test.yaml",
         *user_config_files,
     ]
     assert second_call[1]["realize"] is True
@@ -95,5 +98,5 @@ def test_ush_setup_set_up_rundir(logcap, tmp_path, utc):
     result_dir, result_file = setup.set_up_rundir(validated)
     assert result_dir == rundir
     assert result_dir.is_dir()
-    assert result_file == rundir / "aigfs.yaml"
+    assert result_file == rundir / STR.aigfs_yaml
     assert f"AIGFS will be set up here: {result_dir}" in logcap.text

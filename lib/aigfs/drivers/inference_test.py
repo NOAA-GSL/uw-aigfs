@@ -10,6 +10,7 @@ from iotaa import Asset, task
 from pytest import fixture, mark
 
 from aigfs.drivers import inference
+from aigfs.strings import STR
 
 # Fixtures
 
@@ -101,7 +102,7 @@ def weights(config, model_config, task_config):
         description="test",
         license="test",
     )
-    with Path(config["aigfs_inference"]["model_weights_path"]).open("wb") as f:
+    with Path(config[STR.aigfs_inference]["model_weights_path"]).open("wb") as f:
         checkpoint.dump(f, cp)
     return cp
 
@@ -261,7 +262,7 @@ def test_drivers_AIGFSInference_predictions(driverobj, ds, logcap, mock_mws, utc
     assert node.ref.is_file()
     mock_writer_cls.assert_called_once_with(
         start_date=pd.to_datetime(utc(2025, 10, 2, 0).replace(tzinfo=None)),
-        case_name="aigfs",
+        case_name=STR.aigfs,
         json_path=Path(driverobj.config["json_path"]),
     )
     # rollout.chunked_prediction was called:
@@ -288,12 +289,12 @@ def test_drivers_inference__adjust_time__noop(ds):
 def test_drivers_inference__clean_ics(ds):
     result = inference._clean_ics(ds)
     # Dropped variables are gone:
-    for var in ["geopotential_at_surface", "land_sea_mask", "total_precipitation_6hr"]:
+    for var in [STR.geopotential_at_surface, "land_sea_mask", "total_precipitation_6hr"]:
         assert var not in result.data_vars
     # long_name attribute was removed:
     assert "long_name" not in result["temperature"].attrs
     # Only time index 1 was kept, and time was shifted back by 6h:
-    assert len(result["time"]) == 1
+    assert len(result[STR.time]) == 1
     np.testing.assert_array_equal(result["time"].values, [np.timedelta64(0, "h")])
 
 
@@ -323,7 +324,7 @@ def ds_check(ds: xr.Dataset) -> None:
     # Datetime values are absolute times starting from the original start:
     t0 = np.datetime64("2025-10-01T18:00")
     expected_datetimes = np.array([t0 + np.timedelta64(6 * i, "h") for i in range(6)])
-    np.testing.assert_array_equal(ds["datetime"].to_numpy()[0], expected_datetimes)
+    np.testing.assert_array_equal(ds[STR.datetime].to_numpy()[0], expected_datetimes)
     # Original data at existing time indices is preserved, new indices are NaN:
     assert float(ds["temperature"].isel(batch=0, time=0, x=0)) == 1.0
     assert np.isnan(float(ds["temperature"].isel(batch=0, time=2, x=0)))
@@ -341,14 +342,14 @@ def test_drivers_inference_schema(config, logcap, tmp_path, validator, with_set)
     assert "'aigfs_inference' is a required property" in logcap.text
     logcap.clear()
     # Expecting an object:
-    assert not ok(with_set(config, [], "aigfs_inference"))
+    assert not ok(with_set(config, [], STR.aigfs_inference))
     assert "is not of type 'object'" in logcap.text
     logcap.clear()
 
 
 def test_drivers_inference_schema_content(config, logcap, tmp_path, validator, with_del, with_set):
-    ok = validator(inference, tmp_path, "properties", "aigfs_inference")
-    cfg = config["aigfs_inference"]
+    ok = validator(inference, tmp_path, "properties", STR.aigfs_inference)
+    cfg = config[STR.aigfs_inference]
     # Required:
     for key in (
         "diffs_stddev_path",
