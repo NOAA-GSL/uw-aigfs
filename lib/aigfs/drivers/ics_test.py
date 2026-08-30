@@ -219,7 +219,7 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
     np.testing.assert_allclose(ds[STR.geopotential].values.flat[0], 9.80665)
     # total_precipitation_6hr was divided by 1000 (use last time since it's from f006):
     np.testing.assert_allclose(
-        float(ds[STR.total_precipitation_6hr].isel({STR.batch: 0, STR.time: -1}).values.flat[0]),
+        float(ds[STR.total_precipitation_6hr].isel(batch=0, time=-1).values.flat[0]),
         0.001,
     )
     ds.close()
