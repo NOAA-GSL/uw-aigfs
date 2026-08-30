@@ -62,16 +62,12 @@ class AIGFSICs(DriverCycleBased, FileStager):
         ds[STR.datetime] = ds[STR.datetime].expand_dims(dim=STR.batch)
         sfc_geop = ds[STR.geopotential_at_surface].squeeze(STR.batch)
         sfc_geop = (
-            sfc_geop.isel({STR.time: 1})
-            if sfc_geop.isel({STR.time: 0}).isnull().all()
-            else sfc_geop.isel({STR.time: 0})
+            sfc_geop.isel(time=1) if sfc_geop.isel(time=0).isnull().all() else sfc_geop.isel(time=0)
         )
         ds[STR.geopotential_at_surface] = sfc_geop
         ls_mask = ds[STR.land_sea_mask].squeeze(STR.batch)
         ls_mask = (
-            ls_mask.isel({STR.time: 0})
-            if ls_mask.isel({STR.time: 1}).isnull().all()
-            else ls_mask.isel({STR.time: 1})
+            ls_mask.isel(time=0) if ls_mask.isel(time=1).isnull().all() else ls_mask.isel(time=1)
         )
         ds[STR.land_sea_mask] = ls_mask
         # Update geopotential unit to m2/s2 by multiplying 9.80665.

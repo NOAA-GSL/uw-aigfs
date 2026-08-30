@@ -237,6 +237,6 @@ def _clean_ics(ds: xr.Dataset) -> xr.Dataset:
     for var in ds.data_vars:
         if STR.long_name in ds[var].attrs:
             del ds[var].attrs[STR.long_name]
-    ds = ds.isel({STR.time: slice(1, 2)})
+    ds = ds.isel(time=slice(1, 2))
     ds[STR.time] = ds[STR.time] - pd.Timedelta(hours=6)  # type: ignore[operator]
     return ds

@@ -154,13 +154,13 @@ class Grib2Writer:
                 if STR.level in da.coords:
                     for level in da.coords[STR.level]:
                         msg = self.create_grib2_message(var, lead, level=level)
-                        msg.data = da.sel({STR.level: level}).isel({STR.time: 0}).values
+                        msg.data = da.sel(level=level).isel(time=0).values
                         msg.pack()
                         logging.info("  %s", msg)
                         grib2_out_pres.write(msg)
                 else:
                     msg = self.create_grib2_message(var, lead)
-                    msg.data = da.isel({STR.time: 0}).values
+                    msg.data = da.isel(time=0).values
                     msg.pack()
                     logging.info("  %s", msg)
                     grib2_out_sfc.write(msg)
