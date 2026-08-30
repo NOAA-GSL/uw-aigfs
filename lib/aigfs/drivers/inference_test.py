@@ -326,8 +326,8 @@ def ds_check(ds: xr.Dataset) -> None:
     expected_datetimes = np.array([t0 + np.timedelta64(6 * i, "h") for i in range(6)])
     np.testing.assert_array_equal(ds[STR.datetime].to_numpy()[0], expected_datetimes)
     # Original data at existing time indices is preserved, new indices are NaN:
-    assert float(ds[STR.temperature].isel(batch=0, time=0, x=0)) == 1.0
-    assert np.isnan(float(ds[STR.temperature].isel(batch=0, time=2, x=0)))
+    assert float(ds[STR.temperature].isel({STR.batch: 0, STR.time: 0, "x": 0})) == 1.0
+    assert np.isnan(float(ds[STR.temperature].isel({STR.batch: 0, STR.time: 2, "x": 0})))
 
 
 # Schema tests

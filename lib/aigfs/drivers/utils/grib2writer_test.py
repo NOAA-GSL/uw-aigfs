@@ -229,7 +229,12 @@ def test_drivers_utils_grib2writer_save_grib2_cumsum_aigfs(writer, tmp_path):
     )
     writer.save_grib2(ds, tmp_path)
     np.testing.assert_allclose(
-        float(ds[STR.total_precipitation_cumsum].isel(batch=0, time=0, lat=0, lon=0)), 3.0
+        float(
+            ds[STR.total_precipitation_cumsum].isel(
+                {STR.batch: 0, STR.time: 0, STR.lat: 0, STR.lon: 0}
+            )
+        ),
+        3.0,
     )
 
 
@@ -290,7 +295,12 @@ def test_drivers_utils_grib2writer_save_grib2_geopotential_scaled(writer, ds, tm
     # ds was mutated in place:
     expected = 1.0 / 9.80665
     np.testing.assert_allclose(
-        float(ds[STR.geopotential].isel(batch=0, time=0, level=0, lat=0, lon=0)), expected
+        float(
+            ds[STR.geopotential].isel(
+                {STR.batch: 0, STR.time: 0, STR.level: 0, STR.lat: 0, STR.lon: 0}
+            )
+        ),
+        expected,
     )
 
 
@@ -321,7 +331,12 @@ def test_drivers_utils_grib2writer_save_grib2_precip_scaled(writer, ds, tmp_path
     # total_precipitation_6hr input is 0.002; after save_grib2: clip(min=0) * 1000 = 2.0
     writer.save_grib2(ds, tmp_path)
     np.testing.assert_allclose(
-        float(ds[STR.total_precipitation_6hr].isel(batch=0, time=0, lat=0, lon=0)), 2.0
+        float(
+            ds[STR.total_precipitation_6hr].isel(
+                {STR.batch: 0, STR.time: 0, STR.lat: 0, STR.lon: 0}
+            )
+        ),
+        2.0,
     )
 
 
@@ -340,7 +355,14 @@ def test_drivers_utils_grib2writer_save_grib2_spfh_clipped(writer, ds, tmp_path)
     # Set some specific_humidity values negative to test clipping:
     ds[STR.specific_humidity].values[0, 0, 0, 0, 0] = -0.01
     writer.save_grib2(ds, tmp_path)
-    assert float(ds[STR.specific_humidity].isel(batch=0, time=0, level=0, lat=0, lon=0)) == 0.0
+    assert (
+        float(
+            ds[STR.specific_humidity].isel(
+                {STR.batch: 0, STR.time: 0, STR.level: 0, STR.lat: 0, STR.lon: 0}
+            )
+        )
+        == 0.0
+    )
 
 
 def test_drivers_utils_grib2writer_section3():
