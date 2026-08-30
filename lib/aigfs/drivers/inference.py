@@ -189,8 +189,8 @@ def construct_wrapped_graphcast(
     """
     # Deeper one-step predictor.
     predictor = graphcast.GraphCast(model_config, task_config)
-    # Modify inputs/outputs to `graphcast.GraphCast` to handle conversion to
-    # from/to float32 to/from BFloat16.
+    # Modify inputs/outputs to `graphcast.GraphCast` to handle conversion from/to
+    # float32 to/from BFloat16.
     predictor = casting.Bfloat16Cast(predictor)
     # Modify inputs/outputs to `casting.Bfloat16Cast` so the casting to/from
     # BFloat16 happens after applying normalization to the inputs/targets.

@@ -115,7 +115,7 @@ class Grib2Writer:
         prefix = STR.aigefs if self.case_name.startswith(STR.aige) else STR.aigfs
         # Convert geopotential to geopotential height.
         ds[STR.geopotential] = ds[STR.geopotential] / 9.80665
-        # Update total_precipitation_6h unit to (kg/m^2) and set min to zero.
+        # Update total_precipitation_6hr unit to (kg/m^2) and set min to zero.
         if STR.total_precipitation_6hr in ds:
             ds[STR.total_precipitation_6hr] = ds[STR.total_precipitation_6hr].clip(min=0) * 1000
         # Drop total_precipitation_cumsum for AIGEFS. Otherwise update unit to (kg/m^2) and set min
