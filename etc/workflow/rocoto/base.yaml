@@ -26,6 +26,7 @@ workflow:
             --cycle @Y-@m-@dT@H
             --key-path prep
       cores: !int '{{ prep.aigfs_ics.execution.batchargs.cores }}'
+      jobname: '{{ jobname }}-{{ app.time.yyyymmdd }}-{{ app.time.hh }}'
       join:
         cyclestr:
           value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
@@ -44,6 +45,7 @@ workflow:
             --config &CONFIG;
             --cycle @Y-@m-@dT@H
             --key-path forecast
+      jobname: '{{ jobname }}-{{ app.time.yyyymmdd }}-{{ app.time.hh }}'
       join:
         cyclestr:
           value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
@@ -73,6 +75,7 @@ workflow:
               --key-path post
               --leadtime #fhr#'
         cores: !int '{{ post.aigfs_post.execution.batchargs.cores }}'
+        jobname: '{{ jobname }}-{{ app.time.yyyymmdd }}-{{ app.time.hh }}-{{ app.time.fff }}'
         join:
           cyclestr:
             value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
