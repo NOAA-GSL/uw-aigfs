@@ -10,6 +10,6 @@ dependencies:
   - python 3.14`.*
   - uwtools 2.19.*
   - wgrib2 3.8.*
-  - xarray 2026.7.*
+  - xarray 2025.10.*
   - pip:
       - git+https://github.com/noaa-emc/graphcast@aea0678cfbd7e866e4a1d364b456861d0a03954b
