@@ -18,17 +18,17 @@ from aigfs.strings import STR
 @fixture
 def config(tmp_path):
     return {
-        "aigfs_inference": {
-            "diffs_stddev_path": str(tmp_path / "diffs_stddev_by_level.nc"),
+        STR.aigfs_inference: {
+            STR.diffs_stddev_path: str(tmp_path / "diffs_stddev_by_level.nc"),
             "execution": {"executable": "uw execute -h"},
-            "forecast_freq": 6,
-            "forecast_length": 24,
-            "ics_path": str(tmp_path / "aigfs.t18z.ic.nc"),
-            "json_path": str(tmp_path / "tables"),
-            "mean_path": str(tmp_path / "mean_by_level.nc"),
-            "model_weights_path": str(tmp_path / "weights.npz"),
-            "rundir": str(tmp_path / "run"),
-            "stddev_path": str(tmp_path / "stddev_by_level.nc"),
+            STR.forecast_freq: 6,
+            STR.forecast_length: 24,
+            STR.ics_path: str(tmp_path / "aigfs.t18z.ic.nc"),
+            STR.json_path: str(tmp_path / "tables"),
+            STR.mean_path: str(tmp_path / "mean_by_level.nc"),
+            STR.model_weights_path: str(tmp_path / "weights.npz"),
+            STR.rundir: str(tmp_path / "run"),
+            STR.stddev_path: str(tmp_path / "stddev_by_level.nc"),
         }
     }
 
@@ -55,14 +55,14 @@ def ds():
     ones = np.ones((1, 2, 1))
     return xr.Dataset(
         {
-            STR.geopotential_at_surface: (["batch", "time", "x"], ones.copy()),
-            STR.land_sea_mask: (["batch", "time", "x"], ones.copy()),
-            "pressure": (["batch", "time", "x"], ones.copy()),
-            STR.temperature: (["batch", "time", "x"], ones.copy(), {STR.long_name: "temp"}),
-            STR.total_precipitation_6hr: (["batch", "time", "x"], ones.copy()),
+            STR.geopotential_at_surface: ([STR.batch, STR.time, "x"], ones.copy()),
+            STR.land_sea_mask: ([STR.batch, STR.time, "x"], ones.copy()),
+            STR.pressure: ([STR.batch, STR.time, "x"], ones.copy()),
+            STR.temperature: ([STR.batch, STR.time, "x"], ones.copy(), {STR.long_name: "temp"}),
+            STR.total_precipitation_6hr: ([STR.batch, STR.time, "x"], ones.copy()),
         },
         coords={
-            "batch": [0],
+            STR.batch: [0],
             STR.datetime: ([STR.batch, STR.time], datetimes.reshape(1, 2)),
             STR.time: times,
             "x": [0],
@@ -203,7 +203,7 @@ def test_drivers_AIGFSInference_provisioned_rundir(atask, driverobj, logcap, rea
 
 
 def test_drivers_AIGFSInference_driver_name(driverobj):
-    assert driverobj.driver_name() == "aigfs_inference"
+    assert driverobj.driver_name() == STR.aigfs_inference
 
 
 def test_drivers_AIGFSInference__drop_state():
@@ -352,39 +352,39 @@ def test_drivers_inference_schema_content(config, logcap, tmp_path, validator, w
     cfg = config[STR.aigfs_inference]
     # Required:
     for key in (
-        "diffs_stddev_path",
+        STR.diffs_stddev_path,
         "execution",
-        "forecast_length",
-        "ics_path",
-        "json_path",
-        "mean_path",
-        "model_weights_path",
-        "rundir",
-        "stddev_path",
+        STR.forecast_length,
+        STR.ics_path,
+        STR.json_path,
+        STR.mean_path,
+        STR.model_weights_path,
+        STR.rundir,
+        STR.stddev_path,
     ):
         assert not ok(with_del(cfg, key))
         assert f"'{key}' is a required property" in logcap.text
         logcap.clear()
     # Optional:
-    assert ok(with_del(cfg, "forecast_freq"))
+    assert ok(with_del(cfg, STR.forecast_freq))
     # No additional properties:
     assert not ok(with_set(cfg, "bar", "foo"))
     assert "Additional properties are not allowed" in logcap.text
     logcap.clear()
     # Expecting an integer:
-    for key in ("forecast_freq", "forecast_length"):
+    for key in (STR.forecast_freq, STR.forecast_length):
         assert not ok(with_set(cfg, "bad", key))
         assert "is not of type 'integer'" in logcap.text
         logcap.clear()
     # Expecting a string:
     for key in (
-        "diffs_stddev_path",
-        "ics_path",
-        "json_path",
-        "mean_path",
-        "model_weights_path",
-        "rundir",
-        "stddev_path",
+        STR.diffs_stddev_path,
+        STR.ics_path,
+        STR.json_path,
+        STR.mean_path,
+        STR.model_weights_path,
+        STR.rundir,
+        STR.stddev_path,
     ):
         assert not ok(with_set(cfg, 42, key))
         assert "is not of type 'string'" in logcap.text

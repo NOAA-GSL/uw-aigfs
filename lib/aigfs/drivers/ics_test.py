@@ -17,18 +17,18 @@ from aigfs.strings import STR
 @fixture
 def config(tmp_path):
     return {
-        "aigfs_ics": {
+        STR.aigfs_ics: {
             "execution": {
                 "executable": "uw execute -h",
                 "batchargs": {"walltime": "00:05:00"},
             },
-            "files_to_link": {
+            STR.files_to_link: {
                 "data/a.t00z.pgrb2.0p25.f000": str(tmp_path / "fh0.grib2"),
                 "data/a.t00z.pgrb2.0p25.f006": str(tmp_path / "fh6.grib2"),
                 "foo/bar": "/baz/quz",
             },
-            "rundir": str(tmp_path / "prep"),
-            "variable_extraction_yaml": str(tmp_path / "vars.yaml"),
+            STR.rundir: str(tmp_path / "prep"),
+            STR.variable_extraction_yaml: str(tmp_path / "vars.yaml"),
         }
     }
 
@@ -81,8 +81,8 @@ def varkit(driverobj):
           - ":surface:"
         load_once: false
     """
-    Path(driverobj.config["variable_extraction_yaml"]).write_text(dedent(content))
-    d = driverobj.rundir / "data"
+    Path(driverobj.config[STR.variable_extraction_yaml]).write_text(dedent(content))
+    d = driverobj.rundir / STR.data
     keys = [
         Path(f"{d}/HGT_surface_00.pgrb2.0p25.f000.nc"),
         Path(f"{d}/TMP_2_m_above_ground_00.pgrb2.0p25.f000.nc"),
@@ -116,25 +116,25 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
 
         def ds_atm(varnames: list[str], time: np.datetime64) -> xr.Dataset:
             data_vars: dict = {
-                v: (["time", STR.plevel, "latitude", "longitude"], np.ones((1, 3, 1, 1)))
+                v: ([STR.time, STR.plevel, STR.latitude, STR.longitude], np.ones((1, 3, 1, 1)))
                 for v in varnames
             }
-            data_vars["_dummy"] = (["level"], np.zeros(1))  # to exercise drop_dims("level")
+            data_vars["_dummy"] = ([STR.level], np.zeros(1))  # to exercise drop_dims("level")
             return xr.Dataset(
                 data_vars,
                 coords={
-                    "time": [time],
+                    STR.time: [time],
                     STR.plevel: np.array([200.0, 850.0, 1000.0], dtype="float64"),
-                    "level": [0.0],
-                    "latitude": lat,
-                    "longitude": lon,
+                    STR.level: [0.0],
+                    STR.latitude: lat,
+                    STR.longitude: lon,
                 },
             )
 
         def ds_sfc(varname: str, time: np.datetime64) -> xr.Dataset:
             return xr.Dataset(
-                {varname: (["time", "latitude", "longitude"], np.ones((1, 1, 1)))},
-                coords={"time": [time], "latitude": lat, "longitude": lon},
+                {varname: ([STR.time, STR.latitude, STR.longitude], np.ones((1, 1, 1)))},
+                coords={STR.time: [time], STR.latitude: lat, STR.longitude: lon},
             )
 
         yield "mock ncfiles"
@@ -271,7 +271,7 @@ def test_drivers_AIGFSICs__ncfile(atask, ready, driverobj, logcap):
 
 
 def test_drivers_AIGFSICs_driver_name(driverobj):
-    assert driverobj.driver_name() == "aigfs_ics"
+    assert driverobj.driver_name() == STR.aigfs_ics
 
 
 def test_drivers_AIGFSICs__ncfiles_to_cmds(varkit):
@@ -282,7 +282,7 @@ def test_drivers_AIGFSICs__ncfiles_to_cmds(varkit):
 
 def test_drivers_AIGFSICs__ncfiles_to_cmds__bad_grib_filenames(varkit):
     driverobj, _ = varkit
-    config = driverobj._config["files_to_link"]
+    config = driverobj._config[STR.files_to_link]
     key = next(iter(config))
     config[key.replace("t00z", "z00t")] = config[key]
     with raises(ValueError, match="GRIB files don't have names expected by this driver!"):
@@ -301,21 +301,21 @@ def test_drivers_ics_schema(config, logcap, tmp_path, validator, with_del, with_
     assert "'aigfs_ics' is a required property" in logcap.text
     logcap.clear()
     # Expecting an object:
-    assert not ok(with_set(config, [], "aigfs_ics"))
+    assert not ok(with_set(config, [], STR.aigfs_ics))
     assert "is not of type 'object'" in logcap.text
     logcap.clear()
     # files_to_link is not required (but one of files_to_* must satisfy anyOf):
-    cfg_no_link = with_del(config, "aigfs_ics", "files_to_link")
+    cfg_no_link = with_del(config, STR.aigfs_ics, STR.files_to_link)
     # Without any files_to_* the anyOf still passes (it just checks pattern if present):
-    assert ok(with_set(cfg_no_link, {"data/x": "/y"}, "aigfs_ics", "files_to_copy"))
-    assert ok(with_set(cfg_no_link, {"data/x": "/y"}, "aigfs_ics", "files_to_hardlink"))
+    assert ok(with_set(cfg_no_link, {"data/x": "/y"}, STR.aigfs_ics, STR.files_to_copy))
+    assert ok(with_set(cfg_no_link, {"data/x": "/y"}, STR.aigfs_ics, STR.files_to_hardlink))
 
 
 def test_drivers_ics_schema_content(config, logcap, tmp_path, validator, with_del, with_set):
-    ok = validator(ics, tmp_path, "properties", "aigfs_ics")
-    cfg = config["aigfs_ics"]
+    ok = validator(ics, tmp_path, "properties", STR.aigfs_ics)
+    cfg = config[STR.aigfs_ics]
     # Required:
-    for key in ("execution", "rundir", "variable_extraction_yaml"):
+    for key in ("execution", STR.rundir, STR.variable_extraction_yaml):
         assert not ok(with_del(cfg, key))
         assert f"'{key}' is a required property" in logcap.text
         logcap.clear()
@@ -324,7 +324,7 @@ def test_drivers_ics_schema_content(config, logcap, tmp_path, validator, with_de
     assert "Additional properties are not allowed" in logcap.text
     logcap.clear()
     # Expecting a string:
-    for key in ("rundir", STR.variable_extraction_yaml):
+    for key in (STR.rundir, STR.variable_extraction_yaml):
         assert not ok(with_set(cfg, 42, key))
         assert "is not of type 'string'" in logcap.text
         logcap.clear()

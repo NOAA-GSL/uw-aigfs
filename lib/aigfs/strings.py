@@ -76,6 +76,7 @@ class _STR(_ValsMatchKeys):
     pdtn: str = _
     platform: str = _
     plevel: str = _
+    pressure: str = _
     PRMSL_meansealevel: str = _
     rocoto: str = _
     rocoto_xml: str = "rocoto.xml"
