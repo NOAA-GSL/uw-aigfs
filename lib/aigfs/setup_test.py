@@ -81,7 +81,7 @@ def test_setup_set_up_rundir(logcap, tmp_path):
 
 
 def test_setup_set_up_rundir_invalid_xml(logcap, tmp_path):
-    rundir = tmp_path / "rundir"
+    rundir = tmp_path / STR.rundir
     config: dict = {STR.app: {STR.rundir: str(rundir)}}
     with (
         patch.object(setup, "YAMLConfig"),
