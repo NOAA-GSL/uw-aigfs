@@ -42,7 +42,15 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         Run directory provisioned with all required content.
         """
         yield self.taskname("provisioned run directory")
-        yield self.runscript()
+        yield None
+
+    @collection
+    def run(self) -> Iterator:
+        """
+        An AIGFSPost run.
+        """
+        yield "AIGFSPost run"
+        yield self.delivery()
 
     # Private tasks
 
