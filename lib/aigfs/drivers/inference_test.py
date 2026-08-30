@@ -55,16 +55,16 @@ def ds():
     ones = np.ones((1, 2, 1))
     return xr.Dataset(
         {
-            "geopotential_at_surface": (["batch", "time", "x"], ones.copy()),
-            "land_sea_mask": (["batch", "time", "x"], ones.copy()),
+            STR.geopotential_at_surface: (["batch", "time", "x"], ones.copy()),
+            STR.land_sea_mask: (["batch", "time", "x"], ones.copy()),
             "pressure": (["batch", "time", "x"], ones.copy()),
-            "temperature": (["batch", "time", "x"], ones.copy(), {"long_name": "temp"}),
-            "total_precipitation_6hr": (["batch", "time", "x"], ones.copy()),
+            STR.temperature: (["batch", "time", "x"], ones.copy(), {STR.long_name: "temp"}),
+            STR.total_precipitation_6hr: (["batch", "time", "x"], ones.copy()),
         },
         coords={
             "batch": [0],
-            "datetime": (["batch", "time"], datetimes.reshape(1, 2)),
-            "time": times,
+            STR.datetime: ([STR.batch, STR.time], datetimes.reshape(1, 2)),
+            STR.time: times,
             "x": [0],
         },
     )
@@ -102,7 +102,7 @@ def weights(config, model_config, task_config):
         description="test",
         license="test",
     )
-    with Path(config[STR.aigfs_inference]["model_weights_path"]).open("wb") as f:
+    with Path(config[STR.aigfs_inference][STR.model_weights_path]).open("wb") as f:
         checkpoint.dump(f, cp)
     return cp
 
@@ -124,7 +124,7 @@ def mock_mws(weights):
 
 
 def test_drivers_AIGFSInference_initial_conditions(driverobj, ds, logcap):
-    path = Path(driverobj.config["ics_path"])
+    path = Path(driverobj.config[STR.ics_path])
     ds.to_netcdf(path)
     node = driverobj.initial_conditions()
     assert node.ready
@@ -139,7 +139,7 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap, mock_
         ref = xr.Dataset()
         yield Asset(ref, lambda: bool(ref))
         yield None
-        ref.update(xr.Dataset({"temperature": (["x"], [10, 20])}))
+        ref.update(xr.Dataset({STR.temperature: (["x"], [10, 20])}))
 
     inputs = xr.Dataset({"input_var": (["x"], [1, 2])})
     targets = xr.Dataset({"target_var": (["x"], [3, 4])})
@@ -157,7 +157,7 @@ def test_drivers_AIGFSInference_inputs_targets_forcings(driverobj, logcap, mock_
     xr.testing.assert_identical(node.ref[1], targets)
     xr.testing.assert_identical(node.ref[2], forcings)
     call_args = extract.call_args
-    xr.testing.assert_identical(call_args[0][0], xr.Dataset({"temperature": (["x"], [10, 20])}))
+    xr.testing.assert_identical(call_args[0][0], xr.Dataset({STR.temperature: (["x"], [10, 20])}))
     assert call_args[1]["target_lead_times"] == slice("6h", "24h")
     assert "inputs, targets, and forcings" in logcap.text
 
@@ -166,9 +166,9 @@ def test_drivers_AIGFSInference_normalization_stats(driverobj, logcap):
     diffs_stddev = xr.Dataset({"diffs_stddev": (["x"], [1.0])})
     mean = xr.Dataset({"mean": (["x"], [2.0])})
     stddev = xr.Dataset({"stddev": (["x"], [3.0])})
-    diffs_stddev.to_netcdf(driverobj.config["diffs_stddev_path"])
-    mean.to_netcdf(driverobj.config["mean_path"])
-    stddev.to_netcdf(driverobj.config["stddev_path"])
+    diffs_stddev.to_netcdf(driverobj.config[STR.diffs_stddev_path])
+    mean.to_netcdf(driverobj.config[STR.mean_path])
+    stddev.to_netcdf(driverobj.config[STR.stddev_path])
     node = driverobj.normalization_stats()
     assert node.ready
     assert len(node.ref) == 3
@@ -263,7 +263,7 @@ def test_drivers_AIGFSInference_predictions(driverobj, ds, logcap, mock_mws, utc
     mock_writer_cls.assert_called_once_with(
         start_date=pd.to_datetime(utc(2025, 10, 2, 0).replace(tzinfo=None)),
         case_name=STR.aigfs,
-        json_path=Path(driverobj.config["json_path"]),
+        json_path=Path(driverobj.config[STR.json_path]),
     )
     # rollout.chunked_prediction was called:
     mock_rollout.chunked_prediction.assert_called_once()
@@ -289,13 +289,13 @@ def test_drivers_inference__adjust_time__noop(ds):
 def test_drivers_inference__clean_ics(ds):
     result = inference._clean_ics(ds)
     # Dropped variables are gone:
-    for var in [STR.geopotential_at_surface, "land_sea_mask", "total_precipitation_6hr"]:
+    for var in [STR.geopotential_at_surface, STR.land_sea_mask, STR.total_precipitation_6hr]:
         assert var not in result.data_vars
     # long_name attribute was removed:
-    assert "long_name" not in result["temperature"].attrs
+    assert STR.long_name not in result[STR.temperature].attrs
     # Only time index 1 was kept, and time was shifted back by 6h:
     assert len(result[STR.time]) == 1
-    np.testing.assert_array_equal(result["time"].values, [np.timedelta64(0, "h")])
+    np.testing.assert_array_equal(result[STR.time].values, [np.timedelta64(0, "h")])
 
 
 def test_drivers_inference_construct_wrapped_graphcast(model_config, task_config):
@@ -317,17 +317,17 @@ def test_drivers_inference_construct_wrapped_graphcast(model_config, task_config
 
 def ds_check(ds: xr.Dataset) -> None:
     # Should have fcst_steps + 2 = 6 time steps now:
-    assert len(ds["time"]) == 6
+    assert len(ds[STR.time]) == 6
     # Time values are 6-hourly timedeltas:
     expected_times = np.array([np.timedelta64(6 * i, "h") for i in range(6)])
-    np.testing.assert_array_equal(ds["time"].values, expected_times)
+    np.testing.assert_array_equal(ds[STR.time].values, expected_times)
     # Datetime values are absolute times starting from the original start:
     t0 = np.datetime64("2025-10-01T18:00")
     expected_datetimes = np.array([t0 + np.timedelta64(6 * i, "h") for i in range(6)])
     np.testing.assert_array_equal(ds[STR.datetime].to_numpy()[0], expected_datetimes)
     # Original data at existing time indices is preserved, new indices are NaN:
-    assert float(ds["temperature"].isel(batch=0, time=0, x=0)) == 1.0
-    assert np.isnan(float(ds["temperature"].isel(batch=0, time=2, x=0)))
+    assert float(ds[STR.temperature].isel(batch=0, time=0, x=0)) == 1.0
+    assert np.isnan(float(ds[STR.temperature].isel(batch=0, time=2, x=0)))
 
 
 # Schema tests

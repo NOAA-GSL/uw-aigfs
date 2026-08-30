@@ -71,6 +71,7 @@ class _STR(_ValsMatchKeys):
     mean_path: str = _
     mean_sea_level_pressure: str = _
     model_weights_path: str = _
+    name: str = _
     outputdir: str = _
     pdtn: str = _
     platform: str = _
@@ -78,6 +79,7 @@ class _STR(_ValsMatchKeys):
     PRMSL_meansealevel: str = _
     rocoto: str = _
     rocoto_xml: str = "rocoto.xml"
+    rundir: str = _
     SPFH: str = _
     specific_humidity: str = _
     stddev_path: str = _

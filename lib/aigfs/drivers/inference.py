@@ -64,8 +64,8 @@ class AIGFSInference(DriverCycleBased):
         datasets: list[xr.Dataset] = []
         yield Asset(datasets, lambda: bool(datasets))
         reqs = {
-            "ics": self.initial_conditions(),
-            "weights": self.model_weights(),
+            STR.ics: self.initial_conditions(),
+            STR.weights: self.model_weights(),
         }
         yield reqs
         freq = self.config[STR.forecast_freq]

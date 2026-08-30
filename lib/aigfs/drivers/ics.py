@@ -126,10 +126,10 @@ class AIGFSICs(DriverCycleBased, FileStager):
         """
         A mapping from netCDF file paths to the commands that create them.
         """
-        datadir = self.rundir / "data"
+        datadir = self.rundir / STR.data
         paths = [
             self.rundir / dst
-            for section in ("files_to_copy", "files_to_hardlink", "files_to_link")
+            for section in (STR.files_to_copy, STR.files_to_hardlink, STR.files_to_link)
             for dst in self.config.get(section, [])
             if Path(dst).parts[0] == datadir.name
         ]

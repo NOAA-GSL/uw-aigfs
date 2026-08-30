@@ -159,7 +159,9 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
                 ds[STR.VGRD_10maboveground] = ds[STR.UGRD_10maboveground].copy()
                 datasets[name] = ds
             elif "SPFH.VVEL" in name:
-                datasets[name] = ds_atm([STR.SPFH, STR.VVEL, STR.VGRD, STR.UGRD, STR.HGT, STR.TMP], t0)
+                datasets[name] = ds_atm(
+                    [STR.SPFH, STR.VVEL, STR.VGRD, STR.UGRD, STR.HGT, STR.TMP], t0
+                )
             elif STR.LAND_surface in name:
                 datasets[name] = ds_sfc(STR.LAND_surface, t6)
             else:
