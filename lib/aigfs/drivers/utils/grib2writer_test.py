@@ -58,27 +58,27 @@ def json_path(tmp_path):
     table = {
         STR.temperature: {
             STR.templates: {STR.pdtn: 0, STR.drtn: 40},
-            STR.attrs: {"discipline": 0, "parameterCategory": 0, "parameterNumber": 0},
+            STR.attrs: {STR.discipline: 0, STR.parameter_category: 0, STR.parameter_number: 0},
         },
         STR.specific_humidity: {
             STR.templates: {STR.pdtn: 0, STR.drtn: 40},
-            STR.attrs: {"discipline": 0, "parameterCategory": 1, "parameterNumber": 0},
+            STR.attrs: {STR.discipline: 0, STR.parameter_category: 1, STR.parameter_number: 0},
         },
         STR.total_precipitation_6hr: {
             STR.templates: {STR.pdtn: 8, STR.drtn: 40},
-            STR.attrs: {"discipline": 0, "parameterCategory": 1, "parameterNumber": 8},
+            STR.attrs: {STR.discipline: 0, STR.parameter_category: 1, STR.parameter_number: 8},
         },
         STR.total_precipitation_cumsum: {
             STR.templates: {STR.pdtn: 8, STR.drtn: 40},
-            STR.attrs: {"discipline": 0, "parameterCategory": 1, "parameterNumber": 8},
+            STR.attrs: {STR.discipline: 0, STR.parameter_category: 1, STR.parameter_number: 8},
         },
         STR.geopotential: {
             STR.templates: {STR.pdtn: 0, STR.drtn: 40},
-            STR.attrs: {"discipline": 0, "parameterCategory": 3, "parameterNumber": 5},
+            STR.attrs: {STR.discipline: 0, STR.parameter_category: 3, STR.parameter_number: 5},
         },
         STR.two_m_temperature: {
             STR.templates: {STR.pdtn: 0, STR.drtn: 40},
-            STR.attrs: {"discipline": 0, "parameterCategory": 0, "parameterNumber": 0},
+            STR.attrs: {STR.discipline: 0, STR.parameter_category: 0, STR.parameter_number: 0},
         },
     }
     (tmp_path / STR.tables_aigfs_json).write_text(json.dumps(table))

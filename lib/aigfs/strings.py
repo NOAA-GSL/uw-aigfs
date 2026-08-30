@@ -41,6 +41,7 @@ class _STR(_ValsMatchKeys):
     datetime: str = _
     deliver_to: str = _
     diffs_stddev_path: str = _
+    discipline: str = _
     drtn: str = _
     etc: str = _
     files_to_copy: str = _
@@ -73,6 +74,8 @@ class _STR(_ValsMatchKeys):
     model_weights_path: str = _
     name: str = _
     outputdir: str = _
+    parameter_category: str = "parameterCategory"
+    parameter_number: str = "parameterNumber"
     pdtn: str = _
     platform: str = _
     plevel: str = _
