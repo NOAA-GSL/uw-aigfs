@@ -44,7 +44,7 @@ SECTION3 = np.array(
 
 class Grib2Writer:
     def __init__(
-        self, start_date: datetime, case_name: str = STR.aigfs, grib_out_config: Path | None = None
+        self, start_date: datetime, case_name: str, grib_out_config: Path | None = None
     ) -> None:
         self.case_name = case_name
         if self.case_name == STR.aigfs:
