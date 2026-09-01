@@ -13,7 +13,7 @@
           "description": "Settings for driver execution"
         },
         "forecast_freq": {
-          "description": "Hours between AIGFS cycles",
+          "description": "Hours between forecast leadtimes",
           "type": "integer"
         },
         "forecast_length": {
