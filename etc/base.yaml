@@ -24,7 +24,7 @@ forecast:
       executable: uw execute --module aigfs.drivers.inference --classname AIGFSInference --task predictions -c {{ app.rundir }}/aigfs.yaml --cycle {{ cycle.strftime('%Y-%m-%d_%H:%M:%S') }} --key-path forecast
     forecast_freq: 6
     forecast_length: 120
-    grib_out_config: '{{ app.modeldir }}/tables'
+    grib_out_config: '{{ app.home }}/etc/grib_out.json'
     ics_path: '{{ prep.aigfs_ics.rundir }}/aigfs.t{{ app.time.hh }}z.ic.nc'
     mean_path: '{{ app.modeldir }}/stats/mean_by_level.nc'
     model_weights_path: '{{ app.modeldir }}/params/weights.npz'
