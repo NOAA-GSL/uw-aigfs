@@ -5,7 +5,7 @@
       "description": "Schema for the AIGFSInference driver config",
       "properties": {
         "diffs_stddev_path": {
-          "description": "Path to GraphCast netCDF file for scaling predicted changes/residuals",
+          "description": "Path to GraphCast netCDF file for scaling predicted residuals",
           "type": "string"
         },
         "execution": {
