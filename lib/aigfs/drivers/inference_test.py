@@ -23,7 +23,7 @@ def config(tmp_path):
             "execution": {"executable": "uw execute -h"},
             STR.forecast_freq: 6,
             STR.forecast_length: 24,
-            STR.grib_out_config: str(tmp_path / "tables"),
+            STR.grib_out_config: str(tmp_path / "grib-out.json"),
             STR.ics_path: str(tmp_path / "aigfs.t18z.ic.nc"),
             STR.mean_path: str(tmp_path / "mean_by_level.nc"),
             STR.model_weights_path: str(tmp_path / "weights.npz"),

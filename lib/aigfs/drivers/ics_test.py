@@ -27,7 +27,7 @@ def config(tmp_path):
                 "data/a.t00z.pgrb2.0p25.f006": str(tmp_path / "fh6.grib2"),
                 "foo/bar": "/baz/quz",
             },
-            STR.grib_in_config: str(tmp_path / "vars.yaml"),
+            STR.grib_in_config: str(tmp_path / "grib-in.yaml"),
             STR.rundir: str(tmp_path / "prep"),
         }
     }
