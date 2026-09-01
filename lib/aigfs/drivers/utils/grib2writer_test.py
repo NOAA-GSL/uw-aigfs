@@ -81,9 +81,9 @@ def grib_out_config(tmp_path):
             STR.attrs: {STR.discipline: 0, STR.parameter_category: 0, STR.parameter_number: 0},
         },
     }
-    (tmp_path / STR.tables_aigfs_json).write_text(json.dumps(table))
-    (tmp_path / STR.tables_aigefs_json).write_text(json.dumps(table))
-    return tmp_path
+    path = tmp_path / "grib_out.json"
+    path.write_text(json.dumps(table))
+    return path
 
 
 @fixture

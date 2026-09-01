@@ -94,8 +94,6 @@ class _STR(_ValsMatchKeys):
     rundir: str = _
     specific_humidity: str = _
     stddev_path: str = _
-    tables_aigefs_json: str = "tables_aigefs.json"
-    tables_aigfs_json: str = "tables_aigfs.json"
     temperature: str = _
     templates: str = _
     ten_m_u_component_of_wind: str = "10m_u_component_of_wind"

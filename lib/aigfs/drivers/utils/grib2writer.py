@@ -43,21 +43,12 @@ SECTION3 = np.array(
 
 
 class Grib2Writer:
-    def __init__(
-        self, start_date: datetime, case_name: str, grib_out_config: Path | None = None
-    ) -> None:
-        self.case_name = case_name
-        if self.case_name == STR.aigfs:
-            assert grib_out_config
-            table_file = grib_out_config / STR.tables_aigfs_json
-        elif self.case_name.startswith(STR.aige):
-            assert grib_out_config
-            table_file = grib_out_config / STR.tables_aigefs_json
-        else:
-            msg = f"name {self.case_name} is not supported."
+    def __init__(self, start_date: datetime, case_name: str, grib_out_config: Path) -> None:
+        if case_name != STR.aigfs and not case_name.startswith(STR.aige):
+            msg = f"name {case_name} is not supported."
             raise ValueError(msg)
-        with table_file.open() as f:
-            self.attrs = json.load(f)
+        self.attrs = json.loads(grib_out_config.read_text())
+        self.case_name = case_name
         self.start_date = start_date
 
     def create_grib2_message(
