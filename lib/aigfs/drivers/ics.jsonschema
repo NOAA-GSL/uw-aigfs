@@ -50,17 +50,17 @@
         "files_to_link": {
           "$ref": "urn:uwtools:files-to-stage"
         },
-        "rundir": {
+        "grib_in_config": {
           "type": "string"
         },
-        "variable_extraction_yaml": {
+        "rundir": {
           "type": "string"
         }
       },
       "required": [
         "execution",
-        "rundir",
-        "variable_extraction_yaml"
+        "grib_in_config",
+        "rundir"
       ],
       "type": "object"
     }

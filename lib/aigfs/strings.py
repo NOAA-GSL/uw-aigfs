@@ -63,6 +63,7 @@ class _STR(_ValsMatchKeys):
     forecast_length: str = _
     geopotential: str = _
     geopotential_at_surface: str = _
+    grib_in_config: str = _
     grib_out_config: str = _
     home: str = _
     ics: str = _
@@ -104,7 +105,6 @@ class _STR(_ValsMatchKeys):
     two_m_temperature: str = "2m_temperature"
     u_component_of_wind: str = _
     v_component_of_wind: str = _
-    variable_extraction_yaml: str = _
     vertical_velocity: str = _
     weights: str = _
     workflow: str = _
