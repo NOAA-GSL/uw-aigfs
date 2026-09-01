@@ -177,7 +177,6 @@ The `modeldir` directory is expected to contain:
 ```
 params/ # model weights file weights.npz
 stats/  # diffs_stddev_by_level.nc, mean_by_level.nc, stddev_by_level.nc
-tables/ # JSON metadata file(s) for GRIB2 output
 ```
 
 ## Running the Workflow
