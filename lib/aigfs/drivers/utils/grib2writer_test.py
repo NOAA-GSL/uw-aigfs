@@ -54,7 +54,7 @@ def ds() -> xr.Dataset:
 
 
 @fixture
-def json_path(tmp_path):
+def grib_out_config(tmp_path):
     table = {
         STR.temperature: {
             STR.templates: {STR.pdtn: 0, STR.drtn: 40},
@@ -92,18 +92,18 @@ def start_date(utc):
 
 
 @fixture
-def writer(json_path, start_date):
-    return Grib2Writer(start_date=start_date, case_name=STR.aigfs, json_path=json_path)
+def writer(grib_out_config, start_date):
+    return Grib2Writer(start_date=start_date, case_name=STR.aigfs, grib_out_config=grib_out_config)
 
 
 @fixture
-def writer_ens(json_path, start_date):
-    return Grib2Writer(start_date=start_date, case_name="aigep01", json_path=json_path)
+def writer_ens(grib_out_config, start_date):
+    return Grib2Writer(start_date=start_date, case_name="aigep01", grib_out_config=grib_out_config)
 
 
 @fixture
-def writer_ens_ctrl(json_path, start_date):
-    return Grib2Writer(start_date=start_date, case_name="aigec00", json_path=json_path)
+def writer_ens_ctrl(grib_out_config, start_date):
+    return Grib2Writer(start_date=start_date, case_name="aigec00", grib_out_config=grib_out_config)
 
 
 # Tests
@@ -178,9 +178,9 @@ def test_drivers_utils_grib2writer_init_aigefs(writer_ens):
     assert STR.temperature in writer_ens.attrs
 
 
-def test_drivers_utils_grib2writer_init_unsupported_case(json_path, start_date):
+def test_drivers_utils_grib2writer_init_unsupported_case(grib_out_config, start_date):
     with raises(ValueError, match="not supported"):
-        Grib2Writer(start_date=start_date, case_name="badname", json_path=json_path)
+        Grib2Writer(start_date=start_date, case_name="badname", grib_out_config=grib_out_config)
 
 
 def test_drivers_utils_grib2writer_save_grib2(writer, ds, tmp_path, logcap):

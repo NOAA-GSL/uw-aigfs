@@ -44,15 +44,15 @@ SECTION3 = np.array(
 
 class Grib2Writer:
     def __init__(
-        self, start_date: datetime, case_name: str = STR.aigfs, json_path: Path | None = None
+        self, start_date: datetime, case_name: str = STR.aigfs, grib_out_config: Path | None = None
     ) -> None:
         self.case_name = case_name
         if self.case_name == STR.aigfs:
-            assert json_path
-            table_file = json_path / STR.tables_aigfs_json
+            assert grib_out_config
+            table_file = grib_out_config / STR.tables_aigfs_json
         elif self.case_name.startswith(STR.aige):
-            assert json_path
-            table_file = json_path / STR.tables_aigefs_json
+            assert grib_out_config
+            table_file = grib_out_config / STR.tables_aigefs_json
         else:
             msg = f"name {self.case_name} is not supported."
             raise ValueError(msg)

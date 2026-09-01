@@ -15,10 +15,10 @@
         "forecast_length": {
           "type": "integer"
         },
-        "ics_path": {
+        "grib_out_config": {
           "type": "string"
         },
-        "json_path": {
+        "ics_path": {
           "type": "string"
         },
         "mean_path": {
@@ -38,8 +38,8 @@
         "diffs_stddev_path",
         "execution",
         "forecast_length",
+        "grib_out_config",
         "ics_path",
-        "json_path",
         "mean_path",
         "model_weights_path",
         "rundir",
