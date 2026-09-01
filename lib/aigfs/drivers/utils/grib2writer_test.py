@@ -81,7 +81,7 @@ def grib_out_config(tmp_path):
             STR.attrs: {STR.discipline: 0, STR.parameter_category: 0, STR.parameter_number: 0},
         },
     }
-    path = tmp_path / "grib_out.json"
+    path = tmp_path / "grib-out.json"
     path.write_text(json.dumps(table))
     return path
 
