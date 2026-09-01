@@ -60,7 +60,7 @@
           "type": "string"
         },
         "variable_extraction_yaml": {
-          "description": "Path to the YAML file defining variables for GRIB -> netCDF extractinon",
+          "description": "Path to the YAML file defining variables for GRIB -> netCDF extraction",
           "type": "string"
         }
       },
