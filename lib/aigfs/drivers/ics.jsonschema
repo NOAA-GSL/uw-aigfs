@@ -37,30 +37,37 @@
           }
         }
       ],
+      "description": "Schema for the AIGFSICs driver config",
       "properties": {
         "execution": {
-          "$ref": "urn:uwtools:execution-parallel"
+          "$ref": "urn:uwtools:execution-serial",
+          "description": "Settings for driver execution"
         },
         "files_to_copy": {
-          "$ref": "urn:uwtools:files-to-stage"
+          "$ref": "urn:uwtools:files-to-stage",
+          "description": "Files to copy into the driver run directory"
         },
         "files_to_hardlink": {
-          "$ref": "urn:uwtools:files-to-stage"
+          "$ref": "urn:uwtools:files-to-stage",
+          "description": "Files to hardlink into the driver run directory"
         },
         "files_to_link": {
-          "$ref": "urn:uwtools:files-to-stage"
+          "$ref": "urn:uwtools:files-to-stage",
+          "description": "Files to symlink into the driver run directory"
         },
-        "rundir": {
+        "grib_in_config": {
+          "description": "Path to the YAML file defining variables for GRIB-to-netCDF extraction",
           "type": "string"
         },
-        "variable_extraction_yaml": {
+        "rundir": {
+          "description": "Path to the driver run directory",
           "type": "string"
         }
       },
       "required": [
         "execution",
-        "rundir",
-        "variable_extraction_yaml"
+        "grib_in_config",
+        "rundir"
       ],
       "type": "object"
     }

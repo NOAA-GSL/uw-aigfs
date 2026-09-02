@@ -22,8 +22,8 @@ def config(tmp_path):
             "execution": {"executable": "uw execute -h"},
             STR.forecast_freq: 6,
             STR.forecast_length: 24,
+            STR.grib_out_config: str(tmp_path / "grib-out.json"),
             STR.ics_path: str(tmp_path / "aigfs.t18z.ic.nc"),
-            STR.json_path: str(tmp_path / "tables"),
             STR.mean_path: str(tmp_path / "mean_by_level.nc"),
             STR.model_weights_path: str(tmp_path / "weights.npz"),
             STR.rundir: str(tmp_path / "run"),
@@ -265,7 +265,7 @@ def test_drivers_AIGFSInference_predictions(driverobj, ds, logcap, mock_mws, utc
     mock_writer_cls.assert_called_once_with(
         start_date=pd.to_datetime(utc(2025, 10, 2, 0).replace(tzinfo=None)),
         case_name=STR.aigfs,
-        json_path=Path(driverobj.config[STR.json_path]),
+        grib_out_config=Path(driverobj.config[STR.grib_out_config]),
     )
     # rollout.chunked_prediction was called:
     mock_rollout.chunked_prediction.assert_called_once()
@@ -357,8 +357,8 @@ def test_drivers_inference_schema_content(config, logcap, tmp_path, validator, w
         STR.diffs_stddev_path,
         "execution",
         STR.forecast_length,
+        STR.grib_out_config,
         STR.ics_path,
-        STR.json_path,
         STR.mean_path,
         STR.model_weights_path,
         STR.rundir,
@@ -381,8 +381,8 @@ def test_drivers_inference_schema_content(config, logcap, tmp_path, validator, w
     # Expecting a string:
     for key in (
         STR.diffs_stddev_path,
+        STR.grib_out_config,
         STR.ics_path,
-        STR.json_path,
         STR.mean_path,
         STR.model_weights_path,
         STR.rundir,
