@@ -25,6 +25,7 @@ user:
   m1_yyjjjhh: '{{ (cycle - app.time.m6h).strftime("%y%j%H") }}'
   m2_yyjjjhh: '{{ (cycle - 2 * app.time.m6h).strftime("%y%j%H") }}'
   yyjjjhh: '{{ cycle.strftime("%y%j%H") }}'
+  gfs_data: /public/data/grids/gfs/0p25deg/grib2
 workflow:
   attrs:
     realtime: true
