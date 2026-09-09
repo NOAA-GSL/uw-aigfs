@@ -9,6 +9,7 @@ app:
   rundir: '{{ "RUNDIR" | env }}'
 forecast:
   aigfs_inference:
+    forecast_length: 120
     rundir: '{{ app.rundir }}/forecast'
 post:
   aigfs_post:
