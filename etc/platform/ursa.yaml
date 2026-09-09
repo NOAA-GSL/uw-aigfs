@@ -1,5 +1,5 @@
 app:
-  modeldir: /home/role.rtaigfs/model
+  modeldir: /scratch3/BMC/gsd-fv3/aigfs_input/aigfs-v1.1/model
   platform:
     name: ursa
     partition:
