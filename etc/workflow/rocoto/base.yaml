@@ -31,7 +31,7 @@ workflow:
           value: prep-@Y@m@d-@H
       join:
         cyclestr:
-          value: '&LOGDIR;/prep-@Y@m@d-@H.log'
+          value: '&LOGDIR;/{{ jobname.cyclestr.value }}.log'
       memory: '{{ prep.aigfs_ics.execution.batchargs.memory }}'
       walltime: '{{ prep.aigfs_ics.execution.batchargs.walltime }}'
     task_forecast:
@@ -52,7 +52,7 @@ workflow:
           value: forecast-@Y@m@d-@H
       join:
         cyclestr:
-          value: '&LOGDIR;/forecast-@Y@m@d-@H.log'
+          value: '&LOGDIR;/{{ jobname.cyclestr.value }}.log'
       nodes: '{{ forecast.aigfs_inference.execution.batchargs.nodes }}:ppn={{ forecast.aigfs_inference.execution.batchargs.tasks_per_node }}'
       memory: '{{ forecast.aigfs_inference.execution.batchargs.memory }}'
       walltime: '{{ forecast.aigfs_inference.execution.batchargs.walltime }}'
@@ -84,7 +84,7 @@ workflow:
             value: post-@Y@m@d-@H-#fhr#
         join:
           cyclestr:
-            value: '&LOGDIR;/post-@Y@m@d-@H-#fhr#.log'
+            value: '&LOGDIR;/{{ jobname.cyclestr.value }}.log'
         envars:
           FHR: '#fhr#'
         memory: '{{ post.aigfs_post.execution.batchargs.memory }}'
@@ -107,7 +107,10 @@ workflow:
         metataskdep:
           attrs:
             metatask: post
+      jobname:
+        cyclestr:
+          value: all-@Y@m@d-@H
       join:
         cyclestr:
-          value: '&LOGDIR;/{{ jobname }}_@Y@m@d@H.log'
+          value: '&LOGDIR;/{{ jobname.cyclestr.value }}.log'
       walltime: 00:00:01
