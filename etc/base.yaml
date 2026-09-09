@@ -20,7 +20,7 @@ forecast:
         walltime: 00:20:00
       executable: null
     forecast_freq: 6
-    forecast_length: 120
+    forecast_length: 24
     grib_out_config: '{{ app.home }}/etc/grib-out.json'
     ics_path: '{{ prep.aigfs_ics.rundir }}/aigfs.t{{ app.time.hh }}z.ic.nc'
     mean_path: '{{ app.modeldir }}/stats/mean_by_level.nc'
