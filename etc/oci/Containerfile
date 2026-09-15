@@ -1,0 +1,5 @@
+FROM debian:trixie
+
+WORKDIR /src
+COPY . /src
+RUN /src/etc/oci/run
