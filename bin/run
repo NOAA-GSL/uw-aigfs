@@ -31,6 +31,13 @@ bootstrap() {
   fi
 }
 
+cmd() {
+  (
+    activate $(env)
+    $@
+  )
+}
+
 deploy() {
   local d playbook
   test $# -eq 0 && echo "usage: $(basename $0) ${FUNCNAME[0]} <playbook>" && exit 1
@@ -45,12 +52,14 @@ makedocs() {
   local outdir rootdir
   rootdir=$(rootdir)
   outdir=$rootdir/docs/api
-  activate $(env)
-  msg Building documentation in $outdir
-  export PYTHONWARNINGS="ignore:Error parsing type annotation"
-  pdoc --output-dir $outdir $rootdir/lib/aigfs
-  conda deactivate
-  msg Built documentation in $outdir
+  (
+    activate $(env)
+    msg Building documentation in $outdir
+    export PYTHONWARNINGS="ignore:Error parsing type annotation"
+    pdoc --output-dir $outdir $rootdir/lib/aigfs
+    conda deactivate
+    msg Built documentation in $outdir
+  )
 }
 
 makeenv() {
@@ -106,23 +115,24 @@ EOF
 }
 
 format() {
-  activate $(env)
-  msg Formatting JSON
-  for f in $(jsfiles); do
-    jq -S . $f >$f.new || (echo "    in $f" && rm $f.new && false)
-    if cmp --quiet $f.new $f; then
-      rm $f.new
-    else
-      mv $f.new $f
-    fi
-  done
-  msg Formatting shell code
-  shfmt --indent 2 --write $(shfiles)
-  msg Formatting Python code
-  ruff format $(pyfiles)
-  msg Sorting Python imports
-  ruff check --select I --fix $(pyfiles)
-  conda deactivate
+  (
+    activate $(env)
+    msg Formatting JSON
+    for f in $(jsfiles); do
+      jq -S . $f >$f.new || (echo "    in $f" && rm $f.new && false)
+      if cmp --quiet $f.new $f; then
+        rm $f.new
+      else
+        mv $f.new $f
+      fi
+    done
+    msg Formatting shell code
+    shfmt --indent 2 --write $(shfiles)
+    msg Formatting Python code
+    ruff format $(pyfiles)
+    msg Sorting Python imports
+    ruff check --select I --fix $(pyfiles)
+  )
 }
 
 jsfiles() {
@@ -130,14 +140,15 @@ jsfiles() {
 }
 
 lint() {
-  activate $(env)
-  msg Linting YAML
-  yamllint --no-warnings $(yamlfiles)
-  msg Linting shell code
-  shellcheck --format=gcc --severity=info --shell=bash $(shfiles)
-  msg Linting Python code
-  ruff check $(pyfiles)
-  conda deactivate
+  (
+    activate $(env)
+    msg Linting YAML
+    yamllint --no-warnings $(yamlfiles)
+    msg Linting shell code
+    shellcheck --format=gcc --severity=info --shell=bash $(shfiles)
+    msg Linting Python code
+    ruff check $(pyfiles)
+  )
 }
 
 msg() {
@@ -164,17 +175,19 @@ shfiles() {
 }
 
 typecheck() {
-  activate $(env)
-  msg Typechecking Python code
-  MYPYPATH=$(rootdir)/drivers mypy $(pyfiles)
-  conda deactivate
+  (
+    activate $(env)
+    msg Typechecking Python code
+    MYPYPATH=$(rootdir)/drivers mypy $(pyfiles)
+  )
 }
 
 unittest() {
-  activate $(env)
-  msg Running Python unit tests
-  pytest --cov=aigfs --cov-report=term-missing --ignore=conda/ .
-  conda deactivate
+  (
+    activate $(env)
+    msg Running Python unit tests
+    pytest --cov=aigfs --cov-report=term-missing --ignore=conda/ .
+  )
 }
 
 # Helpers:

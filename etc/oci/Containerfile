@@ -4,4 +4,4 @@ COPY . /aigfs
 WORKDIR /aigfs
 ARG DEBIAN_FRONTEND=noninteractive
 RUN /aigfs/etc/oci/run
-ENV PATH=$PATH:/aigfs/conda/bin
+ENV PATH=/aigfs/bin:/aigfs/conda/bin:$PATH

@@ -2,8 +2,8 @@
 
 set -euo pipefail
 
-keep=( ca-certificates make )
-lose=( curl g++ git )
+keep=(ca-certificates make)
+lose=(curl g++ git)
 
 apt-get update
 apt-get install --yes --no-install-recommends ${keep[*]} ${lose[*]}
