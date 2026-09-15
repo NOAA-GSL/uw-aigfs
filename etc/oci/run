@@ -3,7 +3,7 @@
 set -euo pipefail
 
 apt-get update
-apt-get install -y --no-install-recommends ca-certificates curl make
+apt-get install -y --no-install-recommends ca-certificates curl git make
 make env
 apt-get clean
 rm -rf /var/lib/apt/lists/* /var/cache/apt/archives/* /tmp/* /var/tmp/*
