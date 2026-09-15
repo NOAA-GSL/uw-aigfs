@@ -1,5 +1,5 @@
 SHELL   := $(shell which bash)
-TARGETS := bootstrap deploy devenv docs env format lint rmenv test typecheck unittest
+TARGETS := bootstrap container  deploy devenv docs env format lint rmenv test typecheck unittest
 
 check = @$(if $(1),,$(error $(2)= argument required))
 
@@ -10,6 +10,9 @@ all:
 
 bootstrap:
 	@bin/run bootstrap
+
+container:
+	podman build --tag aigfs --file etc/oci/Containerfile .
 
 deploy:
 	$(call check,$(playbook),playbook)
