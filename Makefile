@@ -16,7 +16,7 @@ deploy:
 	@bin/run deploy $(playbook)
 
 devenv:
-	@DEVMODE=1 bin/run makeenv
+	@bin/run makeenv dev
 
 docs:
 	@bin/run makedocs

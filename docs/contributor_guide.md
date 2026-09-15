@@ -33,7 +33,7 @@ Welcome to the `uw-aigfs` Contributor Guide. Please familiarize yourself with an
 make devenv
 ```
 
-This installs [Miniforge](https://github.com/conda-forge/miniforge) into `conda/`, creates the `aigfs` conda environment from `etc/env/environment.yml`, then installs additional developer tools (linters, formatters, test runners) listed in `etc/env/devpkgs.yaml`.
+This installs [Miniforge](https://github.com/conda-forge/miniforge) into `conda/`, creates the `aigfs` conda environment from `etc/env/environment.yml`, then installs additional developer tools (linters, formatters, test runners) listed in `etc/env/dev.yaml`.
 
 After the initial installation, activate the environment in a fresh shell with:
 
@@ -143,8 +143,8 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 │   ├── ansible                    # Ansible deployment assets
 │   ├── app                        # AIGFS configuration files
 │   ├── env                        # Conda environment definitions
-│   │   ├── devpkgs.yaml           # Developer packages
-│   │   └── environment.yaml       # Core AIGFS environment definition
+│   │   ├── aigfs.yaml             # Core AIGFS environment definition
+│   │   └── dev.yaml               # Developer packages
 │   ├── grib-in.yaml               # Config for extracting GRIB messages to netCDF ICs
 │   ├── grib-out.json              # Config for writing GRIB forecast data
 │   ├── modulefiles                # System modules
