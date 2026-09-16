@@ -1,4 +1,5 @@
 SHELL   := $(shell which bash)
+MODELRE := ^\?\? model/?$
 TARGETS := bootstrap container  deploy devenv docs env format lint rmenv test typecheck unittest
 
 check = @$(if $(1),,$(error $(2)= argument required))
@@ -12,9 +13,10 @@ bootstrap:
 	@bin/run bootstrap
 
 container:
-	@test ! -d model && echo "Missing model/ directory." && false || true
-	@git status --ignored --porcelain | grep -v "^\?\? model$" | grep . && echo "Clone must be clean." && false || true
-	podman build --tag ghcr.io/maddenp-cu/aigfs:latest --file etc/oci/Containerfile .
+	@git status --ignored --porcelain | egrep -q "$(MODELRE)" || (echo "Missing model/ directory." && false)
+	@git status --ignored --porcelain | egrep -v "$(MODELRE)" && echo "Clone must be clean." && false
+	@echo HERE
+# 	podman build --tag ghcr.io/maddenp-cu/aigfs:latest --file etc/oci/Containerfile .
 
 deploy:
 	$(call check,$(playbook),playbook)
