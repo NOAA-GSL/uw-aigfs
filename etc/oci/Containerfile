@@ -1,7 +1,7 @@
 FROM debian:trixie
 
-COPY . /aigfs
-WORKDIR /aigfs
+COPY . /opt/aigfs
+WORKDIR /opt/aigfs
 ARG DEBIAN_FRONTEND=noninteractive
-RUN /aigfs/etc/oci/run
-ENV PATH=/aigfs/bin:/aigfs/conda/bin:$PATH
+RUN /opt/aigfs/etc/oci/run
+ENV PATH=/opt/aigfs/bin:$PATH
