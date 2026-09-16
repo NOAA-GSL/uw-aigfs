@@ -12,7 +12,8 @@ bootstrap:
 	@bin/run bootstrap
 
 container:
-	git status --ignored --porcelain | grep . && echo "CLONE MUST BE CLEAN" && false || true
+	@test ! -d model && echo "Missing model/ directory." && false || true
+	@git status --ignored --porcelain | grep -v "^\?\? model$" | grep . && echo "Clone must be clean." && false || true
 	podman build --tag ghcr.io/maddenp-cu/aigfs:latest --file etc/oci/Containerfile .
 
 deploy:
