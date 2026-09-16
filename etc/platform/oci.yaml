@@ -1,0 +1,6 @@
+app:
+  cycle_freq: !timedelta 6
+  first_cycle: !datetime 1970-01-01T00
+  last_cycle: !datetime 1970-01-01T00
+  modeldir: /opt/aigfs/model
+  rundir: /run/aigfs
