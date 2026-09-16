@@ -3,6 +3,4 @@ app:
   first_cycle: !datetime USER-MUST-OVERRIDE
   last_cycle: !datetime USER-MUST-OVERRIDE
   modeldir: /opt/aigfs/model
-  platform:
-    scheduler: null
   rundir: /run/aigfs
