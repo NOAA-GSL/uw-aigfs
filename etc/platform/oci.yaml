@@ -4,3 +4,9 @@ app:
   last_cycle: !datetime USER-MUST-OVERRIDE
   modeldir: /opt/aigfs/model
   rundir: /run/aigfs
+forecast:
+  platform: !remove
+post:
+  platform: !remove
+prep:
+  platform: !remove
