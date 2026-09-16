@@ -77,11 +77,17 @@ def test_setup_main(workflow):
             "ecflow",
             [Path("/path/to/a.yaml")],
         ),
+        (
+            ["--platform", "oci", "/path/to/a.yaml"],
+            "oci",
+            None,
+            [Path("/path/to/a.yaml")],
+        ),
     ],
 )
 def test_setup_parse_args(argv, expected_platform, expected_workflow, expected_files):
     with (
-        patch.object(setup, "platforms", return_value=["ursa"]),
+        patch.object(setup, "platforms", return_value=["oci", "ursa"]),
         patch("sys.argv", ["prog", *argv]),
     ):
         result = setup.parse_args()
