@@ -150,8 +150,8 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 │   ├── grib-out.json              # Config for writing GRIB forecast data
 │   ├── modulefiles                # System modules
 │   ├── oci                        # Container support files
-│   │   ├── Containerfile          # Podman automation script
-│   │   └── build                  # Containerfile support script
+│   │   ├── Containerfile          # Container image build recipe
+│   │   └── build                  # In-image build script
 │   ├── platform                   # Per-platform YAML overrides
 │   └── workflow                   # Workflow files
 │       ├── ecflow                 # ecFlow workflow support
