@@ -15,8 +15,7 @@ bootstrap:
 container:
 	@git status --ignored --porcelain | egrep -q "$(MODELRE)" || (echo "Missing model/ directory." && false)
 	@git status --ignored --porcelain | egrep -v "$(MODELRE)" && echo "Clone must be clean." && exit 1 || true
-	@echo HERE
-# 	podman build --tag ghcr.io/maddenp-cu/aigfs:latest --file etc/oci/Containerfile .
+	podman build --tag ghcr.io/maddenp-cu/aigfs:latest --file etc/oci/Containerfile .
 
 deploy:
 	$(call check,$(playbook),playbook)
