@@ -3,5 +3,5 @@ FROM debian:trixie
 COPY . /opt/aigfs
 WORKDIR /opt/aigfs
 ARG DEBIAN_FRONTEND=noninteractive
-RUN /opt/aigfs/etc/oci/run
+RUN /opt/aigfs/etc/oci/build
 ENV PATH=/opt/aigfs/bin:$PATH
