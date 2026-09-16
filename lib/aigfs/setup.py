@@ -72,7 +72,7 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def set_up_rundir(config: dict, workflow: str) -> None:
+def set_up_rundir(config: dict, workflow: str | None) -> None:
     """
     Create and populate the run directory.
     """
