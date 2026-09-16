@@ -286,7 +286,7 @@ podman run -v .:/run/aigfs --rm ghcr.io/maddenp-cu/aigfs:latest run cmd setup --
 
 Notes about the command above:
 
-- `-v .:/run/aigfs` instructs `podman` to *bind mount* the current directory to the path `/run/aigfs` inside the container. This agrees with paths mentioned in `aigfs.yaml`.
+- `-v .:/run/aigfs` instructs `podman` to *bind mount* the current directory to the path `/run/aigfs` inside the container. This is the same path that will appear as `app.rundir` in the generated `aigfs.yaml`.
 - `--rm` tells `podman` to remove the container after the command completes.
 - `ghcr.io/maddenp-cu/aigfs:latest` identifies the container image to use. Since `make container` tagged the container image created above with this tag, the image should be found locally. (Otherwise, it would be downloaded from the remote container registry it is published to.)
 - `run cmd` executes the script copied from `bin/run` in the repo into the container with the `cmd` argument, which calls a function called `cmd()` that runs the remaining arguments with the AIGFS conda environment activated. (The container image is built such that the `run` script will be on `PATH` inside the container.)
