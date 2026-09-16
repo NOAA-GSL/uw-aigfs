@@ -1,6 +1,6 @@
 SHELL   := $(shell which bash)
 MODELRE := ^\?\? model/?$
-TARGETS := bootstrap container  deploy devenv docs env format lint rmenv test typecheck unittest
+TARGETS := bootstrap container deploy devenv docs env format lint rmenv test typecheck unittest
 
 check = @$(if $(1),,$(error $(2)= argument required))
 
