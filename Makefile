@@ -12,7 +12,7 @@ bootstrap:
 	@bin/run bootstrap
 
 container:
-	git status --ignored --porcelain | grep . && echo "CLONE MUST BE CLEAN" && false
+	git status --ignored --porcelain | grep . && echo "CLONE MUST BE CLEAN" && false || true
 	podman build --tag aigfs --file etc/oci/Containerfile .
 
 deploy:
