@@ -148,6 +148,9 @@ Use the _Conversation_ tab of your PR to ask for help with any difficulties you 
 │   ├── grib-in.yaml               # Config for extracting GRIB messages to netCDF ICs
 │   ├── grib-out.json              # Config for writing GRIB forecast data
 │   ├── modulefiles                # System modules
+│   ├── oci                        # Container support files
+│   │   ├── Containerfile          # Podman automation script
+│   │   └── run                    # Containerfile support script
 │   ├── platform                   # Per-platform YAML overrides
 │   └── workflow                   # Workflow files
 │       ├── ecflow                 # ecFlow workflow support
