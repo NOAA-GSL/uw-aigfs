@@ -13,7 +13,7 @@ bootstrap:
 
 container:
 	git status --ignored --porcelain | grep . && echo "CLONE MUST BE CLEAN" && false || true
-	podman build --tag aigfs --file etc/oci/Containerfile .
+	podman build --tag ghcr.io/maddenp-cu/aigfs:latest --file etc/oci/Containerfile .
 
 deploy:
 	$(call check,$(playbook),playbook)
