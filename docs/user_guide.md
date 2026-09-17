@@ -327,7 +327,7 @@ Output index files are written to:
 
 #### Alternative Servers
 
-If you're using a platform-provided or externally installed ecFlow (not `uw ecflow server`), replace quickstart step 1 with `ecflow_start` (or the equivalent) and export `ECF_HOST`/`ECF_PORT`/`ECF_SSL` by hand rather than parsing `server.json`. Steps 2 onward are unchanged.
+If you're using a platform-provided or externally installed ecFlow (not `uw ecflow server`), start the ecFlow server with `ecflow_start` (or the equivalent) and export `ECF_HOME`, `ECF_HOST`/, `ECF_PORT`, and `ECF_SSL` by hand rather than parsing `server.json`.
 
 #### Config Server Block
 
@@ -339,10 +339,10 @@ If you're using a platform-provided or externally installed ecFlow (not `uw ecfl
 
 #### GUI (`ecflow_ui`)
 
-The GUI ships with the `ecflow` package (available in the `aigfs` conda env). Launch it from a shell where the client env is configured -- the GUI reads `ECF_HOST`/`ECF_PORT`/`ECF_SSL` from the environment on startup, just like `ecflow_client`:
+The GUI ships with the `ecflow` package (available in the `aigfs` conda env). Launch it from a shell where the client env is configured -- the GUI reads `ECF_HOST`, `ECF_PORT`, and `ECF_SSL` from the environment on startup, just like `ecflow_client`:
 
 ```bash
-ssh -X uecflow01                     # X forwarding required
+ssh -X uecflow01 # X forwarding required
 cd <rundir>
 source <path-to>/bin/activate-ursa
 eval "$(jq -r 'to_entries | .[] | "export \(.key)=\(.value)"' server.json)"
@@ -355,13 +355,13 @@ The suite appears in the tree view; right-click nodes for state, job output, req
 
 `forecast.aigfs_inference.post_write_hook` is an optional string; when set, it is executed as a shell command by `aigfs.drivers.utils.grib2writer.Grib2Writer` after each leadtime's surface + pressure GRIB2 files have been atomically written. The following placeholders are substituted per invocation:
 
-| Placeholder     | Value                                                     |
-|-----------------|-----------------------------------------------------------|
-| `{fff}`         | Zero-padded 3-digit leadtime hours (`"000"`, `"006"`, ...)  |
-| `{leadtime}`    | Integer leadtime hours (`0`, `6`, ...)                      |
-| `{cycle_iso}`   | ISO cycle string with `T` separator, e.g. `2026-09-03T06:00:00`. Note that `uw execute --cycle` expects an underscore between date and time. |
-| `{sfc_path}`    | Absolute path to the just-written `*.sfc.fXXX.grib2` file |
+| Placeholder     | Value                                                      |
+|-----------------|------------------------------------------------------------|
+| `{cycle_iso}`   | ISO8601 cycle string                                       |
+| `{fff}`         | Zero-padded 3-digit leadtime hours (`"000"`, `"006"`, ...) |
+| `{leadtime}`    | Integer leadtime hours (`0`, `6`, ...)                     |
 | `{pres_path}`   | Absolute path to the just-written `*.pres.fXXX.grib2` file |
+| `{sfc_path}`    | Absolute path to the just-written `*.sfc.fXXX.grib2` file  |
 
 A non-zero exit from the hook is logged at `WARNING` level and does **not** abort the forecast; each leadtime is processed independently.
 
@@ -375,11 +375,11 @@ The suite emits `edit ECF_JOB_CMD` wrapping `sbatch --parsable` in `ecflow_clien
 
 #### SSL Configuration
 
-`ecflow.server.ECF_SSL` in `aigfs.yaml` controls SSL end-to-end. The workflow YAML seeds it to `true` -- SSL is on by default -- and the same value drives:
+`ecflow.server.ECF_SSL` in `aigfs.yaml` controls SSL end-to-end. The workflow YAML seeds it to `true` -- SSL enabled by default -- and the same value controls whether:
 
-- The server starts with SSL.
-- The `--report` block emits it, so `ECF_SSL` is exported alongside `ECF_HOST`/`ECF_PORT` and user-typed `ecflow_client` calls pick it up from the environment.
-- Suite-generated `ecflow_client` invocations (`ECF_JOB_CMD`/`ECF_KILL_CMD` in `suite.def`, `%SSL%` in `head.h`/`tail.h`, and the default `post_write_hook`) get `--ssl` inserted at rendering time.
+- The server starts with SSL,
+- The `--report` block emits it, so `ECF_SSL` is exported alongside other `ECF_` environment variables so that `ecflow_client` calls pick it up from the environment.
+- Suite-generated `ecflow_client` invocations (`ECF_JOB_CMD` and `ECF_KILL_CMD` in `suite.def`, `%SSL%` in `head.h`/`tail.h`, and the default `post_write_hook`) get `--ssl` inserted at rendering time.
 
 To run against an insecure (non-SSL) server, set `ecflow.server.ECF_SSL: false` in your user config **before** running `setup`:
 
@@ -389,11 +389,15 @@ ecflow:
     ECF_SSL: false
 ```
 
-Regenerate the rundir and every consumer above (server startup, suite emission, task-side `%SSL%` substitution) picks up the new value automatically. As a CLI shortcut for a one-off insecure server without regenerating, pass `uw ecflow server --insecure ...` -- but note that if the suite was generated with `ECF_SSL: true`, the baked-in `--ssl` on `ECF_JOB_CMD`/`head.h` calls will fail against the insecure server. Keep the config value and the server flag consistent.
+Regenerate the rundir and every consumer above (server startup, suite emission, task-side `%SSL%` substitution) picks up the new value automatically.
+
+As a CLI shortcut for a one-off insecure server without regenerating, pass `uw ecflow server --insecure ...` -- but note that if the suite was generated with `ECF_SSL: true`, the baked-in `--ssl` on `ECF_JOB_CMD`/`head.h` calls will fail against the insecure server. Keep the config value and the server flag consistent.
 
 #### Suite Control Flow
 
-The `forecast` task triggers on `prep == complete`; every `post_fXXX` triggers on `../forecast:release_fXXX`, where the `release_fXXX` events are set from within the forecast task each time that leadtime's GRIB2 pair has been written. This gives per-leadtime pipelined post-processing: each `post_fXXX` starts as soon as its inputs are on disk, without waiting for later leadtimes. The event-firing is wired via the driver's `post_write_hook` config key -- see [Post-write hook](#post-write-hook) below.
+The `forecast` task triggers on `prep == complete`.
+
+Every `post_fXXX` triggers on `../forecast:release_fXXX`, where the `release_fXXX` events are set from within the forecast task each time that leadtime's GRIB2 pair has been written. This gives per-leadtime pipelined post-processing: each `post_fXXX` starts as soon as its inputs are on disk, without waiting for later leadtimes. The event-firing is wired via the driver's `post_write_hook` config key -- see [Post-write hook](#post-write-hook) below.
 
 #### Task Names
 
@@ -409,7 +413,7 @@ Task scripts are written to `<rundir>/ecf/` and include the `head.h` and `tail.h
 
 #### Troubleshooting on Ursa
 
-- **`Failed to connect to <host>:<port>. Is the server running?`** -- either the server shell was Ctrl-C'd, or `ECF_HOST`/`ECF_PORT`/`ECF_SSL` in the environment don't match the running server. Re-parse the `--report` JSON to refresh them, then confirm with `ecflow_client --ping`.
+- **`Failed to connect to <host>:<port>. Is the server running?`** -- either the server was shut down, or `ECF_HOST`, `ECF_PORT`, and/or `ECF_SSL` in the environment don't match the running server. Re-parse the `--report` JSON to refresh them, then confirm with `ecflow_client --ping`.
 - **Suite loaded but `state:queued` never transitions.** -- `--stats` reports `Status HALTED`. `uw ecflow server` starts the server in a "halted" state (or the server halts itself after an error); run `ecflow_client --restart` to move it to a `RUNNING` state.
 - **`Could not open include file: head.h`.** -- the emitted task script uses `%include <head.h>` which resolves via `ECF_INCLUDE`. Confirm `ECF_INCLUDE` in `suite.def` points at this repo's `include/` directory.
 - **`Stale file handle` when loading `suite.def`.** -- NFS handle from a previous rundir. Refresh with `cd / && cd <rundir>` before retrying `ecflow_client --load=suite.def`.
