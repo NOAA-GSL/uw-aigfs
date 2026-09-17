@@ -27,31 +27,24 @@ def test_setup_ECFLOW_BASE_YAML__release_events():
 
 def test_setup_ECFLOW_BASE_YAML__post_write_hook():
     text = ECFLOW_BASE_YAML.read_text()
-    ssl = '{{ "--ssl " if ecflow.server.ECF_SSL | default(true) else "" }}'
     assert (
-        f"post_write_hook: 'ecflow_client {ssl}--alter change event release_f{{fff}} set $ECF_NAME'"
-        in text
+        "post_write_hook: 'ecflow_client --alter change event release_f{fff} set $ECF_NAME'" in text
     )
 
 
 def test_setup_ECFLOW_BASE_YAML__server_defaults():
     text = ECFLOW_BASE_YAML.read_text()
-    assert "  server:\n    ECF_HOME: '{{ app.rundir }}/ecf'\n    ECF_SSL: true\n" in text
+    assert "  server:\n    ECF_HOME: '{{ app.rundir }}/ecf'" in text
 
 
 def test_setup_ECFLOW_BASE_YAML__sbatch_job_cmd():
     text = ECFLOW_BASE_YAML.read_text()
-    ssl = '{{ "--ssl " if ecflow.server.ECF_SSL | default(true) else "" }}'
     assert (
-        f"ECF_JOB_CMD: 'ecflow_client {ssl}--alter=add variable ECF_RID "
+        "ECF_JOB_CMD: 'ecflow_client --alter=add variable ECF_RID "
         "$(sbatch --parsable -o %ECF_JOBOUT% %ECF_JOB%) %ECF_NAME%'"
     ) in text
-    assert (
-        f"ECF_KILL_CMD: 'scancel %ECF_RID% && ecflow_client {ssl}--force=aborted %ECF_NAME%'"
-        in text
-    )
+    assert "ECF_KILL_CMD: 'scancel %ECF_RID% && ecflow_client --force=aborted %ECF_NAME%'" in text
     assert "ECF_STATUS_CMD: 'sacct -lj %ECF_RID%'" in text
-    assert 'SSL: \'{{ "--ssl" if ecflow.server.ECF_SSL | default(true) else "" }}\'' in text
 
 
 def test_setup_INCLUDE_DIR__ecflow_head_uses_ssl_and_slurm_job_id():
