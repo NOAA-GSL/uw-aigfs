@@ -35,6 +35,8 @@ make devenv
 
 This installs [Miniforge](https://github.com/conda-forge/miniforge) into `conda/`, creates the `aigfs` conda environment from `etc/env/environment.yml`, then installs additional developer tools (linters, formatters, test runners) listed in `etc/env/devpkgs.yaml`.
 
+This command can also be run later to upgrade a non-development environment to a developer environment.
+
 After the initial installation, activate the environment in a fresh shell with:
 
 ```bash
