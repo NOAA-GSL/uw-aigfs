@@ -43,7 +43,7 @@ source bin/activate-<platform>
 
 where `<platform>` is `ursa` or `wcoss2`, or `conda` on a developer workstation (see the [User Guide](user_guide.md#installing) for details).
 
-> **Note on disk space:** The conda installation requires several gigabytes of disk space. Clone `uw-aigfs` to a location with a sufficiently large disk quota — not your HPC home directory.
+> **Note on disk space:** The conda installation requires several gigabytes of disk space. Clone `uw-aigfs` to a location with a sufficiently large disk quota -- not your HPC home directory.
 
 ## Code Quality
 
@@ -121,7 +121,7 @@ Your PR is ready to merge when:
 1. It has been approved by a required number of `uw-aigfs` core-developer reviewers.
 2. All required CI checks have passed.
 
-These criteria and their current statuses are shown at the bottom of the PR's _Conversation_ tab. CI checks take some time to run — please be patient.
+These criteria and their current statuses are shown at the bottom of the PR's _Conversation_ tab. CI checks take some time to run -- please be patient.
 
 If you have write access to the repository, you may merge your PR yourself once the above conditions are met. Otherwise, a core developer will merge it for you.
 
