@@ -1,3 +1,5 @@
+{% set uwtools_version = 2.20.0 %} # sync rtd links in md docs to this
+
 name: aigfs
 channels:
   - conda-forge
@@ -8,7 +10,7 @@ dependencies:
   - pip
   - pydantic 2.13.*
   - python 3.14.*
-  - uwtools 2.20.*
+  - uwtools {{ uwtools_version}}.*
   - wgrib2 3.8.*
   - xarray 2025.10.*
   - pip:

@@ -175,7 +175,7 @@ Additionally, each Python `.py` module is accompanied by a `_test.py` unit-test 
 
 ### Key Concepts
 
-**Drivers** (`drivers/`) implement [uwtools](https://uwtools.readthedocs.io/en/main/) driver classes using the [iotaa](https://github.com/maddenp/iotaa) task framework. Each driver exposes tasks (Python methods decorated with `@task`, `@collection`, or `@external`) that declare their inputs and outputs as `Asset` objects. The `uw execute` command (called from Rocoto job scripts) resolves and runs these tasks.
+**Drivers** (`drivers/`) implement [uwtools](https://uwtools.readthedocs.io/en/2.20.0/) driver classes using the [iotaa](https://github.com/maddenp/iotaa) task framework. Each driver exposes tasks (Python methods decorated with `@task`, `@collection`, or `@external`) that declare their inputs and outputs as `Asset` objects. The `uw execute` command (called from Rocoto job scripts) resolves and runs these tasks.
 
 **Configuration** follows the `uwtools` YAML model. `etc/base.yaml` is the baseline; it is merged with workflow and platform configs, then with any user-provided YAML configs by `bin/setup` using `uwtools.api.config.compose`. The resulting `aigfs.yaml` is the single source of truth at runtime.
 

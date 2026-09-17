@@ -26,7 +26,7 @@ Welcome to the `uw-aigfs` User Guide. This guide describes how to install, confi
 
 ## Overview
 
-`uw-aigfs` drives an AI-based medium-range global forecast using the [GraphCast](https://github.com/noaa-emc/graphcast) model, orchestrated via [uwtools](https://uwtools.readthedocs.io/en/main/) with either the [Rocoto](https://github.com/christopherwharrop/rocoto) or [ecFlow](https://ecflow.readthedocs.io) workflow manager. The workflow consists of three sequential stages per forecast cycle:
+`uw-aigfs` drives an AI-based medium-range global forecast using the [GraphCast](https://github.com/noaa-emc/graphcast) model, orchestrated via [uwtools](https://uwtools.readthedocs.io/en/2.20.0/) with either the [Rocoto](https://github.com/christopherwharrop/rocoto) or [ecFlow](https://ecflow.readthedocs.io) workflow manager. The workflow consists of three sequential stages per forecast cycle:
 
 1. **Prep** -- Extract variables from GFS GRIB2 files and produce a netCDF initial-conditions file for GraphCast.
 2. **Forecast** -- Run GraphCast inference to produce GRIB2 output files at each forecast leadtime.
@@ -141,10 +141,10 @@ Notes:
 - The `app.time.*` values are set in `etc/base.yaml`. A user config may override them, but this is unlikely to be useful. This block does not support additional content, but arbitrary keys and values may be defined in the top-level `user:` block.
 - The `forecast:`, `post:` and `prep:` blocks are described by their associated JSON Schema files under `lib/aigfs/drivers`. These blocks are validated when drivers are instantiated rather than by the `setup` script.
 - The `user:` block is a free-form YAML mapping that can define any values, including values dynamically calculated via Jinja2 expressions, useful to users for calculating other config values. This block is never validated.
-- The `workflow:` block configures the Rocoto workflow, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/stable/sections/user_guide/yaml/rocoto.html). It is only present when `--workflow rocoto` is used.
-- The `ecflow:` block configures the ecFlow suite definition, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/stable/sections/user_guide/yaml/ecflow.html). It is only present when `--workflow ecflow` is used.
+- The `workflow:` block configures the Rocoto workflow, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/rocoto.html). It is only present when `--workflow rocoto` is used.
+- The `ecflow:` block configures the ecFlow suite definition, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html). It is only present when `--workflow ecflow` is used.
 
-All keys and values are processed by `uwtools` and can take advantage of [UW YAML](https://uwtools.readthedocs.io/en/stable/sections/user_guide/yaml/index.html) tools and techniques.
+All keys and values are processed by `uwtools` and can take advantage of [UW YAML](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/index.html) tools and techniques.
 
 Given one or more user configs (called, generically, `user.yaml` below), create the final config:
 
@@ -193,7 +193,7 @@ rocotostat -w rocoto.xml -d rocoto.db
 
 Individual task logs are written to `<rundir>/logs/`. An overall workflow log is written to `<rundir>/logs/workflow.log`.
 
-The `uwtools` package provides a tool to help iterate through the entire workflow: `uw rocoto iterate`. See the [uwtools Rocoto tool documentation](https://uwtools.readthedocs.io/en/main/sections/user_guide/cli/tools/rocoto.html#cli-rocoto-iterate-examples) for details.
+The `uwtools` package provides a tool to help iterate through the entire workflow: `uw rocoto iterate`. See the [uwtools Rocoto tool documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/cli/tools/rocoto.html#cli-rocoto-iterate-examples) for details.
 
 ### Run with ecFlow
 
@@ -331,7 +331,7 @@ If you're using a platform-provided or externally installed ecFlow (not `uw ecfl
 
 #### Config Server Block
 
-`setup --workflow ecflow` always emits the `ecflow.server` block when writing `aigfs.yaml` -- the ecFlow workflow config seeds it with defaults (`ECF_HOME: {{ app.rundir }}/ecf`, `ECF_SSL: true`), and any values you set under `ecflow.server:` in your user config override those. Block content is described in the [uwtools ecFlow server YAML docs](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/ecflow.html#server-configuration).
+`setup --workflow ecflow` always emits the `ecflow.server` block when writing `aigfs.yaml` -- the ecFlow workflow config seeds it with defaults (`ECF_HOME: {{ app.rundir }}/ecf`, `ECF_SSL: true`), and any values you set under `ecflow.server:` in your user config override those. Block content is described in the [uwtools ecFlow server YAML docs](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html#server-configuration).
 
 #### Configuring the Client
 
