@@ -1,6 +1,7 @@
 SHELL   := $(shell which bash)
 MODELRE := ^\?\? model/?$
-TARGETS := bootstrap container deploy devenv docs env format lint rmenv test typecheck unittest
+TAG     :- ghcr.io/maddenp-cu/aigfs:latest
+TARGETS := bootstrap container container-push deploy devenv docs env format lint rmenv test typecheck unittest
 
 check = @$(if $(1),,$(error $(2)= argument required))
 
@@ -15,7 +16,10 @@ bootstrap:
 container:
 	@git status --ignored --porcelain | egrep -q "$(MODELRE)" || (echo "Missing model/ directory." && false)
 	@git status --ignored --porcelain | egrep -v "$(MODELRE)" && echo "Clone must be clean." && exit 1 || true
-	podman build --tag ghcr.io/maddenp-cu/aigfs:latest --file etc/oci/Containerfile .
+	podman build --platform linux/amd64,linux/arm64 --manifest $(TAG) --file etc/oci/Containerfile .
+
+container-push:
+	podman manifest push ghcr.io/$(TAG)
 
 deploy:
 	$(call check,$(playbook),playbook)
