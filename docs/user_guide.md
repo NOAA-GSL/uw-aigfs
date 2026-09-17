@@ -197,7 +197,13 @@ On RDHPCS platforms, Rocoto is available via system module. Run the following co
 module load rocoto
 ```
 
-From your run directory, as specified in your user config, run:
+From the root of your git clone, change to your run directory:
+
+``` bash
+cd $(uw config realize -i user.yaml --key-path app.rundir)
+```
+
+Run the Rocoto workflow:
 
 ```bash
 rocotorun -w rocoto.xml -d rocoto.db
@@ -233,7 +239,13 @@ Open a new shell/terminal to use for interacting with the ecFlow server. From th
 source bin/activate-<platform>
 ```
 
-Now, from your run directory, as specified in your user config, export the environment variables defined in `server.json` so that subsequent `ecflow_client` invocations can use them:
+Change to your run directory:
+
+``` bash
+cd $(uw config realize -i user.yaml --key-path app.rundir)
+```
+
+Export the environment variables defined in `server.json` so that subsequent `ecflow_client` invocations can use them:
 
 ```bash
 eval "$(jq -r 'to_entries | .[] | "export \(.key)=\(.value)"' server.json)"
@@ -245,15 +257,15 @@ Optionally, to see what was exported:
 env | sort | grep ^ECF_
 ```
 
-Load the suite, move the server to `running`, and begin the suite:
+Move the server to `running` state, load the suite, then begin the suite:
 
 ```bash
-ecflow_client --load=suite.def
 ecflow_client --restart
+ecflow_client --load=suite.def
 ecflow_client --begin=retro
 ```
 
-To check the state of the suite's execution:
+At any time during the suite's execution, check its state with:
 
 ```bash
 ecflow_client --get_state=/retro
@@ -355,19 +367,17 @@ If you're using a platform-provided or externally installed ecFlow (not `uw ecfl
 
 `uw ecflow server` selects a free TCP port automatically and, with `--report`, prints server metadata as JSON to `stdout`. Pass `--port <PORT>` if you need a specific port instead. `jq` is a system utility on Ursa and most RDHPCS machines; if it's unavailable elsewhere, add it to the `aigfs` conda environment via `etc/env/environment.yaml`.
 
-#### GUI (`ecflow_ui`)
+#### GUI
 
-The GUI ships with the `ecflow` package (available in the `aigfs` conda env). Launch it from a shell where the client env is configured -- the GUI reads `ECF_HOST`, `ECF_PORT`, and `ECF_SSL` from the environment on startup, just like `ecflow_client`:
+The `ecflow_ui` GUI ships with the `ecflow` package (available in the `aigfs` conda environment). It is an X Windows application, so ensure that X forwarding is enabled when you ssh to the host where you will launch the GUI. After connecting (e.g. to `uecflow01` on Ursa):
 
 ```bash
-ssh -X uecflow01 # X forwarding required
-cd <rundir>
-source <path-to>/bin/activate-ursa
-eval "$(jq -r 'to_entries | .[] | "export \(.key)=\(.value)"' server.json)"
-ecflow_ui &
+cd /to/your/git/clone
+source bin/activate-ursa
+ecflow_ui
 ```
 
-The suite appears in the tree view; right-click nodes for state, job output, requeue, and kill actions. If your ssh doesn't support X, you can run `ecflow_ui` locally on a workstation and add the server manually via *Servers → Manage Servers* using the values from `server.json` (host, port, SSL on/off).
+See the [ecFlowUI](https://ecflow.readthedocs.io/en/5.18.0/ug/ecflow_ui/) documentation for information on configuring and using the tool. You will at least need to configure the connection to your running ecFlow server, whose details you can find in the `server.json` file created in your run directory by `uw ecflow server`, if you are using the provided conda environment. Set the _Host_ to the `ECF_HOST` value, _Port_ to the `ECF_PORT` value, and select _TCP/IP with SSL_ for _Protocol_ unless you are running the server in insecure mode (not advised).
 
 #### Post-Write Hook
 
