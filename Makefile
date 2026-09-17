@@ -1,6 +1,6 @@
 SHELL   := $(shell which bash)
 MODELRE := ^\?\? model/?$
-TAG     :- ghcr.io/maddenp-cu/aigfs:latest
+TAG     := ghcr.io/maddenp-cu/aigfs:latest
 TARGETS := bootstrap container deploy devenv docs env format lint push rmenv test typecheck unittest
 
 check = @$(if $(1),,$(error $(2)= argument required))
