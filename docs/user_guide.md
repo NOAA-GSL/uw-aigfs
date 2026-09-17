@@ -345,11 +345,11 @@ Output index files are written to:
 
 #### Alternative Servers
 
-If you're using a platform-provided or externally installed ecFlow (not `uw ecflow server`), start the ecFlow server with `ecflow_start` (or the equivalent) and export `ECF_HOME`, `ECF_HOST`/, `ECF_PORT`, and `ECF_SSL` by hand rather than parsing `server.json`.
+If you're using a platform-provided or externally installed ecFlow (not `uw ecflow server`), start the ecFlow server with `ecflow_start` (or the equivalent) and export `ECF_HOME`, `ECF_HOST`, `ECF_PORT`, and `ECF_SSL` by hand rather than parsing `server.json`.
 
 #### Config Server Block
 
-`setup --workflow ecflow` always emits the `ecflow.server` block when writing `aigfs.yaml` -- the ecFlow workflow config seeds it with defaults (`ECF_HOME: {{ app.rundir }}/ecf`, `ECF_SSL: true`), and any values you set under `ecflow.server:` in your user config override those. Block content is described in the [uwtools ecFlow server YAML docs](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html#server-configuration).
+`setup --workflow ecflow` always emits the `ecflow.server` block when writing `aigfs.yaml` -- the ecFlow workflow config seeds it with the default `ECF_HOME` value `{{ app.rundir }}/ecf`, and any values you set under `ecflow.server:` in your user config override those. Block content is described in the [uwtools ecFlow server YAML docs](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html#server-configuration).
 
 #### Configuring the Client
 
