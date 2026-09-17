@@ -6,8 +6,8 @@ from pytest import fixture, mark, raises
 from aigfs import validation
 from aigfs.strings import STR
 
-
 # Fixtures
+
 
 @fixture
 def args_app(args_platform, args_time, tmp_path, utc):
@@ -60,9 +60,11 @@ def args_time():
         yyyymmdd="20260827",
     )
 
+
 # Tests
 
 # NB: Tests are ordered to follow the ordering of classes and functions in the tested module.
+
 
 @mark.parametrize("compute", ["a", None])
 @mark.parametrize("netaccess", ["b", None])
