@@ -260,12 +260,14 @@ Values for `<driver>` are `aigfs_ics`, `aigfs_inference`, and `aigfs_post`.
 
 ## Containerized AIGFS
 
+**This section contains work-in-progress development notes and is unlikely to be complete or fully correct.**
+
 To build an [OCI](https://opencontainers.org/) container image containing the AIGFS application and its supporting software runtime from the root directory of a git clone of this repository:
 
-1. Ensure that there are no uncommitted changes and no unversioned files in the clone. Commit (or stash) any changes, and run `git clean -dfx` to remove any unversioned files. **NB** Be sure to back up anything you do not want to lose first. For example, if you previously ran `make env` or similar to create a `conda/` installation in the clone root, you may want to temporarily move it elsewhere and move it back later.
+1. Ensure that there are no uncommitted changes and no unversioned files in the clone. Commit (or stash) any changes, and run `git clean -dfx` to remove any unversioned files. **Be sure to back up anything you do not want to lose first. For example, if you previously ran `make env` or similar to create a `conda/` installation in the clone root, you may want to temporarily move it elsewhere and move it back later.**
 2. Copy the AIGFS model files (`params/` and `stats/` -- see the [User Guide](user_guide.md#the-model-directory)) into a `model/` directory in the clone root.
 3. Ensure that the `podman` and `qemu-user-static` (Debian names; translate as needed for other Linux OSes) OS packages are installed.
-4. Optionally, run `podman system prune --all` to clear old `podman` resources. **NB** Be sure you don't need anything listed by e.g. `podman images`.
+4. Optionally, run `podman system prune --all` to clear old `podman` resources. **Be sure you don't need anything listed by e.g. `podman images`.**
 5. Run `make container`.
 
 You may optionally push the resulting container image to a remote container registry, but instructions for doing so are beyond the scope of this documentation.
