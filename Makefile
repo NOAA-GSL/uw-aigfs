@@ -38,7 +38,7 @@ lint:
 	@bin/run lint
 
 push:
-	podman manifest push ghcr.io/$(TAG)
+	podman manifest push --all $(TAG) docker://$(TAG)
 
 rmenv:
 	@bin/run rmenv
