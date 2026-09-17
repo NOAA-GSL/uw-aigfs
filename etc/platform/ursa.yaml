@@ -8,6 +8,10 @@ app:
       task: u1-service
     scheduler:
       type: slurm
+ecflow:
+  suitedef:
+    vars:
+      RID_VAR: SLURM_JOB_ID
 forecast:
   aigfs_inference:
     execution:

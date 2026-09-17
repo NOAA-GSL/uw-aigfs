@@ -1,13 +1,5 @@
 set -euo pipefail
 
-# Export variables that let ecflow_client communicate with ecflow_server:
-
-export ECF_HOST=%ECF_HOST%
-export ECF_NAME=%ECF_NAME%
-export ECF_PASS=%ECF_PASS%
-export ECF_PORT=%ECF_PORT%
-export ECF_TRYNO=%ECF_TRYNO%
-
 # Configure error handling:
 
 ERROR() {
@@ -20,13 +12,23 @@ ERROR() {
 trap ERROR 0
 trap '{ echo "Signal received, aborting task."; ERROR; }' 1 2 3 4 5 6 7 8 10 12 13 15
 
-# ECF_RID is not exported by the server -- for a batch task the value only exists
-# at runtime. Bare $SLURM_JOB_ID (not defaulted) so we fail loudly if head.h is
-# ever included in something that isn't a Slurm-submitted task.
+# Export variables that let ecflow_client communicate with ecflow_server:
 
-export ECF_RID=$SLURM_JOB_ID
-ecflow_client --init=$ECF_RID
+export ECF_HOST=%ECF_HOST%
+export ECF_NAME=%ECF_NAME%
+export ECF_PASS=%ECF_PASS%
+export ECF_PORT=%ECF_PORT%
+export ECF_SSL=%ECF_SSL%
+export ECF_TRYNO=%ECF_TRYNO%
+
+# Export the appropriate ECF_RID value:
+
+export ECF_RID=$%RID_VAR%
 
 # Convert ecFlow repeat_datetime format (YYYYmmddTHHMMSS) to ISO8601 (YYYY-mm-ddTHH:MM:SS):
 
 export ISOCYCLE=$(echo "%CYCLE%" | sed -E 's/([0-9]{4})([0-9]{2})([0-9]{2})T([0-9]{2})([0-9]{2})([0-9]{2})/\1-\2-\3T\4:\5:\6/')
+
+# Inform the server that the job has started:
+
+ecflow_client --init=$ECF_RID

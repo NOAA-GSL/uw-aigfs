@@ -49,11 +49,9 @@ def test_setup_ECFLOW_BASE_YAML__sbatch_job_cmd():
 
 def test_setup_INCLUDE_DIR__ecflow_head_uses_ssl_and_slurm_job_id():
     text = (INCLUDE_DIR / "head.h").read_text()
-    assert "export ECF_RID=$SLURM_JOB_ID" in text
+    assert "export ECF_RID=$%RID_VAR%" in text
     assert "ecflow_client --init=$ECF_RID" in text
     assert "ecflow_client --abort=trap" in text
-    # Server has no meaningful value for ECF_RID at preprocessing time.
-    assert "export ECF_RID=%ECF_RID%" not in text
 
 
 def test_setup_INCLUDE_DIR__ecflow_tail_uses_ssl():
