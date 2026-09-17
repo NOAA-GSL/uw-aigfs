@@ -25,7 +25,7 @@ Welcome to the `uw-aigfs` Contributor Guide. Please familiarize yourself with an
 
 ## Developer Setup
 
-> **Note:** The installation of conda environments is only meant for systems other than WCOSS2.
+> **Note:** The installation of conda environments is only meant for systems other than WCOSS. Do not run this step on WCOSS.
 
 `uw-aigfs` installs and manages its own conda installation in the `conda/` subdirectory of the repository root. To set up a development environment, run:
 

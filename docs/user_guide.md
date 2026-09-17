@@ -58,6 +58,8 @@ cd uw-aigfs
 
 ### Install
 
+> **Note:** The installation of conda environments is only meant for systems other than WCOSS. Do not run this step on WCOSS.
+
 `uw-aigfs` installs and manages its own conda installation in the `conda/` subdirectory of the repository root. To install:
 
 ```bash
