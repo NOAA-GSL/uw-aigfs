@@ -148,13 +148,29 @@ Notes:
 
 All keys and values are processed by `uwtools` and can take advantage of [UW YAML](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/index.html) tools and techniques.
 
-Given one or more user configs (called, generically, `user.yaml` below), create the final config:
+As a start, create a `user.yaml` with the following content, updating the datetime information as needed:
+
+``` yaml
+app:
+  cycle_freq: !timedelta 6
+  first_cycle: !datetime 2026-09-17T12
+  last_cycle: !datetime 2026-09-17T12
+  rundir: /path/to/your/run/dir
+```
+
+Create the final config (supply additional user configs if needed):
 
 ```bash
 setup --platform <platform> --workflow rocoto|ecflow user.yaml [user.yaml ...]
 ```
 
-The following files are written to `app.rundir`, which is created if it does not exist.
+Change to your run directory:
+
+``` bash
+cd $(uw config realize -i user.yaml --key-path app.rundir)
+```
+
+The following files/directories should be available:
 
 When `--workflow rocoto` is specified:
 
@@ -165,11 +181,11 @@ When `--workflow rocoto` is specified:
 
 When `--workflow ecflow` is specified:
 
-| File / Directory   | Contents                                        |
-|--------------------|-------------------------------------------------|
-| `aigfs.yaml`       | Fully realized configuration                    |
-| `ecf/`             | ecFlow task scripts (`.ecf`) for all tasks      |
-| `suite.def`        | ecFlow suite definition                         |
+| File / Directory | Contents                                        |
+|------------------|-------------------------------------------------|
+| `aigfs.yaml`     | Fully realized configuration                    |
+| `ecf/`           | ecFlow task scripts (`.ecf`) for all tasks      |
+| `suite.def`      | ecFlow suite definition                         |
 
 ## Run the Workflow
 
@@ -381,7 +397,6 @@ The suite emits `edit ECF_JOB_CMD` wrapping `sbatch --parsable` in `ecflow_clien
 
 - The server starts with SSL,
 - The `--report` block emits it, so `ECF_SSL` is exported alongside other `ECF_` environment variables so that `ecflow_client` calls pick it up from the environment.
-- Suite-generated `ecflow_client` invocations (`ECF_JOB_CMD` and `ECF_KILL_CMD` in `suite.def`, `%SSL%` in `head.h`/`tail.h`, and the default `post_write_hook`) get `--ssl` inserted at rendering time.
 
 To run against an insecure (non-SSL) server, set `ecflow.server.ECF_SSL: false` in your user config **before** running `setup`:
 
@@ -391,7 +406,7 @@ ecflow:
     ECF_SSL: false
 ```
 
-Regenerate the rundir and every consumer above (server startup, suite emission, task-side `%SSL%` substitution) picks up the new value automatically.
+Regenerate the run directory and ecFlow task jobs and every consumer above (server startup, suite emission, etc.)  will inherit the new value via environment variables.
 
 As a CLI shortcut for a one-off insecure server without regenerating, pass `uw ecflow server --insecure ...` -- but note that if the suite was generated with `ECF_SSL: true`, the baked-in `--ssl` on `ECF_JOB_CMD`/`head.h` calls will fail against the insecure server. Keep the config value and the server flag consistent.
 

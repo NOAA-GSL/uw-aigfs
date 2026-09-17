@@ -51,22 +51,21 @@ def test_setup_ECFLOW_BASE_YAML__sbatch_job_cmd():
         in text
     )
     assert "ECF_STATUS_CMD: 'sacct -lj %ECF_RID%'" in text
-    # Suite SSL variable drives the include-file %SSL% preprocessor substitution.
     assert 'SSL: \'{{ "--ssl" if ecflow.server.ECF_SSL | default(true) else "" }}\'' in text
 
 
 def test_setup_INCLUDE_DIR__ecflow_head_uses_ssl_and_slurm_job_id():
     text = (INCLUDE_DIR / "head.h").read_text()
     assert "export ECF_RID=$SLURM_JOB_ID" in text
-    assert "ecflow_client %SSL% --init=$ECF_RID" in text
-    assert "ecflow_client %SSL% --abort=trap" in text
+    assert "ecflow_client --init=$ECF_RID" in text
+    assert "ecflow_client --abort=trap" in text
     # Server has no meaningful value for ECF_RID at preprocessing time.
     assert "export ECF_RID=%ECF_RID%" not in text
 
 
 def test_setup_INCLUDE_DIR__ecflow_tail_uses_ssl():
     text = (INCLUDE_DIR / "tail.h").read_text()
-    assert "ecflow_client %SSL% --complete" in text
+    assert "ecflow_client --complete" in text
 
 
 @mark.parametrize("workflow", ["rocoto", "ecflow"])
