@@ -360,7 +360,7 @@ If you're using a platform-provided or externally installed ecFlow (not `uw ecfl
 
 #### Configuring the Client
 
-`uw ecflow server` selects a free TCP port automatically and, with `--report`, prints server metadata as JSON to `stdout`. Pass `--port <PORT>` if you need a specific port instead. `jq` is a system utility on Ursa and most RDHPCS machines; if it's unavailable elsewhere, add it to the `aigfs` conda environment via `etc/env/environment.yaml`.
+`uw ecflow server` selects a free TCP port automatically and, with `--report`, prints server metadata as JSON to `stdout`. Pass `--port <PORT>` if you need a specific port instead.
 
 #### GUI
 
@@ -372,11 +372,11 @@ source bin/activate-ursa
 ecflow_ui
 ```
 
-See the [ecFlowUI](https://ecflow.readthedocs.io/en/5.18.0/ug/ecflow_ui/) documentation for information on configuring and using the tool. You will at least need to configure the connection to your running ecFlow server, whose details you can find in the `server.json` file created in your run directory by `uw ecflow server`, if you are using the provided conda environment. Set the _Host_ to the `ECF_HOST` value, _Port_ to the `ECF_PORT` value, and select _TCP/IP with SSL_ for _Protocol_ unless you are running the server in insecure mode (not advised).
+See the [ecFlowUI](https://ecflow.readthedocs.io/en/5.18.0/ug/ecflow_ui/) documentation for information on configuring and using the tool. You will at least need to configure the connection to your running ecFlow server, whose details you can find in the `server.json` file created in your run directory by `uw ecflow server`, if you are using the provided conda environment. Set _Host_ to the `ECF_HOST` value, _Port_ to the `ECF_PORT` value, and select _TCP/IP with SSL_ for _Protocol_ unless you are running the server in insecure mode (not advised).
 
 #### Post-Write Hook
 
-`forecast.aigfs_inference.post_write_hook` is an optional string; when set, it is executed as a shell command by `aigfs.drivers.utils.grib2writer.Grib2Writer` after each leadtime's surface + pressure GRIB2 files have been atomically written. The following placeholders are substituted per invocation:
+`forecast.aigfs_inference.post_write_hook` is an optional string; when set, it is executed as a shell command by `aigfs.drivers.utils.grib2writer.Grib2Writer` after each leadtime's surface + pressure GRIB2 files have been atomically written. The following placeholders, if present in the command value, are substituted per invocation:
 
 | Placeholder     | Value                                                      |
 |-----------------|------------------------------------------------------------|
@@ -386,13 +386,13 @@ See the [ecFlowUI](https://ecflow.readthedocs.io/en/5.18.0/ug/ecflow_ui/) docume
 | `{pres_path}`   | Absolute path to the just-written `*.pres.fXXX.grib2` file |
 | `{sfc_path}`    | Absolute path to the just-written `*.sfc.fXXX.grib2` file  |
 
-A non-zero exit from the hook is logged at `WARNING` level and does **not** abort the forecast; each leadtime is processed independently.
+A non-zero exit from the hook is logged at `WARNING` level and does not abort the forecast; each leadtime is processed independently.
 
 #### Server States
 
 `uw ecflow server` starts the server in the `halted` state -- no scheduling happens until `--restart` moves it to `running`. See the [ecFlow glossary → server states](https://ecflow.readthedocs.io/en/latest/glossary.html#term-server-states) for the state-machine details.
 
-#### Slurm Submission (`ECF_JOB_CMD`)
+#### Slurm Submission
 
 The suite emits `edit ECF_JOB_CMD` wrapping `sbatch --parsable` in `ecflow_client --alter=add variable ECF_RID ...`, so tasks are submitted to Slurm using the `#SBATCH` directives at the top of each generated `.ecf` script and the server records the resulting Slurm job ID as `ECF_RID` at submission time. `head.h` exports `ECF_RID=$SLURM_JOB_ID` inside the running task and calls `ecflow_client --init=$ECF_RID` so the server's view of the job ID stays consistent across retries.
 
@@ -404,15 +404,15 @@ By default, `uw ecflow server` starts the ecFlow server with SSL security enable
 
 The `forecast` task triggers on `prep == complete`.
 
-Every `post_fXXX` triggers on `../forecast:release_fXXX`, where the `release_fXXX` events are set from within the forecast task each time that leadtime's GRIB2 pair has been written. This gives per-leadtime pipelined post-processing: each `post_fXXX` starts as soon as its inputs are on disk, without waiting for later leadtimes. The event-firing is wired via the driver's `post_write_hook` config key -- see [Post-write hook](#post-write-hook) below.
+Every `post_fXXX` triggers on `../forecast:release_fXXX`, where the `release_fXXX` events are set from within the forecast task each time that leadtime's GRIB2 pair has been written. This gives per-leadtime pipelined post-processing: Each `post_fXXX` starts as soon as its inputs are on disk, without waiting for later leadtimes. Events are sent to the server via the driver's `post_write_hook` value (see [Post-write hook](#post-write-hook) below).
 
 #### Task Names
 
-| ecFlow task               | Rocoto equivalent          | Description                  |
-|---------------------------|----------------------------|------------------------------|
-| `prep`                    | `prep`                     | ICs generation               |
-| `forecast`                | `forecast`                 | GraphCast inference          |
-| `post_f000`...`post_f120` | `post_000`...`post_120`    | Post-processing per leadtime |
+| ecFlow task               |Description                  |
+|---------------------------|-----------------------------|
+| `prep`                    |ICs generation               |
+| `forecast`                |GraphCast inference          |
+| `post_f000`...`post_f120` |Post-processing per leadtime |
 
 #### Task-Script Layout
 
@@ -424,7 +424,7 @@ Task scripts are written to `<rundir>/ecf/` and include the `head.h` and `tail.h
 - **Suite loaded but `state:queued` never transitions.** -- `--stats` reports `Status HALTED`. `uw ecflow server` starts the server in a "halted" state (or the server halts itself after an error); run `ecflow_client --restart` to move it to a `running` state.
 - **`Could not open include file: head.h`.** -- the emitted task script uses `%include <head.h>` which resolves via `ECF_INCLUDE`. Confirm `ECF_INCLUDE` in `suite.def` points at this repo's `include/` directory.
 - **`Stale file handle` when loading `suite.def`.** -- NFS handle from a previous rundir. Refresh with `cd / && cd <rundir>` before retrying `ecflow_client --load=suite.def`.
-- **`suite retro already exists` on `--load`.** -- The server still has a prior definition. Halt and delete before reloading: `ecflow_client --halt=yes && ecflow_client --delete=force /retro && ecflow_client --restart` (see the "Reloading" step of the quickstart above).
+- **`suite retro already exists` on `--load`.** -- The server still has a prior definition. Halt and delete before reloading: `ecflow_client --halt=yes && ecflow_client --delete=force /retro && ecflow_client --restart`.
 - **Task `state:active` but no matching Slurm job in `squeue`.** -- `ECF_JOB_CMD` isn't configured to submit a job via `sbatch`. Confirm the emitted `suite.def` has an `sbatch --parsable` invocation in `ECF_JOB_CMD`.
 - **`ECF_JOB_CMD` aborts immediately with `sbatch: error: getcwd failed: No such file or directory`.** -- The ecFlow server process is holding a stale working directory whose inode was destroyed (typically by `rm -rf` on a subtree containing the server's CWD, then re-creating it under the same path). `sbatch` refuses to run in a shell whose `getcwd()` fails, so the composite `ecflow_client --alter=add variable ECF_RID $(sbatch ...)` gets an empty `ECF_RID` and exits nonzero. Stop the server, `cd` to a directory that will persist (e.g. the repo root), and restart it. Prefer starting `uw ecflow server` from a stable directory outside the rundir tree.
 
