@@ -73,4 +73,5 @@ ecflow:
       vars:
         APPDIR: '{{ app.home }}'
         CONFIG: '{{ app.rundir}}/aigfs.yaml'
+        ECF_INCLUDE: '{{ app.home }}/include'
         PLATFORM: '{{ app.platform.name }}'

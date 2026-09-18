@@ -12,7 +12,6 @@ ecflow:
   suitedef:
     suite_retro:
       vars:
-        ECF_INCLUDE: '{{ app.home }}/include'
         ECF_JOB_CMD: 'ecflow_client --alter=add variable ECF_RID $(sbatch --parsable -o %ECF_JOBOUT% %ECF_JOB%) %ECF_NAME%'
         ECF_KILL_CMD: 'scancel %ECF_RID% && ecflow_client --force=aborted %ECF_NAME%'
         ECF_STATUS_CMD: 'sacct -lj %ECF_RID%'
