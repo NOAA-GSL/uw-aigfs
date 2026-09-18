@@ -181,12 +181,10 @@ class Grib2Writer:
             return
         env = {
             "CYCLE": self.start_date.strftime("%Y-%m-%dT%H:%M:%S"),
-            "HOME": os.environ["HOME"],
             "LEADTIME": str(lead),
-            "PATH": os.environ["PATH"],
             "PATH_PRES": str(outfile_pres),
             "PATH_SFC": str(outfile_sfc),
-            **{k: v for k, v in os.environ.items() if k.startswith("ECF_")},
+            **os.environ,
         }
         success, _ = run_shell_cmd(
             cmd=self.post_write_hook, env=dict(sorted(env.items())), taskname="post_write_hook"
