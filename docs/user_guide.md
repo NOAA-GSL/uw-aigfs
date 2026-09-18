@@ -143,8 +143,8 @@ Notes:
 - The `app.time.*` values are set in `etc/base.yaml`. A user config may override them, but this is unlikely to be useful. This block does not support additional content, but arbitrary keys and values may be defined in the top-level `user:` block.
 - The `forecast:`, `post:` and `prep:` blocks are described by their associated JSON Schema files under `lib/aigfs/drivers`. These blocks are validated when drivers are instantiated rather than by the `setup` script.
 - The `user:` block is a free-form YAML mapping that can define any values, including values dynamically calculated via Jinja2 expressions, useful to users for calculating other config values. This block is never validated.
-- The `workflow:` block configures the Rocoto workflow, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/rocoto.html). It is only present when `--workflow rocoto` is used.
-- The `ecflow:` block configures the ecFlow suite definition, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html). It is only present when `--workflow ecflow` is used.
+- The `workflow:` block configures the Rocoto workflow, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/rocoto.html). It is only used when `--workflow rocoto` is specified.
+- The `ecflow:` block configures the ecFlow suite definition, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html). It is only used when `--workflow ecflow` is specified.
 
 All keys and values are processed by `uwtools` and can take advantage of [UW YAML](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/index.html) tools and techniques.
 
