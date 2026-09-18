@@ -70,7 +70,7 @@ ecflow:
                     --leadtime %FHR%
               vars:
                 FHR: '{{ ec.fhr | replace("f", "") | int }}'
-    vars:
-      APPDIR: '{{ app.home }}'
-      CONFIG: '{{ app.rundir}}/aigfs.yaml'
-      PLATFORM: '{{ app.platform.name }}'
+      vars:
+        APPDIR: '{{ app.home }}'
+        CONFIG: '{{ app.rundir}}/aigfs.yaml'
+        PLATFORM: '{{ app.platform.name }}'
