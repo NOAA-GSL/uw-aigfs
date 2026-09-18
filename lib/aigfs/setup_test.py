@@ -5,7 +5,50 @@ from pytest import mark, raises
 from uwtools.api.config import YAMLConfig
 
 from aigfs import setup
+from aigfs.common import HOMEDIR
 from aigfs.strings import STR
+
+ECFLOW_BASE_YAML = setup.ETCDIR / STR.workflow / "ecflow.yaml"
+INCLUDE_DIR = HOMEDIR / "include"
+
+
+def test_setup_ECFLOW_BASE_YAML__post_trigger():
+    text = ECFLOW_BASE_YAML.read_text()
+    assert "trigger: prep == complete" in text
+    assert "trigger: '../forecast:release_{{ ec.fhr }}'" in text
+
+
+def test_setup_ECFLOW_BASE_YAML__release_events():
+    # aigfs.drivers.inference emits per-leadtime release_f{fff} events via post_write_hook.
+    text = ECFLOW_BASE_YAML.read_text()
+    assert "release_f%03d" in text
+    assert "events:" in text
+
+
+def test_setup_ECFLOW_BASE_YAML__post_write_hook():
+    text = ECFLOW_BASE_YAML.read_text()
+    assert (
+        "post_write_hook: 'ecflow_client --alter change event "
+        'release_f$(printf "%03d" $LEADTIME) set $ECF_NAME\'' in text
+    )
+
+
+def test_setup_ECFLOW_BASE_YAML__server_defaults():
+    text = ECFLOW_BASE_YAML.read_text()
+    assert "  server:\n    ECF_HOME: '{{ app.rundir }}/ecf'" in text
+
+
+def test_setup_INCLUDE_DIR__ecflow_head_uses_ssl_and_slurm_job_id():
+    text = (INCLUDE_DIR / "head.h").read_text()
+    assert 'test -n "%ECF_SSL:%" && export ECF_SSL=%ECF_SSL:%' in text
+    assert "export ECF_RID=$%RID_VAR%" in text
+    assert "ecflow_client --init=$ECF_RID" in text
+    assert "ecflow_client --abort=trap" in text
+
+
+def test_setup_INCLUDE_DIR__ecflow_tail_uses_ssl():
+    text = (INCLUDE_DIR / "tail.h").read_text()
+    assert "ecflow_client --complete" in text
 
 
 @mark.parametrize("workflow", ["rocoto", "ecflow"])
@@ -26,7 +69,7 @@ def test_setup_compose_configs(tmp_path, workflow):
     compose_to_dict.assert_called_once_with(
         [
             setup.ETCDIR / STR.base_yaml,
-            setup.ETCDIR / STR.workflow / workflow / STR.base_yaml,
+            setup.ETCDIR / STR.workflow / f"{workflow}.yaml",
             setup.PLATFORMDIR / "ursa.yaml",
             Path("/path/to/a.yaml"),
             reserved_path,
@@ -113,36 +156,7 @@ def test_setup_set_up_rundir(logcap, tmp_path):
     assert f"AIGFS will be set up here: {rundir}" in logcap.text
 
 
-def test_setup_set_up_rundir_invalid_xml(logcap, tmp_path):
-    rundir = tmp_path / STR.rundir
-    config: dict = {STR.app: {STR.rundir: str(rundir)}}
-    with (
-        patch.object(setup, "YAMLConfig"),
-        patch.object(setup, "rocoto") as rocoto,
-    ):
-        rocoto.realize.return_value = False
-        with raises(SystemExit):
-            setup.set_up_rundir(config, "rocoto")
-    assert "Invalid Rocoto XML" in logcap.text
-
-
-def test_setup_set_up_rundir_no_workflow(logcap, tmp_path):
-    rundir = tmp_path / STR.rundir
-    config: dict = {STR.app: {STR.rundir: str(rundir)}}
-    with (
-        patch.object(setup, "YAMLConfig") as YAMLConfig,
-        patch.object(setup, "ecflow") as ecflow,
-        patch.object(setup, "rocoto") as rocoto,
-    ):
-        setup.set_up_rundir(config, None)
-    assert rundir.is_dir()
-    YAMLConfig.return_value.dump.assert_called_once_with(rundir / STR.aigfs_yaml)
-    ecflow.realize.assert_not_called()
-    rocoto.realize.assert_not_called()
-    assert f"AIGFS will be set up here: {rundir}" in logcap.text
-
-
-def test_setup_set_up_rundir_ecflow(logcap, tmp_path):
+def test_setup_set_up_rundir__ecflow(logcap, tmp_path):
     rundir = tmp_path / STR.rundir
     config: dict = {STR.app: {STR.rundir: str(rundir)}}
     with (
@@ -155,4 +169,33 @@ def test_setup_set_up_rundir_ecflow(logcap, tmp_path):
     assert YAMLConfig.call_args_list[1].args[0] == config
     YAMLConfig.return_value.dump.assert_called_once_with(rundir / STR.aigfs_yaml)
     ecflow.realize.assert_called_once_with(YAMLConfig(config), rundir, scripts_path=rundir / "ecf")
+    assert f"AIGFS will be set up here: {rundir}" in logcap.text
+
+
+def test_setup_set_up_rundir__invalid_xml(logcap, tmp_path):
+    rundir = tmp_path / STR.rundir
+    config: dict = {STR.app: {STR.rundir: str(rundir)}}
+    with (
+        patch.object(setup, "YAMLConfig"),
+        patch.object(setup, "rocoto") as rocoto,
+    ):
+        rocoto.realize.return_value = False
+        with raises(SystemExit):
+            setup.set_up_rundir(config, "rocoto")
+    assert "Invalid Rocoto XML" in logcap.text
+
+
+def test_setup_set_up_rundir__no_workflow(logcap, tmp_path):
+    rundir = tmp_path / STR.rundir
+    config: dict = {STR.app: {STR.rundir: str(rundir)}}
+    with (
+        patch.object(setup, "YAMLConfig") as YAMLConfig,
+        patch.object(setup, "ecflow") as ecflow,
+        patch.object(setup, "rocoto") as rocoto,
+    ):
+        setup.set_up_rundir(config, None)
+    assert rundir.is_dir()
+    YAMLConfig.return_value.dump.assert_called_once_with(rundir / STR.aigfs_yaml)
+    ecflow.realize.assert_not_called()
+    rocoto.realize.assert_not_called()
     assert f"AIGFS will be set up here: {rundir}" in logcap.text

@@ -11,26 +11,23 @@ Welcome to the `uw-aigfs` User Guide. This guide describes how to install, confi
 
 - [Overview](#overview)
 - [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Installing](#installing)
-- [Configuration](#configuration)
-  - [Setting Up the Final Config](#setting-up-the-final-config)
+- [Clone the Repository](#clone-the-repository)
+- [Install](#install)
+- [Configure](#configure)
+- [Run the Workflow](#run-the-workflow)
+  - [Run with Rocoto](#run-with-rocoto)
+  - [Run with ecFlow](#run-with-ecflow)
+- [Reference](#reference)
   - [The Model Directory](#the-model-directory)
-- [Running the Workflow](#running-the-workflow)
-  - [Running with Rocoto](#running-with-rocoto)
-  - [Running with ecFlow](#running-with-ecflow)
-- [Workflow Stages](#workflow-stages)
-  - [Prep: Initial Conditions Generation](#prep-initial-conditions-generation)
-  - [Forecast: GraphCast Inference](#forecast-graphcast-inference)
-  - [Post-Processing](#post-processing)
+  - [ecFlow Reference](#ecflow-reference)
 
 ## Overview
 
-`uw-aigfs` drives an AI-based medium-range global forecast using the [GraphCast](https://github.com/noaa-emc/graphcast) model, orchestrated via [uwtools](https://uwtools.readthedocs.io/en/main/) with either the [Rocoto](https://github.com/christopherwharrop/rocoto) or [ecFlow](https://ecflow.readthedocs.io) workflow manager. The workflow consists of three sequential stages per forecast cycle:
+`uw-aigfs` drives an AI-based medium-range global forecast using the [GraphCast](https://github.com/noaa-emc/graphcast) model, orchestrated via [uwtools](https://uwtools.readthedocs.io/en/2.20.0/) with either the [Rocoto](https://github.com/christopherwharrop/rocoto) or [ecFlow](https://ecflow.readthedocs.io) workflow manager. The workflow consists of three sequential stages per forecast cycle:
 
-1. **Prep** — Extract variables from GFS GRIB2 files and produce a netCDF initial-conditions file for GraphCast.
-2. **Forecast** — Run GraphCast inference to produce GRIB2 output files at each forecast leadtime.
-3. **Post** — Generate GRIB2 index files and deliver them to the forecast output directory.
+1. **Prep** -- Extract variables from GFS GRIB2 files and produce a netCDF initial-conditions file for GraphCast.
+2. **Forecast** -- Run GraphCast inference to produce GRIB2 output files at each forecast leadtime.
+3. **Post** -- Generate GRIB2 index files and deliver them to the forecast output directory.
 
 ## Prerequisites
 
@@ -38,7 +35,6 @@ Before using `uw-aigfs`, ensure the following are available on your system:
 
 | Requirement                   | Description                                         |
 |-------------------------------|-----------------------------------------------------|
-| Supported platform            | Ursa or WCOSS2                                      |
 | GraphCast model weights       | See your platform config for the expected path      |
 | GFS GRIB2 input data          | 0.25° analysis and short-range forecast files       |
 | `git`                         | For cloning the repository                          |
@@ -48,16 +44,16 @@ Before using `uw-aigfs`, ensure the following are available on your system:
 
 > **Note on disk space:** The conda environment installation requires several gigabytes of disk space. Consider cloning `uw-aigfs` to a location with a sufficiently large disk quota, rather than your HPC home directory.
 
-## Getting Started
-
-Clone the repository:
+## Clone the Repository
 
 ```bash
 git clone https://github.com/NOAA-GSL/uw-aigfs.git
 cd uw-aigfs
 ```
 
-## Installing
+## Install
+
+> **Note:** The installation of conda environments is only meant for systems other than WCOSS. Do not run this step on WCOSS.
 
 `uw-aigfs` installs and manages its own conda installation in the `conda/` subdirectory of the repository root. To install:
 
@@ -67,13 +63,7 @@ make env
 
 This installs [Miniforge](https://github.com/conda-forge/miniforge) and creates the `aigfs` conda environment defined by `etc/env/aigfs.yaml`.
 
-For an environment that also includes developer tools (linters, test frameworks, etc.), run:
-
-```bash
-make devenv
-```
-
-This command can also be run later to upgrade a non-development environment to a developer environment.
+(If you need an environment that includes developer tools (linters, test frameworks, etc.), see the [Developer Guide](contributor_guide.md).)
 
 Once the environment is built, activate it for a given platform by sourcing the module loader from the repository root:
 
@@ -83,26 +73,25 @@ source bin/activate-<platform>
 
 Supported values for `<platform>`:
 
-| Platform | Description                                                |
-|----------|------------------------------------------------------------|
-| `ursa`   | Activates the locally installed conda `aigfs` environment  |
-| `wcoss2` | Loads the `workflow-wcoss2` module from `env/modulefiles/` |
+| Platform | Description                                               |
+|----------|-----------------------------------------------------------|
+| `ursa`   | Activates the locally installed conda `aigfs` environment |
 
 > **Tip:** This `source` command must be run each time you open a new shell. The platform-specific environment it activates is also the one used by the workflow jobs at runtime, but the run automation performs its own activation.
 
-## Configuration
+## Configure
 
 The AIGFS YAML configuration is generated by the `setup` script by composing:
 
 - The `etc/base.yaml` config file
-- An optional workflow-manager config, `etc/workflow/rocoto/base.yaml` or `etc/workflow/ecflow/base.yaml` (selected via `--workflow`)
+- An optional workflow-manager config, `etc/workflow/rocoto.yaml` or `etc/workflow/ecflow.yaml` (selected via `--workflow`)
 - The platform config, e.g. `etc/platform/ursa.yaml`
 - An internal config providing the `app.home` and `app.platform.name` values
 - One or more user configs specified on the command line
 
-These configs are composed top to bottom (or left to right for user configs specified on the command line), with each subsequent config potentially augmenting or overriding values from previous configs.
+These configs are composed top to bottom (or left to right for user configs specified on the command line), with each subsequent config potentially augmenting or overriding values from previous configs. In general, files under `etc/` should not be edited. Instead, additional or override values should be supplied via one or more user configs.
 
-Here is an outline of the configuration as generated by the `setup` script.
+Here is an outline of the configuration as generated by the `setup` script. Those marked *User must set* should be provided by your user config. Those marked *User may set* receive default values that your user config may override. Those marked *Set by automation* should not be set in a user config, as they will be overwritten by the `setup` script.
 
 | Key                | Example Value               | Description                      | Disposition       |
 |--------------------|-----------------------------|----------------------------------|-------------------|
@@ -120,7 +109,7 @@ Here is an outline of the configuration as generated by the `setup` script.
 | `      task:`      | `u1-service`                | Partition for short/small tasks  | User may set      |
 | `    scheduler:`   |                             | Batch scheduler information      |                   |
 | `      type:`      | `slurm` or `pbs`            | Type of scheduler                | Set by automation |
-| `      account:`   | `gsd-hpcs`                  | Account name for batch jobs      | User may set      |
+| `      account:`   | `gsd-hpcs`                  | Account name for batch jobs      | User must set     |
 | `  rundir:`        | `/path/to/runs`             | Root directory of per-cycle runs | User must set     |
 | `  time:`          |                             | Time values                      |                   |
 | `    fff:`         | `006`                       | Forecast leadtime                | See etc/base.yaml |
@@ -149,35 +138,134 @@ Notes:
 - The `app.time.*` values are set in `etc/base.yaml`. A user config may override them, but this is unlikely to be useful. This block does not support additional content, but arbitrary keys and values may be defined in the top-level `user:` block.
 - The `forecast:`, `post:` and `prep:` blocks are described by their associated JSON Schema files under `lib/aigfs/drivers`. These blocks are validated when drivers are instantiated rather than by the `setup` script.
 - The `user:` block is a free-form YAML mapping that can define any values, including values dynamically calculated via Jinja2 expressions, useful to users for calculating other config values. This block is never validated.
-- The `workflow:` block configures the Rocoto workflow, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/stable/sections/user_guide/yaml/rocoto.html). It is only present when `--workflow rocoto` is used.
-- The `ecflow:` block configures the ecFlow suite definition, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/stable/sections/user_guide/yaml/ecflow.html). It is only present when `--workflow ecflow` is used.
+- The `workflow:` block configures the Rocoto workflow, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/rocoto.html). It is only used when `--workflow rocoto` is specified.
+- The `ecflow:` block configures the ecFlow suite definition, and is described in the `uwtools` [documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html). It is only used when `--workflow ecflow` is specified.
 
-All keys and values are processed by `uwtools` and can take advantage of [UW YAML](https://uwtools.readthedocs.io/en/stable/sections/user_guide/yaml/index.html) tools and techniques.
+All keys and values are processed by `uwtools` and can take advantage of [UW YAML](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/index.html) tools and techniques.
 
-### Setting Up the Final Config
+As a start, create a `user.yaml` with the following content, updating the datetime information as needed:
 
-With the environment activated (see [Installing](#installing)), and in the repository root, set up the final config:
+``` yaml
+app:
+  cycle_freq: !timedelta 6
+  first_cycle: !datetime 2026-09-17T12
+  last_cycle: !datetime 2026-09-17T12
+  platform:
+    scheduler:
+      account: your-account-name
+  rundir: /path/to/your/run/dir
+```
+
+Create the final `aigfs.yaml` config (supply additional user configs if needed):
 
 ```bash
 setup --platform <platform> --workflow rocoto|ecflow user.yaml [user.yaml ...]
 ```
 
-The `--workflow` flag selects the workflow manager. The following files are written to `app.rundir`, which is created if it does not exist.
+Then `cd` to your run directory, where the following files/directories should be available:
 
-**Rocoto** (`--workflow rocoto`):
+When `--workflow rocoto` is specified:
 
 | File         | Contents                     |
 |--------------|------------------------------|
 | `aigfs.yaml` | Fully realized configuration |
 | `rocoto.xml` | Rocoto workflow definition   |
 
-**ecFlow** (`--workflow ecflow`):
+When `--workflow ecflow` is specified:
 
-| File / Directory   | Contents                                        |
-|--------------------|-------------------------------------------------|
-| `aigfs.yaml`       | Fully realized configuration                    |
-| `suite.def`        | ecFlow suite definition                         |
-| `ecf/`             | ecFlow task scripts (`.ecf`) for all tasks      |
+| File / Directory | Contents                                        |
+|------------------|-------------------------------------------------|
+| `aigfs.yaml`     | Fully realized configuration                    |
+| `ecf/`           | ecFlow task scripts (`.ecf`) for all tasks      |
+| `suite.def`      | ecFlow suite definition                         |
+
+## Run the Workflow
+
+### Run with Rocoto
+
+On RDHPCS platforms, Rocoto is available via system module. Run the following command to load it into your environment:
+
+```bash
+module load rocoto
+```
+
+From the root of your git clone, `cd` to your run directory, then run the Rocoto workflow:
+
+```bash
+rocotorun -w rocoto.xml -d rocoto.db
+```
+
+The `rocoto.db` file will not exist until `rocotorun` is run the first time. Re-run this command periodically to advance the workflow as jobs complete. To check the status of all tasks:
+
+```bash
+rocotostat -w rocoto.xml -d rocoto.db
+```
+
+Individual task logs are written to `<rundir>/logs/`. An overall workflow log is written to `<rundir>/logs/workflow.log`.
+
+The `uwtools` package provides a tool to help iterate through the entire workflow: `uw rocoto iterate`. See the [uwtools Rocoto tool documentation](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/cli/tools/rocoto.html#cli-rocoto-iterate-examples) for details.
+
+### Run with ecFlow
+
+The following steps outline an ecFlow-based run on Ursa.
+
+> **Note for RDHPCS users:** The ecFlow server must run on a dedicated ecFlow node, not a front end node. On Ursa this is `uecflow01`.
+
+From your run directory, as specified in your user config, run:
+
+```bash
+uw ecflow server --config-file aigfs.yaml --report >server.json
+```
+
+This starts the ecFlow server, redirecting a JSON report containing environment-variable information to the file `server.json`. Log messages (written to `stderr`) will appear in the terminal.
+
+Open a new shell/terminal to use for interacting with the ecFlow server. From the root of your git clone, activate the AIGFS runtime environment:
+
+``` bash
+source bin/activate-<platform>
+```
+
+Now `cd` to your run directory and export the environment variables defined in `server.json` so that subsequent `ecflow_client` invocations can use them:
+
+```bash
+eval "$(jq -r 'to_entries | .[] | "export \(.key)=\(.value)"' server.json)"
+```
+
+Optionally, to see what was exported:
+
+```bash
+env | sort | grep ^ECF_
+```
+
+Move the server to `running` state, load the suite, then begin the suite:
+
+```bash
+ecflow_client --restart
+ecflow_client --load=suite.def
+ecflow_client --begin=retro
+```
+
+At any time during the suite's execution, check its state with:
+
+```bash
+ecflow_client --get_state=/retro
+```
+
+Alternatively, for more human-friendly monitoring, use the [ecFlow GUI (`ecflow_ui`)](#gui).
+
+If you need to stop the suite and change its configuration, potentially after re-running the `setup` command from [Configure](#configure) to recreate the run directory with new configuration, or after manually editing `suite.def`:
+
+```bash
+ecflow_client --halt=yes
+ecflow_client --delete=force /retro
+ecflow_client --restart
+ecflow_client --load=suite.def
+ecflow_client --begin=retro
+```
+
+Finally, when you are finished, you may close the shell/terminal you used for `ecflow_client` commands, return to the shell/terminal in which the ecFlow server is running, and shut down the server by pressing Ctrl-C.
+
+## Reference
 
 ### The Model Directory
 
@@ -193,81 +281,9 @@ params/ # model weights file weights.npz
 stats/  # diffs_stddev_by_level.nc, mean_by_level.nc, stddev_by_level.nc
 ```
 
-## Running the Workflow
+### Workflow Stages
 
-### Running with Rocoto
-
-On RDHPCS platforms, Rocoto is available via system module. Run the following command to load it into your environment:
-
-```bash
-module load rocoto
-```
-
-From your run directory, run:
-
-```bash
-rocotorun -w rocoto.xml -d rocoto.db
-```
-
-The `rocoto.db` file will not exist until `rocotorun` is run the first time. Re-run this command periodically to advance the workflow as jobs complete. To check the status of all tasks:
-
-```bash
-rocotostat -w rocoto.xml -d rocoto.db
-```
-
-Individual task logs are written to `<rundir>/logs/`. An overall workflow log is written to `<rundir>/logs/workflow.log`.
-
-The `uwtools` package provides a tool to help iterate through the entire workflow: `uw rocoto iterate`. See the [uwtools Rocoto tool documentation](https://uwtools.readthedocs.io/en/main/sections/user_guide/cli/tools/rocoto.html#cli-rocoto-iterate-examples) for details.
-
-### Running with ecFlow
-
-Start the ecFlow server if it is not already running.
-
-**If using the `aigfs` conda environment** (ecFlow is pre-installed — this includes all RDHPCS platforms, where ecFlow is not available as a system module):
-
-Ensure your `aigfs.yaml` contains an `ecflow.server` block (see the [uwtools ecFlow server YAML docs](https://uwtools.readthedocs.io/en/main/sections/user_guide/yaml/ecflow.html#server-configuration)), then run:
-
-```bash
-uw ecflow server --config-file aigfs.yaml
-```
-
-See the [uwtools ecFlow server documentation](https://uwtools.readthedocs.io/en/main/sections/user_guide/cli/tools/ecflow.html#server) for options including port and SSL configuration.
-
-> **Note for RDHPCS users:** The ecFlow server must run on a dedicated ecFlow node, not a login node. Consult your platform documentation for how to access it.
-
-**If using a platform-provided or externally installed ecFlow:**
-
-```bash
-ecflow_start
-```
-
-Load the suite definition and begin the suite:
-
-```bash
-cd <rundir>
-ecflow_client --load suite.def
-ecflow_client --begin retro
-```
-
-Monitor the suite in the ecFlow GUI (`ecflow_ui`) or via the command line:
-
-```bash
-ecflow_client --get_state /retro
-```
-
-Task scripts are written to `<rundir>/ecf/` and include the `head.h`, `envir-1.h`, and `tail.h` wrappers from the `include/` directory. Task output is captured by ecFlow in each task's job output file.
-
-**ecFlow task names** (equivalent Rocoto tasks in parentheses):
-
-| ecFlow task             | Rocoto equivalent               | Description                  |
-|-------------------------|---------------------------------|------------------------------|
-| `prep`                  | `task_prep`                     | ICS generation               |
-| `forecast`              | `task_forecast`                 | GraphCast inference          |
-| `post_f000`…`post_f120` | `task_post_000`…`task_post_120` | Post-processing per leadtime |
-
-## Workflow Stages
-
-### Prep: Initial Conditions Generation
+#### Prep: Initial Conditions Generation
 
 The `task_prep` Rocoto task runs `aigfs.drivers.ics` (driver class `AIGFSICs`). It:
 
@@ -283,7 +299,7 @@ The `task_prep` Rocoto task runs `aigfs.drivers.ics` (driver class `AIGFSICs`). 
 
    Variables are renamed and units are converted to match GraphCast's expectations (e.g., geopotential is converted from m to m²/s² by multiplying by 9.80665; total precipitation is converted from kg/m² to m by dividing by 1000).
 
-### Forecast: GraphCast Inference
+#### Forecast: GraphCast Inference
 
 The `task_forecast` Rocoto task runs `aigfs.drivers.inference` (driver class `AIGFSInference`). It depends on `task_prep` completing successfully. The task:
 
@@ -302,7 +318,7 @@ The `task_forecast` Rocoto task runs `aigfs.drivers.inference` (driver class `AI
 
 The forecast job requires significant memory (default: 150 GB) due to the size of the GraphCast model.
 
-### Post-Processing
+#### Post-Processing
 
 The `metatask_post` Rocoto metatask fans out into one `task_post_<fff>` job per forecast leadtime. Each post job runs `aigfs.drivers.post` (driver class `AIGFSPost`). It:
 
@@ -316,5 +332,84 @@ Output index files are written to:
 <rundir>/<yyyymmddhh>/post_<fff>/aigfs.t<hh>z.sfc.f<fff>.grib2.idx
 <rundir>/<yyyymmddhh>/post_<fff>/aigfs.t<hh>z.pres.f<fff>.grib2.idx
 ```
+
+### ecFlow Reference
+
+#### Alternative Servers
+
+If you're using a platform-provided or externally installed ecFlow (not `uw ecflow server`), start the ecFlow server with `ecflow_start` (or the equivalent) and export `ECF_HOME`, `ECF_HOST`, `ECF_PORT`, and `ECF_SSL` by hand rather than parsing `server.json`.
+
+#### Config Server Block
+
+`setup --workflow ecflow` always emits an `ecflow.server` block when writing `aigfs.yaml` with a default `ECF_HOME` value `{{ app.rundir }}/ecf`, plus any additional or overriding values you set under `ecflow.server:` in your user config. Block content is described in the [uwtools ecFlow server YAML docs](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html#server-configuration).
+
+#### Configuring the Client
+
+`uw ecflow server` selects a free TCP port automatically and, with `--report`, prints server metadata as JSON to `stdout`. Pass `--port <PORT>` if you need a specific port instead.
+
+#### GUI
+
+The `ecflow_ui` GUI ships with the `ecflow` package (available in the `aigfs` conda environment). It is an X Windows application, so ensure that X forwarding is enabled when you ssh to the host where you will launch the GUI. After connecting (e.g. to `uecflow01` on Ursa):
+
+```bash
+cd /to/your/git/clone
+source bin/activate-ursa
+ecflow_ui
+```
+
+See the [ecFlowUI](https://ecflow.readthedocs.io/en/5.18.0/ug/ecflow_ui/) documentation for information on configuring and using the tool. You will at least need to configure the connection to your running ecFlow server, whose details you can find in the `server.json` file created in your run directory by `uw ecflow server`, if you are using the provided conda environment. Set _Host_ to the `ECF_HOST` value, _Port_ to the `ECF_PORT` value, and select _TCP/IP with SSL_ for _Protocol_ unless you are running the server in insecure mode (not advised).
+
+#### Post-Write Hook
+
+`forecast.aigfs_inference.post_write_hook` is an optional string; when set, it is executed as a shell command by `aigfs.drivers.utils.grib2writer.Grib2Writer` after each leadtime's surface + pressure GRIB2 files have been atomically written. The following environment variables may be used the the command and will be exported to the shell in which it runs:
+
+| Placeholder  | Value                                                      |
+|--------------|------------------------------------------------------------|
+| `$CYCLE`     | ISO8601 cycle string                                       |
+| `$LEADTIME`  | Integer leadtime hours (`0`, `6`, ...)                     |
+| `$PATH_PRES` | Absolute path to the just-written `*.pres.fXXX.grib2` file |
+| `$PATH_SFC`  | Absolute path to the just-written `*.sfc.fXXX.grib2` file  |
+
+A non-zero exit from the hook is logged at `WARNING` level and does not abort the forecast; each leadtime is processed independently.
+
+#### Server States
+
+`uw ecflow server` starts the server in the `halted` state -- no scheduling happens until `--restart` moves it to `running`. See the [ecFlow glossary → server states](https://ecflow.readthedocs.io/en/latest/glossary.html#term-server-states) for the state-machine details.
+
+#### Slurm Submission
+
+The suite emits `edit ECF_JOB_CMD` wrapping `sbatch --parsable` in `ecflow_client --alter=add variable ECF_RID ...`, so tasks are submitted to Slurm using the `#SBATCH` directives at the top of each generated `.ecf` script and the server records the resulting Slurm job ID as `ECF_RID` at submission time. `head.h` exports `ECF_RID=$SLURM_JOB_ID` inside the running task and calls `ecflow_client --init=$ECF_RID` so the server's view of the job ID stays consistent across retries.
+
+#### SSL Configuration
+
+By default, `uw ecflow server` starts the ecFlow server with SSL security enabled. SSL can be disabled by setting `ecflow.server.ECF_SSL` to `false` in `user.yaml` before running `setup`, or by passing the `--insecure` flag to `uw ecflow server`. The `--insecure` flag takes precedence, disabling SSL even if `ecflow.server.ECF_SSL` is explicitly set to `true` in `user.yaml` (and propagated to the final `aigfs.yaml`).
+
+#### Suite Control Flow
+
+The `forecast` task triggers on `prep == complete`.
+
+Every `post_f<fff>` triggers on `../forecast:release_f<fff>`, where the `release_f<fff>` events are set from within the forecast task each time that leadtime's GRIB2 pair has been written. This gives per-leadtime pipelined post-processing: Each `post_f<fff>` starts as soon as its inputs are on disk, without waiting for later leadtimes. Events are sent to the server via the driver's `post_write_hook` value (see [Post-write hook](#post-write-hook) below).
+
+#### Task Names
+
+| ecFlow task                 |Description                  |
+|-----------------------------|-----------------------------|
+| `prep`                      |ICs generation               |
+| `forecast`                  |GraphCast inference          |
+| `post_f000`...`post_f<max>` |Post-processing per leadtime |
+
+#### Task-Script Layout
+
+Task scripts are written to `<rundir>/ecf/` and include the `head.h` and `tail.h` wrappers from the `include/` directory (using ecFlow's `%include <head.h>` syntax to look them up via `ECF_INCLUDE`). Task output is captured by ecFlow in each task's job output file next to the `.ecf` script.
+
+#### Troubleshooting on Ursa
+
+- **`Failed to connect to <host>:<port>. Is the server running?`** -- either the server was shut down, or `ECF_HOST`, `ECF_PORT`, and/or `ECF_SSL` in the environment don't match the running server. Re-parse the `--report` JSON to refresh them, then confirm with `ecflow_client --ping`.
+- **Suite loaded but `state:queued` never transitions.** -- `--stats` reports `Status HALTED`. `uw ecflow server` starts the server in a "halted" state (or the server halts itself after an error); run `ecflow_client --restart` to move it to a `running` state.
+- **`Could not open include file: head.h`.** -- the emitted task script uses `%include <head.h>` which resolves via `ECF_INCLUDE`. Confirm `ECF_INCLUDE` in `suite.def` points at this repo's `include/` directory.
+- **`Stale file handle` when loading `suite.def`.** -- NFS handle from a previous rundir. Refresh with `cd / && cd <rundir>` before retrying `ecflow_client --load=suite.def`.
+- **`suite retro already exists` on `--load`.** -- The server still has a prior definition. Halt and delete before reloading: `ecflow_client --halt=yes && ecflow_client --delete=force /retro && ecflow_client --restart`.
+- **Task `state:active` but no matching Slurm job in `squeue`.** -- `ECF_JOB_CMD` isn't configured to submit a job via `sbatch`. Confirm the emitted `suite.def` has an `sbatch --parsable` invocation in `ECF_JOB_CMD`.
+- **`ECF_JOB_CMD` aborts immediately with `sbatch: error: getcwd failed: No such file or directory`.** -- The ecFlow server process is holding a stale working directory whose inode was destroyed (typically by `rm -rf` on a subtree containing the server's CWD, then re-creating it under the same path). `sbatch` refuses to run in a shell whose `getcwd()` fails, so the composite `ecflow_client --alter=add variable ECF_RID $(sbatch ...)` gets an empty `ECF_RID` and exits nonzero. Stop the server, `cd` to a directory that will persist (e.g. the repo root), and restart it. Prefer starting `uw ecflow server` from a stable directory outside the rundir tree.
 
 [← Back to Index](index.md)

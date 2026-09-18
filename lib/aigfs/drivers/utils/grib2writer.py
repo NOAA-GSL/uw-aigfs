@@ -8,7 +8,7 @@ from pathlib import Path
 import grib2io  # type: ignore[import-untyped]
 import numpy as np
 import xarray as xr
-from uwtools.api.utils import atomic
+from uwtools.api.utils import atomic, run_shell_cmd
 
 from aigfs.strings import STR
 
@@ -43,13 +43,22 @@ SECTION3 = np.array(
 
 
 class Grib2Writer:
-    def __init__(self, start_date: datetime, case_name: str, grib_out_config: Path) -> None:
+    def __init__(
+        self,
+        start_date: datetime,
+        case_name: str,
+        grib_out_config: Path,
+        post_write_hook: str | None = None,
+    ) -> None:
         if case_name != STR.aigfs and not case_name.startswith(STR.aige):
             msg = f"name {case_name} is not supported."
             raise ValueError(msg)
         self.attrs = json.loads(grib_out_config.read_text())
         self.case_name = case_name
+        self.post_write_hook = post_write_hook
         self.start_date = start_date
+
+    # Public methods
 
     def create_grib2_message(
         self, var: str, lead: int, level: int | None = None
@@ -163,3 +172,22 @@ class Grib2Writer:
             cmd = [seteventsh, f"{lead:03d}"]
             logging.info("Running shell subprocess %s", cmd)
             subprocess.run(cmd, check=True)
+        self._run_post_write_hook(lead, outfile_sfc, outfile_pres)
+
+    # Private methods
+
+    def _run_post_write_hook(self, lead: int, outfile_sfc: Path, outfile_pres: Path) -> None:
+        if not self.post_write_hook:
+            return
+        env = {
+            "CYCLE": self.start_date.strftime("%Y-%m-%dT%H:%M:%S"),
+            "LEADTIME": str(lead),
+            "PATH_PRES": str(outfile_pres),
+            "PATH_SFC": str(outfile_sfc),
+            **os.environ,
+        }
+        success, _ = run_shell_cmd(
+            cmd=self.post_write_hook, env=dict(sorted(env.items())), taskname="post_write_hook"
+        )
+        if not success:
+            logging.warning("post_write_hook failed")

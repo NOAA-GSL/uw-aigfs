@@ -23,7 +23,7 @@ def compose_configs(workflow: str | None, platform: str, user_config_files: list
     """
     with NamedTemporaryFile(delete=True) as tmp:
         p_base = ETCDIR / STR.base_yaml
-        p_workflow = ETCDIR / STR.workflow / workflow / STR.base_yaml if workflow else None
+        p_workflow = ETCDIR / STR.workflow / f"{workflow}.yaml" workflow else None
         p_platform = PLATFORMDIR / f"{platform}.yaml"
         p_reserved = Path(tmp.name)
         app = {STR.app: {STR.home: str(HOMEDIR), STR.platform: {STR.name: platform}}}

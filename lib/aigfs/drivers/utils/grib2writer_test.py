@@ -260,7 +260,7 @@ def test_drivers_utils_grib2writer_save_grib2_cumsum_ensemble_dropped(writer_ens
         },
     )
     writer_ens.save_grib2(ds, tmp_path)
-    # Should have been dropped — check the sfc file has no cumsum messages:
+    # Should have been dropped -- check the sfc file has no cumsum messages:
     sfc_file = tmp_path / "aigefs.t18z.sfc.f012.grib2"
     with grib2io.open(str(sfc_file)) as f:
         msgs = list(f)
@@ -337,6 +337,35 @@ def test_drivers_utils_grib2writer_save_grib2_sendecf(writer, ds, tmp_path, logc
     with patch.dict(os.environ, env):
         writer.save_grib2(ds, tmp_path)
     assert "Running shell subprocess" in logcap.text
+
+
+def test_drivers_utils_grib2writer_save_grib2_post_write_hook(
+    grib_out_config, start_date, ds, tmp_path
+):
+    marker = tmp_path / "hook.log"
+    hook = f"echo lead=$LEADTIME cycle=$CYCLE >{marker}"
+    writer = Grib2Writer(
+        case_name=STR.aigfs,
+        grib_out_config=grib_out_config,
+        post_write_hook=hook,
+        start_date=start_date,
+    )
+    writer.save_grib2(ds, tmp_path)
+    assert marker.read_text().strip() == "lead=6 cycle=2025-10-01T18:00:00"
+
+
+def test_drivers_utils_grib2writer_save_grib2_post_write_hook_failure(
+    grib_out_config, start_date, ds, tmp_path, logcap
+):
+    writer = Grib2Writer(
+        start_date=start_date,
+        case_name=STR.aigfs,
+        grib_out_config=grib_out_config,
+        post_write_hook="false",
+    )
+    # A non-zero exit is logged as a warning and does not raise.
+    writer.save_grib2(ds, tmp_path)
+    assert "post_write_hook failed" in logcap.text
 
 
 def test_drivers_utils_grib2writer_save_grib2_spfh_clipped(writer, ds, tmp_path):
