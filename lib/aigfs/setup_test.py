@@ -28,8 +28,7 @@ def test_setup_ECFLOW_BASE_YAML__release_events():
 def test_setup_ECFLOW_BASE_YAML__post_write_hook():
     text = ECFLOW_BASE_YAML.read_text()
     assert (
-        "post_write_hook: 'ecflow_client --alter change event "
-        'release_f$(printf "%03d" $LEADTIME) set $ECF_NAME\'' in text
+        "post_write_hook: 'ecflow_client --alter change event release_f{fff} set $ECF_NAME'" in text
     )
 
 
@@ -40,6 +39,7 @@ def test_setup_ECFLOW_BASE_YAML__server_defaults():
 
 def test_setup_INCLUDE_DIR__ecflow_head_uses_ssl_and_slurm_job_id():
     text = (INCLUDE_DIR / "head.h").read_text()
+    assert 'test -n "%ECF_SSL:%" && export ECF_SSL=%ECF_SSL:%' in text
     assert "export ECF_RID=$%RID_VAR%" in text
     assert "ecflow_client --init=$ECF_RID" in text
     assert "ecflow_client --abort=trap" in text

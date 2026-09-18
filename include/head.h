@@ -18,7 +18,7 @@ export ECF_HOST=%ECF_HOST%
 export ECF_NAME=%ECF_NAME%
 export ECF_PASS=%ECF_PASS%
 export ECF_PORT=%ECF_PORT%
-export ECF_SSL=%ECF_SSL%
+test -n "%ECF_SSL:%" && export ECF_SSL=%ECF_SSL:%
 export ECF_TRYNO=%ECF_TRYNO%
 
 # Export the appropriate ECF_RID value:
