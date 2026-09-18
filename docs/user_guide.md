@@ -361,7 +361,7 @@ If you're using a platform-provided or externally installed ecFlow (not `uw ecfl
 
 #### Config Server Block
 
-`setup --workflow ecflow` always emits the `ecflow.server` block when writing `aigfs.yaml` -- the ecFlow workflow config seeds it with the default `ECF_HOME` value `{{ app.rundir }}/ecf`, and any values you set under `ecflow.server:` in your user config override those. Block content is described in the [uwtools ecFlow server YAML docs](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html#server-configuration).
+`setup --workflow ecflow` always emits an `ecflow.server` block when writing `aigfs.yaml` with a default `ECF_HOME` value `{{ app.rundir }}/ecf`, plus any additional or overriding values you set under `ecflow.server:` in your user config. Block content is described in the [uwtools ecFlow server YAML docs](https://uwtools.readthedocs.io/en/2.20.0/sections/user_guide/yaml/ecflow.html#server-configuration).
 
 #### Configuring the Client
 
@@ -403,22 +403,7 @@ The suite emits `edit ECF_JOB_CMD` wrapping `sbatch --parsable` in `ecflow_clien
 
 #### SSL Configuration
 
-`ecflow.server.ECF_SSL` in `aigfs.yaml` controls SSL end-to-end. The workflow YAML seeds it to `true` -- SSL enabled by default -- and the same value controls whether:
-
-- The server starts with SSL,
-- The `--report` block emits it, so `ECF_SSL` is exported alongside other `ECF_` environment variables so that `ecflow_client` calls pick it up from the environment.
-
-To run against an insecure (non-SSL) server, set `ecflow.server.ECF_SSL: false` in your user config **before** running `setup`:
-
-```yaml
-ecflow:
-  server:
-    ECF_SSL: false
-```
-
-Regenerate the run directory and ecFlow task jobs and every consumer above (server startup, suite emission, etc.)  will inherit the new value via environment variables.
-
-As a CLI shortcut for a one-off insecure server without regenerating, pass `uw ecflow server --insecure ...` -- but note that if the suite was generated with `ECF_SSL: true`, the baked-in `--ssl` on `ECF_JOB_CMD`/`head.h` calls will fail against the insecure server. Keep the config value and the server flag consistent.
+By default, `uw ecflow server` starts the ecFlow server with SSL security enabled. SSL can be disabled by setting `ecflow.server.ECF_SSL` to `false` in `aigfs.yaml` before running `setup`, or by passing the `--insecure` flag to `uw ecflow server`. The `--insecure` flag takes precedence, disabling SSL even if `ecflow.server.ECF_SSL` is explicitly set to `true` in `aigfs.yaml`.
 
 #### Suite Control Flow
 
@@ -441,7 +426,7 @@ Task scripts are written to `<rundir>/ecf/` and include the `head.h` and `tail.h
 #### Troubleshooting on Ursa
 
 - **`Failed to connect to <host>:<port>. Is the server running?`** -- either the server was shut down, or `ECF_HOST`, `ECF_PORT`, and/or `ECF_SSL` in the environment don't match the running server. Re-parse the `--report` JSON to refresh them, then confirm with `ecflow_client --ping`.
-- **Suite loaded but `state:queued` never transitions.** -- `--stats` reports `Status HALTED`. `uw ecflow server` starts the server in a "halted" state (or the server halts itself after an error); run `ecflow_client --restart` to move it to a `RUNNING` state.
+- **Suite loaded but `state:queued` never transitions.** -- `--stats` reports `Status HALTED`. `uw ecflow server` starts the server in a "halted" state (or the server halts itself after an error); run `ecflow_client --restart` to move it to a `running` state.
 - **`Could not open include file: head.h`.** -- the emitted task script uses `%include <head.h>` which resolves via `ECF_INCLUDE`. Confirm `ECF_INCLUDE` in `suite.def` points at this repo's `include/` directory.
 - **`Stale file handle` when loading `suite.def`.** -- NFS handle from a previous rundir. Refresh with `cd / && cd <rundir>` before retrying `ecflow_client --load=suite.def`.
 - **`suite retro already exists` on `--load`.** -- The server still has a prior definition. Halt and delete before reloading: `ecflow_client --halt=yes && ecflow_client --delete=force /retro && ecflow_client --restart` (see the "Reloading" step of the quickstart above).
