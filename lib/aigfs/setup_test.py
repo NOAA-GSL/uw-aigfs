@@ -39,6 +39,7 @@ def test_setup_ECFLOW_BASE_YAML__server_defaults():
 
 def test_setup_INCLUDE_DIR__ecflow_head_uses_ssl_and_slurm_job_id():
     text = (INCLUDE_DIR / "head.h").read_text()
+    assert 'test -n "%ECF_SSL:%" && export ECF_SSL=%ECF_SSL:%' in text
     assert "export ECF_RID=$%RID_VAR%" in text
     assert "ecflow_client --init=$ECF_RID" in text
     assert "ecflow_client --abort=trap" in text
