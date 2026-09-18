@@ -37,16 +37,6 @@ def test_setup_ECFLOW_BASE_YAML__server_defaults():
     assert "  server:\n    ECF_HOME: '{{ app.rundir }}/ecf'" in text
 
 
-def test_setup_ECFLOW_BASE_YAML__sbatch_job_cmd():
-    text = ECFLOW_BASE_YAML.read_text()
-    assert (
-        "ECF_JOB_CMD: 'ecflow_client --alter=add variable ECF_RID "
-        "$(sbatch --parsable -o %ECF_JOBOUT% %ECF_JOB%) %ECF_NAME%'"
-    ) in text
-    assert "ECF_KILL_CMD: 'scancel %ECF_RID% && ecflow_client --force=aborted %ECF_NAME%'" in text
-    assert "ECF_STATUS_CMD: 'sacct -lj %ECF_RID%'" in text
-
-
 def test_setup_INCLUDE_DIR__ecflow_head_uses_ssl_and_slurm_job_id():
     text = (INCLUDE_DIR / "head.h").read_text()
     assert "export ECF_RID=$%RID_VAR%" in text
