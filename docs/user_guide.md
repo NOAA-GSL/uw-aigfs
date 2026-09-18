@@ -430,7 +430,7 @@ Every `post_fXXX` triggers on `../forecast:release_fXXX`, where the `release_fXX
 
 | ecFlow task               | Rocoto equivalent          | Description                  |
 |---------------------------|----------------------------|------------------------------|
-| `prep`                    | `prep`                     | ICS generation               |
+| `prep`                    | `prep`                     | ICs generation               |
 | `forecast`                | `forecast`                 | GraphCast inference          |
 | `post_f000`...`post_f120` | `post_000`...`post_120`    | Post-processing per leadtime |
 

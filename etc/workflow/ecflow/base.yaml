@@ -21,7 +21,7 @@ ecflow:
                   - <head.h>
                 exit:
                   - <tail.h>
-              manual: Prepares AIGFS ICS from GFS.
+              manual: Prepares AIGFS ICs from GFS.
               batchargs: !dict '{{ prep.aigfs_ics.execution.batchargs }}'
               body: |
                 source %APPDIR%/bin/activate-%PLATFORM%
