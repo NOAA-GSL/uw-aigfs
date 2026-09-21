@@ -86,13 +86,20 @@ def test_setup_main(workflow):
         patch.object(setup, "compose_configs") as compose_configs,
         patch.object(setup, "parse_args") as parse_args,
         patch.object(setup, "set_up_rundir") as set_up_rundir,
+        patch.object(setup, "use_uwtools_logger") as use_uwtools_logger,
         patch.object(setup, "validate") as validate,
     ):
-        args = Mock(platform="ursa", workflow=workflow, user_config_files=[Path("/path/to/a.yaml")])
+        args = Mock(
+            platform="ursa",
+            verbose=True,
+            workflow=workflow,
+            user_config_files=[Path("/path/to/a.yaml")],
+        )
         parse_args.return_value = args
         compose_configs.return_value = {STR.app: {"key": "val"}}
         setup.main()
         parse_args.assert_called_once_with()
+        use_uwtools_logger.assert_called_once_with(verbose=True)
         compose_configs.assert_called_once_with(workflow, "ursa", [Path("/path/to/a.yaml")])
         config = {STR.app: {"key": "val"}}
         validate.assert_called_once_with(config)
@@ -100,35 +107,41 @@ def test_setup_main(workflow):
 
 
 @mark.parametrize(
-    ("argv", "expected_platform", "expected_workflow", "expected_files"),
+    ("argv", "expected_platform", "expected_workflow", "expected_files", "expected_verbose"),
     [
         (
             ["--platform", "ursa", "--workflow", "rocoto", "/path/to/a.yaml", "/path/to/b.yaml"],
             "ursa",
             "rocoto",
             [Path("/path/to/a.yaml"), Path("/path/to/b.yaml")],
+            False,
         ),
         (
             ["--platform", "ursa", "/path/to/a.yaml", "--workflow", "ecflow"],
             "ursa",
             "ecflow",
             [Path("/path/to/a.yaml")],
+            False,
         ),
         (
             ["--workflow", "ecflow", "--platform", "ursa", "/path/to/a.yaml"],
             "ursa",
             "ecflow",
             [Path("/path/to/a.yaml")],
+            False,
         ),
         (
-            ["--platform", "oci", "/path/to/a.yaml"],
+            ["--platform", "oci", "--verbose", "/path/to/a.yaml"],
             "oci",
             None,
             [Path("/path/to/a.yaml")],
+            True,
         ),
     ],
 )
-def test_setup_parse_args(argv, expected_platform, expected_workflow, expected_files):
+def test_setup_parse_args(
+    argv, expected_platform, expected_workflow, expected_files, expected_verbose
+):
     with (
         patch.object(setup, "platforms", return_value=["oci", "ursa"]),
         patch("sys.argv", ["prog", *argv]),
@@ -137,6 +150,7 @@ def test_setup_parse_args(argv, expected_platform, expected_workflow, expected_f
     assert result.platform == expected_platform
     assert result.workflow == expected_workflow
     assert result.user_config_files == expected_files
+    assert result.verbose == expected_verbose
 
 
 def test_setup_set_up_rundir(logcap, tmp_path):

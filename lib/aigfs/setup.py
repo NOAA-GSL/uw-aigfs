@@ -36,8 +36,8 @@ def main() -> None:
     """
     Stage the AIGFS config and workflow manager artifacts in the run directory.
     """
-    use_uwtools_logger()
     args = parse_args()
+    use_uwtools_logger(verbose=args.verbose)
     config = compose_configs(args.workflow, args.platform, args.user_config_files)
     validate(config)
     set_up_rundir(config, args.workflow)
@@ -61,6 +61,11 @@ def parse_args() -> argparse.Namespace:
         choices=["ecflow", "rocoto"],
         help="workflow manager",
         required=False,
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="enable verbose logging",
     )
     parser.add_argument(
         "user_config_files",
