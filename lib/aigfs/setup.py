@@ -21,6 +21,8 @@ def compose_configs(workflow: str | None, platform: str, user_config_files: list
     """
     Compose and realize base, platform, and user configs.
     """
+    if not workflow:
+        logging.debug("No --workflow value supplied, omitting workflow support")
     with NamedTemporaryFile(delete=True) as tmp:
         p_base = ETCDIR / STR.base_yaml
         p_workflow = ETCDIR / STR.workflow / f"{workflow}.yaml" if workflow else None
