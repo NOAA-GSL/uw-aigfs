@@ -282,34 +282,31 @@ app:
   last_cycle: !datetime 2026-09-16T12
 ```
 
-Now run
+To set up the `aigfs.yaml` configuration and run the `prep` step on a Linux system with `podman`:
 
 ``` bash
-podman run -v .:/run/aigfs --rm ghcr.io/maddenp-cu/aigfs:latest run cmd setup --platform oci /run/aigfs/user.yaml
+run="podman run -v .:/run/aigfs ghcr.io/maddenp-cu/aigfs:latest run cmd"
+$run setup --platform oci /run/aigfs/user.yaml
+$run uw execute --module aigfs.drivers.ics --classname AIGFSICs --task run --config /run/aigfs/aigfs.yaml --cycle 2026-09-16T06 --key-path prep
 ```
-
-Notes about the command above:
 
 - `-v .:/run/aigfs` instructs `podman` to *bind mount* the current directory to the path `/run/aigfs` inside the container. This is the same path that will appear as `app.rundir` in the generated `aigfs.yaml`.
-- `--rm` tells `podman` to remove the container after the command completes.
 - `ghcr.io/maddenp-cu/aigfs:latest` identifies the container image to use. Since `make container` tagged the container image created above with this tag, the image should be found locally. (Otherwise, it would be downloaded from the remote container registry it is published to.)
-- `run cmd` executes the script copied from `bin/run` in the repo into the container with the `cmd` argument, which calls a function called `cmd()` that runs the remaining arguments with the AIGFS conda environment activated. (The container image is built such that the `run` script will be on `PATH` inside the container.)
-- In this case, `setup --platform oci /run/aigfs/user.yaml` is the command run in the activated conda environment. Since the current directory is mounted at `/run/aigfs` inside the container, `setup` finds your `user.yaml` at that path.
+- `run cmd` executes the `bin/run` script copied from the repo into the container with the `cmd` argument, which calls a function called `cmd()` that runs the remaining arguments with the AIGFS conda environment activated. (The container image is built such that the `run` script will be on `PATH` inside the container.)
+- Note that, from the perspective of the commands run in the container, `/run/aigfs` refers to the current directory on the host system.
 
-You should see output similar to
-
-``` text
-[2026-09-16T23:02:45]     INFO AIGFS will be set up here: /run/aigfs
-```
-
-You should find a ready-to-use `aigfs.yaml` config file in the current directory, alongside your `user.yaml`. As noted above, the path `/run/aigfs` inside the container corresponds to the current directory on the host system due to the bind mount.
-
-You can also run the `prep` step in the container:
+To run the same plus the `forecast` step on Ursa with `apptainer`:
 
 ``` bash
-podman run -v .:/run/aigfs --rm -it ghcr.io/maddenp-cu/aigfs:latest run cmd uw execute --module aigfs.drivers.ics --classname AIGFSICs --task run --config /run/aigfs/aigfs.yaml --cycle 2026-09-16T12 --key-path prep
+apptainer pull aigfs.sif docker://ghcr.io/maddenp-cu/aigfs:latest
+run="apptainer exec -B .:/run/aigfs aigfs.sif run cmd"
+$run setup --platform oci /run/aigfs/user.yaml
+$run uw execute --module aigfs.drivers.ics --classname AIGFSICs --task run --config /run/aigfs/aigfs.yaml --cycle 2026-09-16T06 --key-path prep
+srun --exclusive --nodes 1 --time 00:20:00 $run uw execute --module aigfs.drivers.inference --classname AIGFSInference --task run --config /run/aigfs/aigfs.yaml --cycle 2026-09-16T06 --key-path forecast
 ```
 
-Make sure the `--cycle` argument falls within the `first_cycle` / `last_cycle` range specified in your `user.yaml`.
+- The `apptainer pull` command fetches the OCI container and converts it to Apptainer's format, saving it as `aigfs.sif`.
+- The `-B` argument to `apptainer` performs the same bind mount as `-v` for `podman`.
+- The `forecast` step needs to run on a batch node, so it executed under `srun`.
 
 [← Back to Index](index.md)
