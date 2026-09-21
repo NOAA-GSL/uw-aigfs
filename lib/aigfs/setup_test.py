@@ -51,8 +51,8 @@ def test_setup_INCLUDE_DIR__ecflow_tail_uses_ssl():
     assert "ecflow_client --complete" in text
 
 
-@mark.parametrize("workflow", ["rocoto", "ecflow"])
-def test_setup_compose_configs(tmp_path, workflow):
+@mark.parametrize("workflow", ["rocoto", "ecflow", None])
+def test_setup_compose_configs(logcap, tmp_path, workflow):
     platform = "ursa"
     user_config_files = [Path("/path/to/a.yaml")]
     with (
@@ -66,10 +66,11 @@ def test_setup_compose_configs(tmp_path, workflow):
         NamedTemporaryFile().__enter__.return_value = tmp
         result = setup.compose_configs(workflow, platform, user_config_files)
     assert result == {STR.app: {STR.rundir: "/some/path"}}
+    workflow_configs = [setup.ETCDIR / STR.workflow / f"{workflow}.yaml"] if workflow else []
     compose_to_dict.assert_called_once_with(
         [
             setup.ETCDIR / STR.base_yaml,
-            setup.ETCDIR / STR.workflow / f"{workflow}.yaml",
+            *workflow_configs,
             setup.PLATFORMDIR / "ursa.yaml",
             Path("/path/to/a.yaml"),
             reserved_path,
@@ -78,6 +79,8 @@ def test_setup_compose_configs(tmp_path, workflow):
     )
     expected = {STR.app: {STR.home: str(setup.HOMEDIR), STR.platform: {STR.name: "ursa"}}}
     assert YAMLConfig(reserved_path) == expected
+    msg = "No --workflow value supplied, omitting workflow support"
+    assert (msg in logcap.text) == (workflow is None)
 
 
 @mark.parametrize("workflow", ["rocoto", "ecflow", None])
