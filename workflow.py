@@ -8,6 +8,7 @@ from typing import cast
 from aigfs import setup
 from aigfs.drivers.ics import AIGFSICs
 from aigfs.drivers.inference import AIGFSInference
+from aigfs.drivers.post import AIGFSPost
 from iotaa import Asset, external, task
 
 type CycleT = datetime | str
@@ -36,10 +37,25 @@ def forecast(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, step)
     yield taskname
     class_ = AIGFSInference
-    driver = class_(cycle=dt, config=CFG, key_path=[step], schema_file=_schema(class_))
+    schema = _schema(class_)
+    driver = class_(cycle=dt, config=CFG, key_path=[step], schema_file=schema)
     yield [Asset(path, path.is_file) for path in driver.output["forecasts"]]
     yield prep(dt)
     driver.run(iotaa={"root": True})
+
+
+@task
+def post_one_leadtime(cycle_: CycleT, leadtime: int | timedelta) -> Iterator:
+    leadtime = leadtime if isinstance(leadtime, timedelta) else timedelta(hours=leadtime)
+    fff = "%03d" % (leadtime.total_seconds() / 3600)
+    dt, taskname = _dt_taskname(cycle_, f"{fff} post")
+    yield taskname
+    class_ = AIGFSPost
+    schema = _schema(class_)
+    driver = class_(cycle=dt, leadtime=leadtime, config=CFG, key_path=["post"], schema_file=schema)
+    yield [Asset(path, path.is_file) for path in driver.output["idx"]]
+    yield None
+    # driver.run(iotaa={"root": True})
 
 
 @task
@@ -48,7 +64,8 @@ def prep(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, step)
     yield taskname
     class_ = AIGFSICs
-    driver = class_(cycle=dt, config=CFG, key_path=[step], schema_file=_schema(class_))
+    schema = _schema(class_)
+    driver = class_(cycle=dt, config=CFG, key_path=[step], schema_file=schema)
     path = driver.output["ics"]
     yield Asset(path, path.is_file)
     yield [_timegate(dt)]
