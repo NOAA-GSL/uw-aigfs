@@ -112,7 +112,7 @@ class AIGFSInference(DriverCycleBased):
         Predictions.
         """
         yield "predictions"
-        yield [Asset(path, path.is_file) for path in self.output[STR.forecasts]]
+        yield [Asset(path, path.is_file) for path in self.output[STR.forecast]]
         ics = self.initial_conditions()
         itfs = self.inputs_targets_forcings()
         model_weights = self.model_weights()
@@ -183,7 +183,7 @@ class AIGFSInference(DriverCycleBased):
             for kind in ("pres", "sfc")
             for leadtime in range(0, self.config["forecast_length"] + delta, delta)
         ]
-        return {STR.forecasts: paths}
+        return {STR.forecast: paths}
 
     # Private helper methods
 

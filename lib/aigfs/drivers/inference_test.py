@@ -260,7 +260,7 @@ def test_drivers_AIGFSInference_predictions(driverobj, ds, logcap, mock_mws, utc
         mock_jax.jit.return_value = mock_jit_result
         mock_jax.random.PRNGKey.return_value = "rng"
         mock_writer_cls().save_grib2 = lambda *_: [
-            path.touch() for path in driverobj.output[STR.forecasts]
+            path.touch() for path in driverobj.output[STR.forecast]
         ]
         node = driverobj.predictions()
     assert node.ready
