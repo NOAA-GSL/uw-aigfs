@@ -16,6 +16,9 @@ CFG = DIR / "aigfs.yaml"
 CMD = f"podman run -v .:{DIR} ghcr.io/maddenp-cu/aigfs:latest run cmd"
 
 
+# Public tasks:
+
+
 @task
 def config(cycle_: CycleT) -> Iterator:
     _, taskname = _dt_taskname(cycle_, "config")
@@ -63,6 +66,9 @@ def prep(cycle_: CycleT) -> Iterator:
     driver.run(iotaa={"root": True})
 
 
+# Private tasks:
+
+
 @task
 def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     dt, taskname = _dt_taskname(dt, str(gribfile))
@@ -90,6 +96,9 @@ def _timegate(dt: datetime) -> Iterator:
     cutoff = dt + timedelta(hours=3, minutes=35)
     yield "UTC > %s" % cutoff.replace(tzinfo=None)
     yield Asset(None, lambda: datetime.now(UTC) > cutoff)
+
+
+# Private helpers:
 
 
 def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
