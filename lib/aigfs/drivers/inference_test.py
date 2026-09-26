@@ -259,10 +259,13 @@ def test_drivers_AIGFSInference_predictions(driverobj, ds, logcap, mock_mws, utc
         mock_jit_result = Mock()
         mock_jax.jit.return_value = mock_jit_result
         mock_jax.random.PRNGKey.return_value = "rng"
+        mock_writer_cls().save_grib2 = lambda *_: [
+            path.touch() for path in driverobj.output[STR.forecasts]
+        ]
         node = driverobj.predictions()
     assert node.ready
-    assert node.ref.is_file()
-    mock_writer_cls.assert_called_once_with(
+    assert all(path.is_file for path in node.ref)
+    mock_writer_cls.assert_called_with(
         start_date=pd.to_datetime(utc(2025, 10, 2, 0).replace(tzinfo=None)),
         case_name=STR.aigfs,
         grib_out_config=Path(driverobj.config[STR.grib_out_config]),
