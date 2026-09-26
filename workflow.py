@@ -54,8 +54,8 @@ def post_one_leadtime(cycle_: CycleT, leadtime: int | timedelta) -> Iterator:
     schema = _schema(class_)
     driver = class_(cycle=dt, leadtime=leadtime, config=CFG, key_path=["post"], schema_file=schema)
     yield [Asset(path, path.is_file) for path in driver.output["idx"]]
-    yield None
-    # driver.run(iotaa={"root": True})
+    yield forecast(dt)
+    driver.run(iotaa={"root": True})
 
 
 @task
@@ -68,7 +68,7 @@ def prep(cycle_: CycleT) -> Iterator:
     driver = class_(cycle=dt, config=CFG, key_path=[step], schema_file=schema)
     path = driver.output["ics"]
     yield Asset(path, path.is_file)
-    yield [_timegate(dt)]
+    yield _timegate(dt)
     driver.run(iotaa={"root": True})
 
 
