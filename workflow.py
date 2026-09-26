@@ -38,7 +38,7 @@ def forecast(cycle_: CycleT) -> Iterator:
     class_ = AIGFSInference
     schema = _schema(class_)
     driver = class_(cycle=dt, config=CFG, key_path=["forecast"], schema_file=schema)
-    yield [Asset(path, path.is_file) for path in driver.output["forecasts"]]
+    yield [Asset(path, path.is_file) for path in driver.output["forecast"]]
     yield prep(dt)
     driver.run(iotaa={"root": True})
 
@@ -50,7 +50,7 @@ def post(cycle_: CycleT) -> Iterator:
     class_ = AIGFSInference
     schema = _schema(class_)
     driver = class_(cycle=dt, config=CFG, key_path=["forecast"], schema_file=schema)
-    yield [_post_one_leadtime(dt, path) for path in driver.output["forecasts"]]
+    yield [_post_one_leadtime(dt, path) for path in driver.output["forecast"]]
 
 
 @task
