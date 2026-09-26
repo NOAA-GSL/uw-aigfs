@@ -32,13 +32,6 @@ def config(cycle_: CycleT) -> Iterator:
     setup.set_up_rundir(c, workflow=None, prefix=taskname)
 
 
-# @collection
-# def cycle(cyclestr: str) -> Iterator:
-#     cycle_ = _dt(cyclestr)
-#     yield "Cycle %s" % _dt(cycle_)
-#     yield post()
-
-
 @task
 def forecast(cycle_: CycleT) -> Iterator:
     step = cast(FrameType, inspect.currentframe()).f_code.co_name
@@ -49,16 +42,6 @@ def forecast(cycle_: CycleT) -> Iterator:
     yield [Asset(path, path.is_file) for path in driver.output["forecasts"]]
     yield prep(dt)
     driver.run(iotaa={"root": True})
-
-
-# @task
-# def post(cycle_: CycleT) -> Iterator:
-#     cycle_ = _dt(cycle_)
-#     yield "Cycle %s post" % cycle_
-#     path = Path("post")
-#     yield Asset(path, path.is_file)
-#     yield forecast(cycle_)
-#     path.touch()
 
 
 @task
@@ -87,19 +70,13 @@ def _timegate(cycle_: datetime) -> Iterator:
 # Private helpers:
 
 
-def _cycledir(cycle_: datetime) -> Path:
-    return Path(cycle_.strftime("%Y%m%d%H"))
-
-
-def _dt(cycle_: CycleT) -> datetime:
-    if isinstance(cycle_, str):
-        return datetime.fromisoformat(cycle_).replace(tzinfo=timezone.utc)
-    return cycle_
-
-
 def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
-    cycle_ = _dt(cycle_)
-    return cycle_, "%s %s" % (cycle_.strftime("%Y%m%d %HZ"), step)
+    dt = (
+        datetime.fromisoformat(cycle_).replace(tzinfo=timezone.utc)
+        if isinstance(cycle_, str)
+        else cycle_
+    )
+    return dt, "%s %s" % (dt.strftime("%Y%m%d %HZ"), step)
 
 
 def _schema(class_: type) -> Path:
