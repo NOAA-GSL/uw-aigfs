@@ -64,13 +64,21 @@ def prep(cycle_: CycleT) -> Iterator:
 
 
 @task
+def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
+    dt, taskname = _dt_taskname(dt, str(gribfile))
+    yield taskname
+    yield Asset(gribfile, gribfile.is_file)
+    yield forecast(dt)
+
+
+@task
 def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     idxfile = Path(f"{gribfile}.idx")
-    dt, taskname = _dt_taskname(dt, idxfile)
+    dt, taskname = _dt_taskname(dt, str(idxfile))
     yield taskname
     yield Asset(idxfile, idxfile.is_file)
     yield _forecast_one_leadtime(dt, gribfile)
-    leadtime = int(str(gribfile.name).split(".")[3][1:])
+    leadtime = timedelta(hours=int(str(gribfile.name).split(".")[3][1:]))
     class_ = AIGFSPost
     schema = _schema(class_)
     driver = class_(cycle=dt, leadtime=leadtime, config=CFG, key_path=["post"], schema_file=schema)
