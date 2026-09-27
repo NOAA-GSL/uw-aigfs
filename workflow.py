@@ -35,9 +35,13 @@ def config(cycle_: CycleT) -> Iterator:
 def forecast(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, "forecast")
     yield taskname
-    class_ = AIGFSInference
-    schema = _schema(class_)
-    driver = class_(cycle=dt, config=CFG, key_path=["forecast"], schema_file=schema)
+    cls = AIGFSInference
+    driver = cls(
+        cycle=dt,
+        config=CFG,
+        key_path=["forecast"],
+        schema_file=_schema(cls),
+    )
     yield [Asset(path, path.is_file) for path in driver.output["forecast"]]
     yield prep(dt)
     driver.run(iotaa={"root": True})
@@ -47,9 +51,13 @@ def forecast(cycle_: CycleT) -> Iterator:
 def post(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, "post")
     yield taskname
-    class_ = AIGFSInference
-    schema = _schema(class_)
-    driver = class_(cycle=dt, config=CFG, key_path=["forecast"], schema_file=schema)
+    cls = AIGFSInference
+    driver = cls(
+        cycle=dt,
+        config=CFG,
+        key_path=["forecast"],
+        schema_file=_schema(cls),
+    )
     yield [_post_one_leadtime(dt, path) for path in driver.output["forecast"]]
 
 
@@ -57,9 +65,13 @@ def post(cycle_: CycleT) -> Iterator:
 def prep(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, "prep")
     yield taskname
-    class_ = AIGFSICs
-    schema = _schema(class_)
-    driver = class_(cycle=dt, config=CFG, key_path=["prep"], schema_file=schema)
+    cls = AIGFSICs
+    driver = cls(
+        cycle=dt,
+        config=CFG,
+        key_path=["prep"],
+        schema_file=_schema(cls),
+    )
     path = driver.output["ics"]
     yield Asset(path, path.is_file)
     yield _timegate(dt)
@@ -79,15 +91,22 @@ def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
 
 @task
 def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
-    idxfile = Path(f"{gribfile}.idx")
-    dt, taskname = _dt_taskname(dt, str(idxfile))
+    # e.g. aigfs.t00z.pres.f018.grib2
+    #                       fff
+    fff = str(gribfile.name).split(".")[3][1:]
+    dt, taskname = _dt_taskname(dt, "%s %s" % (fff, "post"))
     yield taskname
+    idxfile = Path(f"{gribfile}.idx")
     yield Asset(idxfile, idxfile.is_file)
     yield _forecast_one_leadtime(dt, gribfile)
-    leadtime = timedelta(hours=int(str(gribfile.name).split(".")[3][1:]))
-    class_ = AIGFSPost
-    schema = _schema(class_)
-    driver = class_(cycle=dt, leadtime=leadtime, config=CFG, key_path=["post"], schema_file=schema)
+    cls = AIGFSPost
+    driver = cls(
+        cycle=dt,
+        leadtime=timedelta(hours=int(fff)),
+        config=CFG,
+        key_path=["post"],
+        schema_file=_schema(cls),
+    )
     driver.run(iotaa={"root": True})
 
 
@@ -110,5 +129,5 @@ def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
     return dt, "%s %s" % (dt.strftime("%Y%m%d %HZ"), step)
 
 
-def _schema(class_: type) -> Path:
-    return Path(inspect.getfile(class_)).with_suffix(".jsonschema")
+def _schema(cls: type) -> Path:
+    return Path(inspect.getfile(cls)).with_suffix(".jsonschema")
