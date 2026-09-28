@@ -26,7 +26,6 @@ class _STR(_ValsMatchKeys):
 
     aigefs: str = _
     aige: str = _
-    aigfs_done: str = "aigfs.done"
     aigfs_ics: str = _
     aigfs_inference: str = _
     aigfs_post: str = _
@@ -49,6 +48,7 @@ class _STR(_ValsMatchKeys):
     files_to_link: str = _
     forecast_freq: str = _
     forecast_length: str = _
+    forecast: str = _
     geopotential_at_surface: str = _
     geopotential: str = _
     grib_in_config: str = _
