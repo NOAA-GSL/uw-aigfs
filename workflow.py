@@ -1,4 +1,5 @@
 import inspect
+import os
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
@@ -11,9 +12,9 @@ from iotaa import Asset, collection, external, task
 
 type CycleT = datetime | str
 
-DIR = Path("/home/maddenp/git/uw-aigfs")  # /run/aigfs
-CFG = DIR / "aigfs.yaml"
-CMD = f"podman run -v .:{DIR} ghcr.io/maddenp-cu/aigfs:latest run cmd"
+PWD = Path(os.environ["PWD"])
+CFG = PWD / "aigfs.yaml"
+CMD = f"podman run -v .:{PWD} ghcr.io/maddenp-cu/aigfs:latest run cmd"
 
 
 # Public tasks:
@@ -25,7 +26,7 @@ def config(cycle_: CycleT) -> Iterator:
     yield taskname
     yield Asset(CFG, CFG.is_file)
     yield None
-    user = DIR / "user.yaml"
+    user = PWD / "user.yaml"
     c = setup.compose_configs(workflow=None, platform="oci", user_config_files=[user])
     setup.validate(c)
     setup.set_up_rundir(c, workflow=None, prefix=taskname)
