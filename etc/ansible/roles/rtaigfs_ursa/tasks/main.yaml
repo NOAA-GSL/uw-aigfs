@@ -16,40 +16,17 @@
     path: "{{ rtaigfs_bin_dir }}/bb"
   register: rtaigfs_bb
 
-- name: Download bb installer
-  ansible.builtin.get_url:
-    url: "{{ rtaigfs_bb_installer_url }}"
-    dest: "{{ rtaigfs_bb_installer_path }}"
-    mode: "0755"
-  when: not rtaigfs_bb.stat.exists
-
 - name: Install bb executable
-  ansible.builtin.command:
-    argv: >-
-      {{
-        [rtaigfs_bb_installer_path, '--dir', rtaigfs_bin_dir]
-        + (['--version', rtaigfs_bb_version] if rtaigfs_bb_version else [])
-        + ['--download-dir', rtaigfs_install_dir | realpath]
-      }}
+  ansible.builtin.shell:
+    cmd: set -o pipefail && curl -fsSL {{ rtaigfs_bb_url | quote }} | tar -xzO bb > {{ (rtaigfs_bin_dir ~ '/bb') | quote }}
+    executable: /bin/bash
+  changed_when: true
   when: not rtaigfs_bb.stat.exists
 
-- name: Find bb installer artifacts
-  ansible.builtin.find:
-    paths: "{{ rtaigfs_install_dir | realpath }}"
-    file_type: file
-    patterns:
-      - bb.sh
-      - babashka-*.tar.gz
-      - babashka-*.zip
-  register: rtaigfs_bb_installer_artifacts
-  when: not rtaigfs_bb.stat.exists
-
-- name: Remove bb installer artifacts
+- name: Set bb executable mode
   ansible.builtin.file:
-    path: "{{ item.path }}"
-    state: absent
-  loop: "{{ rtaigfs_bb_installer_artifacts.files }}"
-  when: not rtaigfs_bb.stat.exists
+    path: "{{ rtaigfs_bin_dir }}/bb"
+    mode: "0755"
 
 - name: Install run launcher
   ansible.builtin.copy:
