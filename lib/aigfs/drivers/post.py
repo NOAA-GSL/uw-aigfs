@@ -99,7 +99,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         return STR.aigfs_post
 
     @property
-    def output(self) -> dict[str, Path] | dict[str, list[Path]]:
+    def output(self) -> dict[str, list[Path]]:
         """
         Returns a description of the file(s) created when this component runs.
         """
