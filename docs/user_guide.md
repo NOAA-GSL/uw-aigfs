@@ -323,7 +323,7 @@ The `task_forecast` Rocoto task runs `aigfs.drivers.inference` (driver class `AI
    <rundir>/<yyyymmddhh>/forecast/aigfs.t<hh>z.pres.f<fff>.grib2
    ```
 
-   where `<fff>` is the three-digit forecast hour. A sentinel file `aigfs.done` is created when the run is complete.
+   where `<fff>` is the three-digit forecast hour.
 
 The forecast job requires significant memory (default: 150 GB) due to the size of the GraphCast model.
 

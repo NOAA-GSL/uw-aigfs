@@ -26,7 +26,6 @@ class _STR(_ValsMatchKeys):
 
     aigefs: str = _
     aige: str = _
-    aigfs_done: str = "aigfs.done"
     aigfs_ics: str = _
     aigfs_inference: str = _
     aigfs_post: str = _
