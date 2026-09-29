@@ -82,7 +82,7 @@
           when: rtaigfs_is_service_user
 
       rescue:
-        - name: ROLLBACK: Initial notice
+        - name: "ROLLBACK: Initial notice"
           ansible.builtin.debug:
             msg: |
               ============================================================
@@ -91,19 +91,19 @@
               Error: {{ ansible_failed_result.msg | default(ansible_failed_result) }}
               ============================================================
 
-        - name: ROLLBACK: Remove broken app/
+        - name: "ROLLBACK: Remove broken app/"
           ansible.builtin.file:
             path: "{{ rtaigfs_app }}"
             state: absent
           when: (rtaigfs_app_stat.stat.exists | default(false))
 
-        - name: ROLLBACK: Restore saved app/
+        - name: "ROLLBACK: Restore saved app/"
           ansible.builtin.command:
             argv: [mv, "{{ rtaigfs_app_save }}", "{{ rtaigfs_app }}"]
           when: (rtaigfs_app_stat.stat.exists | default(false))
           changed_when: true
 
-        - name: ROLLBACK: Reload saved crontab
+        - name: "ROLLBACK: Reload saved crontab"
           ansible.builtin.shell:
             cmd: >-
               if [ -s {{ rtaigfs_crontab_save }} ]; then
@@ -112,7 +112,7 @@
           changed_when: true
           when: rtaigfs_is_service_user
 
-        - name: ROLLBACK: Final notice
+        - name: "ROLLBACK: Final notice"
           ansible.builtin.fail:
             msg: |
               ============================================================
