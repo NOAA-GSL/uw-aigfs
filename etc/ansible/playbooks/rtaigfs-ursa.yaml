@@ -3,6 +3,9 @@
   hosts: localhost
   gather_facts: true
 
+  vars_files:
+    - ../roles/rtaigfs_ursa/defaults/main.yaml
+
   vars:
     rtaigfs_app: "{{ rtaigfs_app_parent }}/app"
     rtaigfs_app_backup: "{{ rtaigfs_app_parent }}/app.{{ rtaigfs_backup_ts }}"
