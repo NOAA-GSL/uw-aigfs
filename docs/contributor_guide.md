@@ -230,10 +230,9 @@ Additionally, `crontab -l` should show entries for running AIGFS and for emailin
 After deployment, *no manual changes* should be made to the contents of the git clone or any of its subdirectories or files. All updates should be performed via the following recipe:
 
 1. Update the `uw-aigfs` git repo via PR.
-2. Unload the `role.rtaigfs` crontab: `crontab -r`.
-3. Update the git clone on Ursa: `git pull`.
-4. If the conda installation must be updated: `rm -rf conda && make env`.
-5. Update the deployment: `make deploy playbook=rtaigfs-ursa`.
+2. Update the git clone on Ursa: `git pull`.
+3. If the conda installation must be updated: `rm -rf conda && make env`.
+4. Update the deployment: `make deploy playbook=rtaigfs-ursa`.
 
 The structure of a `yyyymmdd/hh` cycle run directory is as follows:
 
