@@ -97,11 +97,11 @@ The docs workflow (`.github/workflows/docs.yaml`) rebuilds and publishes the API
 Contributions to `uw-aigfs` are made via a [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks) and [Pull Request (PR)](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/about-pull-requests) model. The general steps are:
 
 1. [Fork](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#forking-a-repository) the [uw-aigfs repository](https://github.com/NOAA-GSL/uw-aigfs) into your personal GitHub account.
-2. [Clone](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) your fork onto your development system.
-3. [Create an Issue](https://github.com/NOAA-GSL/uw-aigfs/issues/new) to discuss your proposed change before starting work.
-4. [Create a branch](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#creating-a-branch-to-work-on) in your clone for your changes.
-5. [Make, commit, and push changes](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-and-pushing-changes) in your clone to your fork. Refer to the [Developer Setup](#developer-setup) section for formatting and testing instructions.
-6. [Create a pull request](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-a-pull-request) to merge your changes into the main repository.
+1. [Clone](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) your fork onto your development system.
+1. [Create an Issue](https://github.com/NOAA-GSL/uw-aigfs/issues/new) to discuss your proposed change before starting work.
+1. [Create a branch](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#creating-a-branch-to-work-on) in your clone for your changes.
+1. [Make, commit, and push changes](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-and-pushing-changes) in your clone to your fork. Refer to the [Developer Setup](#developer-setup) section for formatting and testing instructions.
+1. [Create a pull request](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project#making-a-pull-request) to merge your changes into the main repository.
 
 For future contributions, either delete and recreate your fork, or configure the official `uw-aigfs` repository as a [remote](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/configuring-a-remote-repository-for-a-fork) and [sync upstream changes](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/syncing-a-fork) to stay up-to-date.
 
@@ -122,7 +122,7 @@ A default set of reviewers will be added automatically. You may add others if ap
 Your PR is ready to merge when:
 
 1. It has been approved by a required number of `uw-aigfs` core-developer reviewers.
-2. All required CI checks have passed.
+1. All required CI checks have passed.
 
 These criteria and their current statuses are shown at the bottom of the PR's _Conversation_ tab. CI checks take some time to run -- please be patient.
 
@@ -230,10 +230,9 @@ Additionally, `crontab -l` should show entries for running AIGFS and for emailin
 After deployment, *no manual changes* should be made to the contents of the git clone or any of its subdirectories or files. All updates should be performed via the following recipe:
 
 1. Update the `uw-aigfs` git repo via PR.
-2. Unload the `role.rtaigfs` crontab: `crontab -r`.
-3. Update the git clone on Ursa: `git pull`.
-4. If the conda installation must be updated: `rm -rf conda && make env`.
-5. Update the deployment: `make deploy playbook=rtaigfs-ursa`.
+1. Update the git clone on Ursa: `git pull`.
+1. If the conda installation must be updated: `rm -rf conda && make env`.
+1. Update the deployment: `make deploy playbook=rtaigfs-ursa`.
 
 The structure of a `yyyymmdd/hh` cycle run directory is as follows:
 
@@ -267,10 +266,10 @@ Values for `<driver>` are `aigfs_ics`, `aigfs_inference`, and `aigfs_post`.
 To build an [OCI](https://opencontainers.org/) container image containing the AIGFS application and its supporting software runtime from the root directory of a git clone of this repository:
 
 1. Ensure that there are no uncommitted changes and no unversioned files in the clone. Commit (or stash) any changes, and run `git clean -dfx` to remove any unversioned files. **Be sure to back up anything you do not want to lose first. For example, if you previously ran `make env` or similar to create a `conda/` installation in the clone root, you may want to temporarily move it elsewhere and move it back later.**
-2. Copy the AIGFS model files (`params/` and `stats/` -- see the [User Guide](user_guide.md#the-model-directory)) into a `model/` directory in the clone root.
-3. Ensure that the `podman` and `qemu-user-static` (Debian names; translate as needed for other Linux OSes) OS packages are installed.
-4. Optionally, run `podman system prune --all` to clear old `podman` resources. **Be sure you don't need anything listed by e.g. `podman images`.**
-5. Run `make container`.
+1. Copy the AIGFS model files (`params/` and `stats/` -- see the [User Guide](user_guide.md#the-model-directory)) into a `model/` directory in the clone root.
+1. Ensure that the `podman` and `qemu-user-static` (Debian names; translate as needed for other Linux OSes) OS packages are installed.
+1. Optionally, run `podman system prune --all` to clear old `podman` resources. **Be sure you don't need anything listed by e.g. `podman images`.**
+1. Run `make container`.
 
 You may optionally push the resulting container image to a remote container registry, but instructions for doing so are beyond the scope of this documentation.
 
