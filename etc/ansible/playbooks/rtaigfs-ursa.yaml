@@ -8,20 +8,20 @@
 
   vars:
     rtaigfs_app: "{{ rtaigfs_app_parent }}/app"
-    rtaigfs_app_backup: "{{ rtaigfs_app_parent }}/app.{{ rtaigfs_backup_ts }}"
+    rtaigfs_app_save: "{{ rtaigfs_app_parent }}/app.{{ rtaigfs_save_ts }}"
     rtaigfs_app_parent: "{{ (playbook_dir + '/../../..') | realpath }}"
-    rtaigfs_crontab_backup: "{{ rtaigfs_root }}/rtaigfs-crontab.{{ rtaigfs_backup_ts }}"
+    rtaigfs_crontab_save: "{{ rtaigfs_root }}/rtaigfs-crontab.{{ rtaigfs_save_ts }}"
     rtaigfs_is_service_user: "{{ ansible_facts['user_id'] == rtaigfs_user }}"
     rtaigfs_root: "{{ lookup('ansible.builtin.env', 'PWD') }}"
 
   pre_tasks:
     - name: Set timestamp
       ansible.builtin.set_fact:
-        rtaigfs_backup_ts: "{{ lookup('pipe', 'date +%Y%m%dT%H%M%S') }}"
+        rtaigfs_save_ts: "{{ lookup('pipe', 'date +%Y%m%dT%H%M%S') }}"
 
     - name: Save crontab
       ansible.builtin.shell:
-        cmd: "crontab -l >{{ rtaigfs_crontab_backup }} 2>/dev/null || : >{{ rtaigfs_crontab_backup }}"
+        cmd: "crontab -l >{{ rtaigfs_crontab_save }} 2>/dev/null || : >{{ rtaigfs_crontab_save }}"
         executable: /bin/bash
       changed_when: false
       when: rtaigfs_is_service_user
@@ -53,7 +53,7 @@
 
         - name: Save app/
           ansible.builtin.command:
-            argv: [mv, "{{ rtaigfs_app }}", "{{ rtaigfs_app_backup }}"]
+            argv: [mv, "{{ rtaigfs_app }}", "{{ rtaigfs_app_save }}"]
           when: rtaigfs_app_stat.stat.exists
           changed_when: true
 
@@ -63,13 +63,13 @@
 
         - name: Are there saved cycles?
           ansible.builtin.stat:
-            path: "{{ rtaigfs_app_backup }}/cycles"
+            path: "{{ rtaigfs_app_save }}/cycles"
           register: rtaigfs_cycles_stat
           when: rtaigfs_app_stat.stat.exists
 
         - name: Restore saved cycles
           ansible.builtin.command:
-            argv: [mv, "{{ rtaigfs_app_backup }}/cycles", "{{ rtaigfs_app }}/cycles"]
+            argv: [mv, "{{ rtaigfs_app_save }}/cycles", "{{ rtaigfs_app }}/cycles"]
           when:
             - rtaigfs_app_stat.stat.exists
             - rtaigfs_cycles_stat.stat.exists | default(false)
@@ -77,7 +77,7 @@
 
         - name: Remove saved app/
           ansible.builtin.file:
-            path: "{{ rtaigfs_app_backup }}"
+            path: "{{ rtaigfs_app_save }}"
             state: absent
           when: rtaigfs_app_stat.stat.exists
 
@@ -106,15 +106,15 @@
 
         - name: ROLLBACK: Restore saved app/
           ansible.builtin.command:
-            argv: [mv, "{{ rtaigfs_app_backup }}", "{{ rtaigfs_app }}"]
+            argv: [mv, "{{ rtaigfs_app_save }}", "{{ rtaigfs_app }}"]
           when: (rtaigfs_app_stat.stat.exists | default(false))
           changed_when: true
 
         - name: ROLLBACK: Reload saved crontab
           ansible.builtin.shell:
             cmd: >-
-              if [ -s {{ rtaigfs_crontab_backup }} ]; then
-                crontab {{ rtaigfs_crontab_backup }};
+              if [ -s {{ rtaigfs_crontab_save }} ]; then
+                crontab {{ rtaigfs_crontab_save }};
               fi
           changed_when: true
           when: rtaigfs_is_service_user
