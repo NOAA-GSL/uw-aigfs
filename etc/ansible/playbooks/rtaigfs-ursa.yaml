@@ -10,12 +10,15 @@
     rtaigfs_app: "{{ rtaigfs_app_parent }}/app"
     rtaigfs_app_backup: "{{ rtaigfs_app_parent }}/app.{{ rtaigfs_backup_ts }}"
     rtaigfs_app_parent: "{{ (playbook_dir + '/../../..') | realpath }}"
-    rtaigfs_backup_ts: "{{ lookup('pipe', 'date +%Y%m%dT%H%M%S') }}"
     rtaigfs_crontab_backup: "{{ rtaigfs_root }}/rtaigfs-crontab.{{ rtaigfs_backup_ts }}"
     rtaigfs_is_service_user: "{{ ansible_facts['user_id'] == rtaigfs_user }}"
     rtaigfs_root: "{{ lookup('ansible.builtin.env', 'PWD') }}"
 
   pre_tasks:
+    - name: Set backup timestamp
+      ansible.builtin.set_fact:
+        rtaigfs_backup_ts: "{{ lookup('pipe', 'date +%Y%m%dT%H%M%S') }}"
+
     - name: Save current crontab
       ansible.builtin.shell:
         cmd: "crontab -l >{{ rtaigfs_crontab_backup }} 2>/dev/null || : >{{ rtaigfs_crontab_backup }}"
