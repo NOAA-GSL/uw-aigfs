@@ -28,8 +28,8 @@ Welcome to the `uw-aigfs` User Guide. This guide describes how to install, confi
 `uw-aigfs` drives an AI-based medium-range global forecast using the [GraphCast](https://github.com/noaa-emc/graphcast) model, orchestrated via [uwtools](https://uwtools.readthedocs.io/en/2.20.0/) with either the [Rocoto](https://github.com/christopherwharrop/rocoto) or [ecFlow](https://ecflow.readthedocs.io) workflow manager. The workflow consists of three sequential stages per forecast cycle:
 
 1. **Prep** -- Extract variables from GFS GRIB2 files and produce a netCDF initial-conditions file for GraphCast.
-2. **Forecast** -- Run GraphCast inference to produce GRIB2 output files at each forecast leadtime.
-3. **Post** -- Generate GRIB2 index files and deliver them to the forecast output directory.
+1. **Forecast** -- Run GraphCast inference to produce GRIB2 output files at each forecast leadtime.
+1. **Post** -- Generate GRIB2 index files and deliver them to the forecast output directory.
 
 ## Prerequisites
 
@@ -299,8 +299,8 @@ The `task_prep` Rocoto task runs `aigfs.drivers.ics` (driver class `AIGFSICs`). 
 1. Stages GFS GRIB2 into the cycle's `prep/data/` subdirectory. The files required are:
    - Two timesteps from the previous two cycles (for temporal interpolation)
    - The analysis and short-range forecast from the current cycle
-2. Runs `wgrib2` commands (defined by `etc/wgrib2.yaml`) to extract meteorological variables at the required pressure levels into individual netCDF files.
-3. Merges the extracted netCDF files into a single initial-conditions file:
+1. Runs `wgrib2` commands (defined by `etc/wgrib2.yaml`) to extract meteorological variables at the required pressure levels into individual netCDF files.
+1. Merges the extracted netCDF files into a single initial-conditions file:
 
    ```
    <rundir>/<yyyymmddhh>/prep/aigfs.t<hh>z.ic.nc
@@ -313,10 +313,10 @@ The `task_prep` Rocoto task runs `aigfs.drivers.ics` (driver class `AIGFSICs`). 
 The `task_forecast` Rocoto task runs `aigfs.drivers.inference` (driver class `AIGFSInference`). It depends on `task_prep` completing successfully. The task:
 
 1. Loads the initial-conditions netCDF file produced by the prep step.
-2. Loads the pre-trained GraphCast model weights (`weights.npz`) from the `params/` subdirectory of `app.modeldir`.
-3. Loads the normalization statistics (`diffs_stddev_by_level.nc`, `mean_by_level.nc`, `stddev_by_level.nc`) from the `stats/` subdirectory of `app.modeldir`.
-4. Runs autoregressive GraphCast inference for `forecast.aigfs_inference.forecast_length` hours at `forecast.aigfs_inference.forecast_freq`-hour intervals.
-5. Writes GRIB2 output files to:
+1. Loads the pre-trained GraphCast model weights (`weights.npz`) from the `params/` subdirectory of `app.modeldir`.
+1. Loads the normalization statistics (`diffs_stddev_by_level.nc`, `mean_by_level.nc`, `stddev_by_level.nc`) from the `stats/` subdirectory of `app.modeldir`.
+1. Runs autoregressive GraphCast inference for `forecast.aigfs_inference.forecast_length` hours at `forecast.aigfs_inference.forecast_freq`-hour intervals.
+1. Writes GRIB2 output files to:
 
    ```
    <rundir>/<yyyymmddhh>/forecast/aigfs.t<hh>z.sfc.f<fff>.grib2
@@ -332,8 +332,8 @@ The forecast job requires significant memory (default: 150 GB) due to the size o
 The `metatask_post` Rocoto metatask fans out into one `task_post_<fff>` job per forecast leadtime. Each post job runs `aigfs.drivers.post` (driver class `AIGFSPost`). It:
 
 1. Waits for the corresponding GRIB2 surface and pressure-level files to exist in the forecast directory (or for `task_forecast` to complete, whichever happens first).
-2. Generates a `wgrib2` inventory index (`.idx`) file for each GRIB2 file.
-3. Copies the index files to the delivery directory (`post.aigfs_post.deliver_to`; defaults to the forecast run directory).
+1. Generates a `wgrib2` inventory index (`.idx`) file for each GRIB2 file.
+1. Copies the index files to the delivery directory (`post.aigfs_post.deliver_to`; defaults to the forecast run directory).
 
 Output index files are written to:
 
