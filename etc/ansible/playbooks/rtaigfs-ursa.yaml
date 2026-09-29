@@ -83,7 +83,7 @@
           when: rtaigfs_is_service_user
 
       rescue:
-        - name: ROLLBACK - report failure
+        - name: ROLLBACK - initial notice
           ansible.builtin.debug:
             msg: |
               ============================================================
@@ -113,7 +113,7 @@
           changed_when: true
           when: rtaigfs_is_service_user
 
-        - name: ROLLBACK - fail loudly
+        - name: ROLLBACK - final notice
           ansible.builtin.fail:
             msg: |
               ============================================================
