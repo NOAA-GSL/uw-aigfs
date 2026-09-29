@@ -39,13 +39,6 @@
           changed_when: rtaigfs_crontab_unload.rc == 0
           when: rtaigfs_is_service_user
 
-        - name: git pull
-          ansible.builtin.command:
-            cmd: git pull --ff-only
-            chdir: "{{ rtaigfs_root }}"
-          register: rtaigfs_git_pull
-          changed_when: "'Already up to date' not in rtaigfs_git_pull.stdout"
-
         - name: Does app/ exist?
           ansible.builtin.stat:
             path: "{{ rtaigfs_app }}"
