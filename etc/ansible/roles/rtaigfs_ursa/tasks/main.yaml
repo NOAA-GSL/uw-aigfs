@@ -1,29 +1,29 @@
 ---
-- name: Create rtaigfs install directory
+- name: Create install directory
   ansible.builtin.file:
     path: "{{ rtaigfs_install_dir | realpath }}"
     state: directory
     mode: "0755"
 
-- name: Create rtaigfs bin directory
+- name: Create bin directory
   ansible.builtin.file:
     path: "{{ rtaigfs_bin_dir }}"
     state: directory
     mode: "0755"
 
-- name: Check for bb executable
+- name: Check for bb
   ansible.builtin.stat:
     path: "{{ rtaigfs_bin_dir }}/bb"
   register: rtaigfs_bb
 
-- name: Install bb executable
+- name: Install bb
   ansible.builtin.shell:
     cmd: set -o pipefail && curl -fsSL {{ rtaigfs_bb_url }} | tar -xzO bb >{{ (rtaigfs_bin_dir ~ '/bb') }}
     executable: /bin/bash
   changed_when: true
   when: not rtaigfs_bb.stat.exists
 
-- name: Set bb executable mode
+- name: Make bb executable
   ansible.builtin.file:
     path: "{{ rtaigfs_bin_dir }}/bb"
     mode: "0755"
@@ -40,13 +40,13 @@
     dest: "{{ rtaigfs_bin_dir }}/report"
     mode: "0755"
 
-- name: Install rtaigfs configuration
+- name: Install configuration
   ansible.builtin.copy:
     src: rtaigfs.yaml
     dest: "{{ rtaigfs_install_dir | realpath }}/rtaigfs.yaml"
     mode: "0644"
 
-- name: Extract rtaigfs model archive
+- name: Extract model archive
   ansible.builtin.unarchive:
     src: "{{ rtaigfs_model_archive_path }}"
     dest: "{{ rtaigfs_install_dir | realpath }}"
