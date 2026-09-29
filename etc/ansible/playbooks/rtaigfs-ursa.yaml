@@ -3,12 +3,120 @@
   hosts: localhost
   gather_facts: true
 
-  pre_tasks:
-    - name: Create Ansible remote temp directory
-      ansible.builtin.raw: >-
-        mkdir -p "/tmp/ansible-rtaigfs-${USER}" &&
-        chmod 700 "/tmp/ansible-rtaigfs-${USER}"
-      changed_when: false
+  vars:
+    rtaigfs_app_backup_dir: "{{ rtaigfs_app_parent }}/app.{{ rtaigfs_backup_stamp }}"
+    rtaigfs_app_dir: "{{ rtaigfs_app_parent }}/app"
+    rtaigfs_app_parent: "{{ (playbook_dir + '/../../..') | realpath }}"
+    rtaigfs_backup_stamp: "{{ lookup('pipe', 'date +%Y%m%dT%H%M%S') }}"
+    rtaigfs_crontab_save_path: "{{ rtaigfs_invocation_dir }}/rtaigfs-crontab.{{ rtaigfs_backup_stamp }}"
+    rtaigfs_invocation_dir: "{{ lookup('ansible.builtin.env', 'PWD') }}"
+    rtaigfs_is_service_user: "{{ ansible_facts['user_id'] == rtaigfs_user }}"
 
-  roles:
-    - role: rtaigfs_ursa
+  pre_tasks:
+    - name: Save current crontab
+      ansible.builtin.shell:
+        cmd: "crontab -l >{{ rtaigfs_crontab_save_path | quote }} 2>/dev/null || : >{{ rtaigfs_crontab_save_path | quote }}"
+        executable: /bin/bash
+      changed_when: false
+      when: rtaigfs_is_service_user
+
+  tasks:
+    - name: Deploy rtaigfs (with rollback on failure)
+      block:
+        - name: Unload current crontab
+          ansible.builtin.command:
+            argv: [crontab, -r]
+          register: rtaigfs_crontab_unload
+          failed_when:
+            - rtaigfs_crontab_unload.rc != 0
+            - "'no crontab' not in (rtaigfs_crontab_unload.stderr | default(''))"
+          changed_when: rtaigfs_crontab_unload.rc == 0
+          when: rtaigfs_is_service_user
+
+        - name: Git pull in invocation directory
+          ansible.builtin.command:
+            cmd: git pull --ff-only
+            chdir: "{{ rtaigfs_invocation_dir }}"
+          register: rtaigfs_git_pull
+          changed_when: "'Already up to date' not in rtaigfs_git_pull.stdout"
+
+        - name: Determine whether app directory exists
+          ansible.builtin.stat:
+            path: "{{ rtaigfs_app_dir }}"
+          register: rtaigfs_app_stat
+
+        - name: Rename existing app directory to timestamped backup
+          ansible.builtin.command:
+            argv: [mv, "{{ rtaigfs_app_dir }}", "{{ rtaigfs_app_backup_dir }}"]
+          when: rtaigfs_app_stat.stat.exists
+          changed_when: true
+
+        - name: Run rtaigfs_ursa role
+          ansible.builtin.include_role:
+            name: rtaigfs_ursa
+
+        - name: Check for saved cycles directory
+          ansible.builtin.stat:
+            path: "{{ rtaigfs_app_backup_dir }}/cycles"
+          register: rtaigfs_cycles_stat
+          when: rtaigfs_app_stat.stat.exists
+
+        - name: Move cycles into new app directory
+          ansible.builtin.command:
+            argv: [mv, "{{ rtaigfs_app_backup_dir }}/cycles", "{{ rtaigfs_app_dir }}/cycles"]
+          when:
+            - rtaigfs_app_stat.stat.exists
+            - rtaigfs_cycles_stat.stat.exists | default(false)
+          changed_when: true
+
+        - name: Remove old app backup directory
+          ansible.builtin.file:
+            path: "{{ rtaigfs_app_backup_dir }}"
+            state: absent
+          when: rtaigfs_app_stat.stat.exists
+
+        - name: Install rtaigfs crontab
+          ansible.builtin.command:
+            argv: [crontab, "-"]
+            stdin: "{{ lookup('ansible.builtin.template', '../roles/rtaigfs_ursa/templates/crontab.j2') }}"
+          changed_when: true
+          when: rtaigfs_is_service_user
+
+      rescue:
+        - name: ROLLBACK - report failure
+          ansible.builtin.debug:
+            msg: |
+              ============================================================
+              DEPLOYMENT FAILED — rolling back.
+              Failed task: {{ ansible_failed_task.name | default('unknown') }}
+              Error: {{ ansible_failed_result.msg | default(ansible_failed_result) }}
+              ============================================================
+
+        - name: ROLLBACK - remove partial new app directory
+          ansible.builtin.file:
+            path: "{{ rtaigfs_app_dir }}"
+            state: absent
+          when: (rtaigfs_app_stat.stat.exists | default(false))
+
+        - name: ROLLBACK - restore original app directory
+          ansible.builtin.command:
+            argv: [mv, "{{ rtaigfs_app_backup_dir }}", "{{ rtaigfs_app_dir }}"]
+          when: (rtaigfs_app_stat.stat.exists | default(false))
+          changed_when: true
+
+        - name: ROLLBACK - reload saved crontab
+          ansible.builtin.shell:
+            cmd: >-
+              if [ -s {{ rtaigfs_crontab_save_path | quote }} ]; then
+                crontab {{ rtaigfs_crontab_save_path | quote }};
+              fi
+          changed_when: true
+          when: rtaigfs_is_service_user
+
+        - name: ROLLBACK - fail loudly
+          ansible.builtin.fail:
+            msg: |
+              ============================================================
+              DEPLOYMENT ROLLED BACK.
+              See failure message above for the root cause.
+              ============================================================
