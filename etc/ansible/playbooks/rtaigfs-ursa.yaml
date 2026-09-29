@@ -15,7 +15,7 @@
   pre_tasks:
     - name: Save current crontab
       ansible.builtin.shell:
-        cmd: "crontab -l >{{ rtaigfs_crontab_backup | quote }} 2>/dev/null || : >{{ rtaigfs_crontab_backup | quote }}"
+        cmd: "crontab -l >{{ rtaigfs_crontab_backup }} 2>/dev/null || : >{{ rtaigfs_crontab_backup }}"
         executable: /bin/bash
       changed_when: false
       when: rtaigfs_is_service_user
@@ -107,8 +107,8 @@
         - name: ROLLBACK - reload saved crontab
           ansible.builtin.shell:
             cmd: >-
-              if [ -s {{ rtaigfs_crontab_backup | quote }} ]; then
-                crontab {{ rtaigfs_crontab_backup | quote }};
+              if [ -s {{ rtaigfs_crontab_backup }} ]; then
+                crontab {{ rtaigfs_crontab_backup }};
               fi
           changed_when: true
           when: rtaigfs_is_service_user

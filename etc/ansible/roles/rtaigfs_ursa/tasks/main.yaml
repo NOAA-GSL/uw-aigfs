@@ -18,7 +18,7 @@
 
 - name: Install bb executable
   ansible.builtin.shell:
-    cmd: set -o pipefail && curl -fsSL {{ rtaigfs_bb_url | quote }} | tar -xzO bb >{{ (rtaigfs_bin_dir ~ '/bb') | quote }}
+    cmd: set -o pipefail && curl -fsSL {{ rtaigfs_bb_url }} | tar -xzO bb >{{ (rtaigfs_bin_dir ~ '/bb') }}
     executable: /bin/bash
   changed_when: true
   when: not rtaigfs_bb.stat.exists
