@@ -74,6 +74,12 @@
             state: absent
           when: rtaigfs_app_stat.stat.exists
 
+        - name: Remove saved crontab
+          ansible.builtin.file:
+            path: "{{ rtaigfs_crontab_save }}"
+            state: absent
+          when: rtaigfs_is_service_user
+
         - name: Install crontab
           ansible.builtin.command:
             argv: [crontab, "-"]
@@ -110,6 +116,12 @@
                 crontab {{ rtaigfs_crontab_save }};
               fi
           changed_when: true
+          when: rtaigfs_is_service_user
+
+        - name: "ROLLBACK: Remove saved crontab"
+          ansible.builtin.file:
+            path: "{{ rtaigfs_crontab_save }}"
+            state: absent
           when: rtaigfs_is_service_user
 
         - name: "ROLLBACK: Final notice"
