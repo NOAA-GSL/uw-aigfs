@@ -147,9 +147,13 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, gribfiles, ready):
             workflow, "_forecast_one_leadtime", Mock(wraps=lambda *_: atask(ready))
         ) as _forecast_one_leadtime,
     ):
+        run = cls.return_value.run
+        if ready:
+            run.side_effect = lambda *_, **_k: Path(f"{path}.idx").touch()
         node = workflow._post_one_leadtime(cycle, path)
     assert node.taskname == "20251001 18Z 012 post"
     _forecast_one_leadtime.assert_called_once_with(cycle, path)
+    assert node.ready is ready
     if ready:
         cls.assert_called_once_with(
             cycle=cycle,
@@ -161,7 +165,6 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, gribfiles, ready):
         cls.return_value.run.assert_called_once_with(iotaa={"root": True})
     else:
         cls.assert_not_called()
-    assert not node.ready
 
 
 @mark.parametrize(("hours", "ready"), [(-4, True), (0, False)])
