@@ -124,15 +124,15 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
         run.assert_not_called()
 
 
-@mark.parametrize("exists", [True, False])
-def test_workflow__forecast_one_leadtime(atask, cycle, exists, gribfiles, touch):
+@mark.parametrize("ready", [True, False])
+def test_workflow__forecast_one_leadtime(atask, cycle, gribfiles, ready, touch):
     path = gribfiles[0]
-    if exists:
+    if ready:
         touch(path)
     with patch.object(workflow, "forecast", Mock(wraps=lambda _: atask(ready=True))) as forecast:
         node = workflow._forecast_one_leadtime(cycle, path)
     assert node.taskname == f"20251001 18Z {path}"
-    assert node.ready is exists
+    assert node.ready is ready
     forecast.assert_called_once_with(cycle)
 
 
