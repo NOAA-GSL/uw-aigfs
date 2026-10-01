@@ -67,32 +67,32 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready):
     ):
         run = cls.return_value.run
         if ready:
-            run.side_effect = lambda *_a, **_k: [gribfile.touch() for gribfile in gribfiles]
+            run.side_effect = lambda *_, **_k: [gribfile.touch() for gribfile in gribfiles]
         node = workflow.forecast(cycle)
     assert node.taskname == "20251001 18Z forecast"
     cls.assert_called_once_with(
         cycle=cycle, config=cfg, key_path=["forecast"], schema_file=Path("/s")
     )
     prep.assert_called_once_with(cycle)
+    assert node.ready is ready
     if ready:
         run.assert_called_once_with(iotaa={"root": True})
-        assert node.ready
     else:
         run.assert_not_called()
-        assert not node.ready
 
 
-def test_workflow_post(atask, cfg, cycle, gribfiles):
+@mark.parametrize("ready", [True, False])
+def test_workflow_post(atask, cfg, cycle, gribfiles, ready):
     cls = driver({"forecast": gribfiles})
     with (
         patch.object(workflow, "AIGFSInference", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
         patch.object(
-            workflow, "_post_one_leadtime", Mock(wraps=lambda *_: atask(ready=True))
+            workflow, "_post_one_leadtime", Mock(wraps=lambda *_: atask(ready=ready))
         ) as _post_one_leadtime,
     ):
         node = workflow.post(cycle)
-    assert node.ready
+    assert node.ready is ready
     assert node.taskname == "20251001 18Z post"
     cls.assert_called_once_with(
         cycle=cycle, config=cfg, key_path=["forecast"], schema_file=Path("/s")
