@@ -15,7 +15,7 @@ from aigfs.strings import STR
 type CycleT = datetime | str
 
 PWD = Path(os.environ["PWD"])
-CFG = PWD / "aigfs.yaml"
+CFG = PWD / STR.aigfs_yaml
 CMD = f"podman run -v .:{PWD} ghcr.io/maddenp-cu/aigfs:latest run cmd"
 
 
@@ -28,8 +28,8 @@ def config(cycle_: CycleT) -> Iterator:
     yield taskname
     yield Asset(CFG, CFG.is_file)
     yield None
-    user = PWD / "user.yaml"
-    c = setup.compose_configs(workflow=None, platform="oci", user_config_files=[user])
+    user = PWD / STR.user_yaml
+    c = setup.compose_configs(workflow=None, platform=STR.oci, user_config_files=[user])
     setup.validate(c)
     setup.set_up_rundir(c, workflow=None, prefix=taskname)
 
@@ -42,10 +42,10 @@ def forecast(cycle_: CycleT) -> Iterator:
     driver = cls(
         cycle=dt,
         config=CFG,
-        key_path=["forecast"],
+        key_path=[STR.forecast],
         schema_file=_schema(cls),
     )
-    yield [Asset(path, path.is_file) for path in driver.output["forecast"]]
+    yield [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
     yield prep(dt)
     driver.run(iotaa={"root": True})
 
@@ -58,10 +58,10 @@ def post(cycle_: CycleT) -> Iterator:
     driver = cls(
         cycle=dt,
         config=CFG,
-        key_path=["forecast"],
+        key_path=[STR.forecast],
         schema_file=_schema(cls),
     )
-    yield [_post_one_leadtime(dt, path) for path in driver.output["forecast"]]
+    yield [_post_one_leadtime(dt, path) for path in driver.output[STR.forecast]]
 
 
 @task
@@ -72,10 +72,10 @@ def prep(cycle_: CycleT) -> Iterator:
     driver = cls(
         cycle=dt,
         config=CFG,
-        key_path=["prep"],
+        key_path=[STR.prep],
         schema_file=_schema(cls),
     )
-    path = driver.output["ics"]
+    path = driver.output[STR.ics]
     yield Asset(path, path.is_file)
     yield _timegate(dt)
     driver.run(iotaa={"root": True})
@@ -104,7 +104,7 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
         cycle=dt,
         leadtime=timedelta(hours=int(fff)),
         config=CFG,
-        key_path=["post"],
+        key_path=[STR.post],
         schema_file=_schema(cls),
     )
     # Done when indexes are delivered, if delivery is configured, else when they are generated:

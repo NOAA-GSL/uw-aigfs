@@ -43,7 +43,6 @@ class _STR(_ValsMatchKeys):
     diffs_stddev_path: str = _
     discipline: str = _
     drtn: str = _
-    etc: str = _
     files_to_copy: str = _
     files_to_hardlink: str = _
     files_to_link: str = _
@@ -75,6 +74,7 @@ class _STR(_ValsMatchKeys):
     mean_sea_level_pressure: str = _
     model_weights_path: str = _
     name: str = _
+    oci: str = _
     outputdir: str = _
     parameter_category: str = "parameterCategory"
     parameter_number: str = "parameterNumber"
@@ -82,9 +82,10 @@ class _STR(_ValsMatchKeys):
     platform: str = _
     plevel: str = _
     post_write_hook: str = _
+    post: str = _
+    prep: str = _
     pressure: str = _
     PRMSL_meansealevel: str = _
-    rocoto: str = _
     rocoto_xml: str = "rocoto.xml"
     rundir: str = _
     specific_humidity: str = _
@@ -103,6 +104,7 @@ class _STR(_ValsMatchKeys):
     u_component_of_wind: str = _
     UGRD_10maboveground: str = _
     UGRD: str = _
+    user_yaml: str = "user.yaml"
     v_component_of_wind: str = _
     vertical_velocity: str = _
     VGRD_10maboveground: str = _
