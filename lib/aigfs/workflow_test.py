@@ -110,16 +110,18 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
         patch.object(workflow, "_schema", return_value=Path("/s")),
         patch.object(workflow, "_timegate", Mock(wraps=lambda _: atask(ready))) as _timegate,
     ):
+        run = cls.return_value.run
+        if ready:
+            run.side_effect = lambda *_, **_k: ics.touch()
         node = workflow.prep(cycle)
     assert node.taskname == "20251001 18Z prep"
     cls.assert_called_once_with(cycle=cycle, config=cfg, key_path=["prep"], schema_file=Path("/s"))
     _timegate.assert_called_once_with(cycle)
-    run = cls.return_value.run
+    assert node.ready is ready
     if ready:
         run.assert_called_once_with(iotaa={"root": True})
     else:
         run.assert_not_called()
-    assert not node.ready
 
 
 @mark.parametrize("exists", [True, False])
