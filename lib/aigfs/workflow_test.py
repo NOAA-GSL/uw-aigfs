@@ -73,10 +73,14 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready):
     prep.assert_called_once_with(cycle)
     run = cls.return_value.run
     if ready:
+        node._ready = None  # reset ready state
+        for path in node.ref:
+            path.touch()
+        assert node.ready
         run.assert_called_once_with(iotaa={"root": True})
     else:
         run.assert_not_called()
-    assert not node.ready
+        assert not node.ready
 
 
 def test_workflow_post(atask, cfg, cycle, gribfiles):
