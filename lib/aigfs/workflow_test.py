@@ -65,19 +65,18 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready):
         patch.object(workflow, "_schema", return_value=Path("/s")),
         patch.object(workflow, "prep", Mock(wraps=lambda _: atask(ready))) as prep,
     ):
+        run = cls.return_value.run
+        if ready:
+            run.side_effect = lambda *_a, **_k: [gribfile.touch() for gribfile in gribfiles]
         node = workflow.forecast(cycle)
     assert node.taskname == "20251001 18Z forecast"
     cls.assert_called_once_with(
         cycle=cycle, config=cfg, key_path=["forecast"], schema_file=Path("/s")
     )
     prep.assert_called_once_with(cycle)
-    run = cls.return_value.run
     if ready:
-        node._ready = None  # reset ready state
-        for path in node.ref:
-            path.touch()
-        assert node.ready
         run.assert_called_once_with(iotaa={"root": True})
+        assert node.ready
     else:
         run.assert_not_called()
         assert not node.ready
