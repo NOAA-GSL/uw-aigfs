@@ -1,7 +1,9 @@
+import fcntl
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+from iotaa import Asset
 from pytest import fixture, mark
 
 from aigfs import workflow
@@ -28,8 +30,21 @@ def gribfiles(tmp_path):
     return [tmp_path / ("aigfs.t18z.pres.f%03d.grib2" % h) for h in (6, 12)]
 
 
-def driver(output: dict) -> Mock:
-    obj = Mock(output=output)
+@fixture
+def lockkit(tmp_path):
+    rundir = tmp_path / "run"
+    output = tmp_path / "out"
+    obj = Mock(rundir=rundir)
+    obj.run.side_effect = lambda *_, **_k: output.touch()
+    assets = [Asset(output, output.is_file)]
+    return obj, assets, rundir / "20251001_18Z_012_post.lock", output
+
+
+TASKNAME = "20251001 18Z 012 post"
+
+
+def driver(output: dict, rundir: Path) -> Mock:
+    obj = Mock(output=output, rundir=rundir)
     return Mock(return_value=obj)
 
 
@@ -59,8 +74,8 @@ def test_workflow_config__missing(tmp_path):
 
 
 @mark.parametrize("ready", [True, False])
-def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready):
-    cls = driver({"forecast": gribfiles})
+def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready, tmp_path):
+    cls = driver({"forecast": gribfiles}, tmp_path / "run")
     with (
         patch.object(workflow, "AIGFSInference", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
@@ -83,8 +98,8 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready):
 
 
 @mark.parametrize("ready", [True, False])
-def test_workflow_post(atask, cfg, cycle, gribfiles, ready):
-    cls = driver({"forecast": gribfiles})
+def test_workflow_post(atask, cfg, cycle, gribfiles, ready, tmp_path):
+    cls = driver({"forecast": gribfiles}, tmp_path / "run")
     with (
         patch.object(workflow, "AIGFSInference", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
@@ -105,7 +120,7 @@ def test_workflow_post(atask, cfg, cycle, gribfiles, ready):
 @mark.parametrize("ready", [True, False])
 def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
     ics = tmp_path / "ics.nc"
-    cls = driver({"ics": ics})
+    cls = driver({"ics": ics}, tmp_path / "run")
     with (
         patch.object(workflow, "AIGFSICs", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
@@ -148,7 +163,7 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
     expected = output[STR.delivered] if deliver else output[STR.idx]
     for x in expected:
         x.parent.mkdir(parents=True, exist_ok=True)
-    cls = driver(output)
+    cls = driver(output, tmp_path / "run")
     with (
         patch.object(workflow, "AIGFSPost", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
@@ -188,6 +203,45 @@ def test_workflow__timegate(hours, ready):
 def test_workflow__dt_taskname(cycle):
     assert workflow._dt_taskname(cycle, "foo") == (cycle, "20251001 18Z foo")
     assert workflow._dt_taskname("2025-10-01T18", "foo") == (cycle, "20251001 18Z foo")
+
+
+def test_workflow__run(logcap, lockkit):
+    obj, assets, lockfile, output = lockkit
+    workflow._run(obj, TASKNAME, assets)
+    obj.run.assert_called_once_with(iotaa={"root": True})
+    assert lockfile.is_file()
+    assert output.is_file()
+    assert "another process" not in logcap.text
+
+
+def test_workflow__run__completed_elsewhere(logcap, lockkit):
+    obj, assets, _, output = lockkit
+    output.touch()
+    workflow._run(obj, TASKNAME, assets)
+    obj.run.assert_not_called()
+    assert f"{TASKNAME}: Completed by another process" in logcap.text
+
+
+def test_workflow__run__locked(logcap, lockkit):
+    obj, assets, lockfile, output = lockkit
+    lockfile.parent.mkdir(parents=True)
+    with lockfile.open("w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        workflow._run(obj, TASKNAME, assets)
+        obj.run.assert_not_called()
+        assert not output.is_file()
+        assert f"{TASKNAME}: Running in another process" in logcap.text
+    # Lock released by holder, so the driver now runs:
+    workflow._run(obj, TASKNAME, assets)
+    obj.run.assert_called_once_with(iotaa={"root": True})
+    assert output.is_file()
+
+
+def test_workflow__run__lock_released(lockkit):
+    obj, assets, lockfile, _ = lockkit
+    workflow._run(obj, TASKNAME, assets)
+    with lockfile.open("w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)  # would raise if still held
 
 
 def test_workflow__schema():

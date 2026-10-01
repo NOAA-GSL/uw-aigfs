@@ -1,10 +1,14 @@
+import fcntl
 import inspect
+import logging
 import os
+import re
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 from iotaa import Asset, collection, external, task
+from uwtools.api.driver import Driver
 
 from aigfs import setup
 from aigfs.drivers.ics import AIGFSICs
@@ -45,9 +49,10 @@ def forecast(cycle_: CycleT) -> Iterator:
         key_path=[STR.forecast],
         schema_file=_schema(cls),
     )
-    yield [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
+    assets = [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
+    yield assets
     yield prep(dt)
-    driver.run(iotaa={"root": True})
+    _run(driver, taskname, assets)
 
 
 @collection
@@ -76,9 +81,10 @@ def prep(cycle_: CycleT) -> Iterator:
         schema_file=_schema(cls),
     )
     path = driver.output[STR.ics]
-    yield Asset(path, path.is_file)
+    assets = [Asset(path, path.is_file)]
+    yield assets
     yield _timegate(dt)
-    driver.run(iotaa={"root": True})
+    _run(driver, taskname, assets)
 
 
 # Private tasks:
@@ -110,9 +116,10 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     # Done when indexes are delivered, if delivery is configured, else when they are generated:
     output = driver.output
     paths = output.get(STR.delivered, output[STR.idx])
-    yield [Asset(path, path.is_file) for path in paths]
+    assets = [Asset(path, path.is_file) for path in paths]
+    yield assets
     yield _forecast_one_leadtime(dt, gribfile)
-    driver.run(iotaa={"root": True})
+    _run(driver, taskname, assets)
 
 
 @external
@@ -132,6 +139,28 @@ def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
         else cycle_
     )
     return dt, "%s %s" % (dt.strftime("%Y%m%d %HZ"), step)
+
+
+def _run(driver: Driver, taskname: str, assets: list[Asset]) -> None:
+    """
+    Run the driver, unless another process is already running it, or has completed it.
+
+    A non-blocking exclusive flock on a per-task lock file in the driver's run directory provides
+    mutual exclusion between concurrent workflow invocations. The lock is released when the file is
+    closed, including on process exit.
+    """
+    driver.rundir.mkdir(parents=True, exist_ok=True)
+    lockfile = driver.rundir / ("%s.lock" % re.sub(r"[^\w.-]", "_", taskname))
+    with lockfile.open("w") as f:
+        try:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            logging.info("%s: Running in another process", taskname)
+            return
+        if all(asset.ready() for asset in assets):
+            logging.info("%s: Completed by another process", taskname)
+            return
+        driver.run(iotaa={"root": True})
 
 
 def _schema(cls: type) -> Path:
