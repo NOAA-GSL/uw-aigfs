@@ -4,11 +4,12 @@ from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
+from iotaa import Asset, collection, external, task
+
 from aigfs import setup
 from aigfs.drivers.ics import AIGFSICs
 from aigfs.drivers.inference import AIGFSInference
 from aigfs.drivers.post import AIGFSPost
-from iotaa import Asset, collection, external, task
 
 type CycleT = datetime | str
 
