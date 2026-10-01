@@ -214,12 +214,12 @@ def test_workflow__run(logcap, lockkit):
     assert "another process" not in logcap.text
 
 
-def test_workflow__run__completed_elsewhere(logcap, lockkit):
+def test_workflow__run__ready_elsewhere(logcap, lockkit):
     obj, assets, _, output = lockkit
     output.touch()
     workflow._run(obj, TASKNAME, assets)
     obj.run.assert_not_called()
-    assert f"{TASKNAME}: Completed by another process" in logcap.text
+    assert f"{TASKNAME}: Made ready by another process" in logcap.text
 
 
 def test_workflow__run__locked(logcap, lockkit):

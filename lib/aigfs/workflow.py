@@ -113,7 +113,7 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
         key_path=[STR.post],
         schema_file=_schema(cls),
     )
-    # Done when indexes are delivered, if delivery is configured, else when they are generated:
+    # Ready when indexes are delivered, if delivery is configured, else when they are generated:
     output = driver.output
     paths = output.get(STR.delivered, output[STR.idx])
     assets = [Asset(path, path.is_file) for path in paths]
@@ -143,7 +143,7 @@ def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
 
 def _run(driver: Driver, taskname: str, assets: list[Asset]) -> None:
     """
-    Run the driver, unless another process is already running it, or has completed it.
+    Run the driver, unless another process is already running it, or its assets are already ready.
 
     A non-blocking exclusive flock on a per-task lock file in the driver's run directory provides
     mutual exclusion between concurrent workflow invocations. The lock is released when the file is
@@ -158,7 +158,7 @@ def _run(driver: Driver, taskname: str, assets: list[Asset]) -> None:
             logging.info("%s: Running in another process", taskname)
             return
         if all(asset.ready() for asset in assets):
-            logging.info("%s: Completed by another process", taskname)
+            logging.info("%s: Made ready by another process", taskname)
             return
         driver.run(iotaa={"root": True})
 
