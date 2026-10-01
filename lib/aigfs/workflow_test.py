@@ -6,6 +6,7 @@ from pytest import fixture, mark
 
 from aigfs import workflow
 from aigfs.drivers.inference import AIGFSInference
+from aigfs.strings import STR
 
 # Fixtures
 
@@ -136,10 +137,18 @@ def test_workflow__forecast_one_leadtime(atask, cycle, gribfiles, ready, touch):
     forecast.assert_called_once_with(cycle)
 
 
+@mark.parametrize("deliver", [True, False])
 @mark.parametrize("ready", [True, False])
-def test_workflow__post_one_leadtime(atask, cfg, cycle, gribfiles, ready):
+def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, ready, tmp_path):
     path = gribfiles[1]
-    cls = driver({})
+    names = [f"{x.name}.idx" for x in gribfiles]
+    output = {STR.idx: [tmp_path / "post" / x for x in names]}
+    if deliver:
+        output[STR.delivered] = [tmp_path / "delivery" / x for x in names]
+    expected = output[STR.delivered] if deliver else output[STR.idx]
+    for x in expected:
+        x.parent.mkdir(parents=True, exist_ok=True)
+    cls = driver(output)
     with (
         patch.object(workflow, "AIGFSPost", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
@@ -149,22 +158,22 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, gribfiles, ready):
     ):
         run = cls.return_value.run
         if ready:
-            run.side_effect = lambda *_, **_k: Path(f"{path}.idx").touch()
+            run.side_effect = lambda *_, **_k: [x.touch() for x in expected]
         node = workflow._post_one_leadtime(cycle, path)
     assert node.taskname == "20251001 18Z 012 post"
     _forecast_one_leadtime.assert_called_once_with(cycle, path)
     assert node.ready is ready
+    cls.assert_called_once_with(
+        cycle=cycle,
+        leadtime=timedelta(hours=12),
+        config=cfg,
+        key_path=["post"],
+        schema_file=Path("/s"),
+    )
     if ready:
-        cls.assert_called_once_with(
-            cycle=cycle,
-            leadtime=timedelta(hours=12),
-            config=cfg,
-            key_path=["post"],
-            schema_file=Path("/s"),
-        )
-        cls.return_value.run.assert_called_once_with(iotaa={"root": True})
+        run.assert_called_once_with(iotaa={"root": True})
     else:
-        cls.assert_not_called()
+        run.assert_not_called()
 
 
 @mark.parametrize(("hours", "ready"), [(-4, True), (0, False)])

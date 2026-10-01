@@ -10,6 +10,7 @@ from aigfs import setup
 from aigfs.drivers.ics import AIGFSICs
 from aigfs.drivers.inference import AIGFSInference
 from aigfs.drivers.post import AIGFSPost
+from aigfs.strings import STR
 
 type CycleT = datetime | str
 
@@ -98,9 +99,6 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     fff = str(gribfile.name).split(".")[3][1:]
     dt, taskname = _dt_taskname(dt, "%s %s" % (fff, "post"))
     yield taskname
-    idxfile = Path(f"{gribfile}.idx")
-    yield Asset(idxfile, idxfile.is_file)
-    yield _forecast_one_leadtime(dt, gribfile)
     cls = AIGFSPost
     driver = cls(
         cycle=dt,
@@ -109,6 +107,11 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
         key_path=["post"],
         schema_file=_schema(cls),
     )
+    # Done when indexes are delivered, if delivery is configured, else when they are generated:
+    output = driver.output
+    paths = output.get(STR.delivered, output[STR.idx])
+    yield [Asset(path, path.is_file) for path in paths]
+    yield _forecast_one_leadtime(dt, gribfile)
     driver.run(iotaa={"root": True})
 
 

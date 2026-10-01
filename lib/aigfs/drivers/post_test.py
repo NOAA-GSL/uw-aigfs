@@ -157,6 +157,17 @@ def test_drivers_AIGFSPost_driver_name(driverobj):
 
 
 def test_drivers_AIGFSPost_output(driverobj):
+    names = ["aigfs.t00z.sfc.f006.grib2.idx", "aigfs.t00z.pres.f006.grib2.idx"]
+    do = Path(driverobj.config[STR.outputdir])
+    dd = Path(driverobj.config[STR.deliver_to])
+    assert driverobj.output == {
+        STR.idx: [do / x for x in names],
+        STR.delivered: [dd / x for x in names],
+    }
+
+
+def test_drivers_AIGFSPost_output__no_deliver_to(driverobj):
+    del driverobj._config[STR.deliver_to]
     do = Path(driverobj.config[STR.outputdir])
     assert driverobj.output == {
         STR.idx: [do / "aigfs.t00z.sfc.f006.grib2.idx", do / "aigfs.t00z.pres.f006.grib2.idx"]
