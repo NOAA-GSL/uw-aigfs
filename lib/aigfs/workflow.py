@@ -142,13 +142,9 @@ def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
 
 
 def _run(driver: Driver, taskname: str, assets: list[Asset]) -> None:
-    """
-    Run the driver, unless another process is already running it, or its assets are ready.
-
-    A non-blocking exclusive flock on a per-task lock file in the driver's run directory provides
-    mutual exclusion between concurrent workflow invocations. The lock is released when the file is
-    closed, including on process exit.
-    """
+    # flock (exclusive, non-blocking) on a per-task lockfile in the driver's rundir so that only one
+    # process at a time runs a specific driver parameterization. The lock is released when the file
+    # is closed or the process exits.
     driver.rundir.mkdir(parents=True, exist_ok=True)
     lockfile = driver.rundir / ("%s.lock" % re.sub(r"[^\w.-]", "_", taskname))
     with lockfile.open("w") as f:
