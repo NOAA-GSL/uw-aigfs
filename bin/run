@@ -33,7 +33,7 @@ bootstrap() {
 
 cmd() {
   activate $(env)
-  $@
+  "$@"
   conda deactivate
 }
 
@@ -207,7 +207,7 @@ envyaml() {
 }
 
 fromroot() {
-  printf "$(rootdir)/%s " $@
+  printf "$(rootdir)/%s " "$@"
 }
 
 rootdir() {
@@ -223,4 +223,4 @@ yamlfiles() {
 test $# -eq 0 && echo "usage: $(basename $0) tool [args ...]" && exit 1
 tool=$1
 shift
-$tool $@
+$tool "$@"
