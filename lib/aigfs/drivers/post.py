@@ -8,6 +8,7 @@ from iotaa import Asset, Node, collection, external, task
 from uwtools.api.driver import DriverCycleLeadtimeBased
 from uwtools.api.utils import atomic, run_shell_cmd
 
+from aigfs.drivers.utils.hooks import run_post_write_hook
 from aigfs.strings import STR
 
 
@@ -72,6 +73,8 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         with atomic(path) as tmp:
             cmd = f"wgrib2 -s {req.ref} >{tmp}"
             run_shell_cmd(cmd, cwd=path.parent, taskname=taskname)
+        if STR.deliver_to not in self.config:
+            self._run_post_write_hook(path)
 
     @task
     def _idx_delivered(self, path: Path) -> Iterator:
@@ -82,6 +85,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         yield req
         path.parent.mkdir(parents=True, exist_ok=True)
         copy(req.ref, path)
+        self._run_post_write_hook(path)
         logging.info("%s: Copied %s -> %s", taskname, req.ref, path)
 
     @external
@@ -103,9 +107,21 @@ class AIGFSPost(DriverCycleLeadtimeBased):
         """
         Returns a description of the file(s) created when this component runs.
         """
-        return {STR.idx: [Path(x) for x in self._idx2grib]}
+        output = {STR.idx: [Path(x) for x in self._idx2grib]}
+        if isinstance(self._deliver_to, Path):
+            output[STR.delivered] = list(self._delivered2idx)
+        return output
 
     # Private helper methods
+
+    def _run_post_write_hook(self, path: Path) -> None:
+        run_post_write_hook(
+            cmd=self.config.get(STR.post_write_hook),
+            driver_name=self.driver_name(),
+            cycle=self.cycle,
+            paths={"PATH_IDX": path},
+            leadtime=int(self.leadtime.total_seconds()) // 3600,
+        )
 
     @cached_property
     def _deliver_to(self) -> Path | Node:

@@ -171,9 +171,18 @@ def test_drivers_AIGFSICs_merged_netcdf_files(driverobj, varkit):
             datasets[ncfile.name].to_netcdf(ncfile)
 
     driverobj, _ = varkit
-    with patch.object(driverobj, "ncfiles", Mock(wraps=mock_ncfiles)) as ncfiles:
+    with (
+        patch.object(driverobj, "ncfiles", Mock(wraps=mock_ncfiles)) as ncfiles,
+        patch.object(ics, "run_post_write_hook") as run_post_write_hook,
+    ):
         node = driverobj.merged_netcdf_files()
     assert node.ready
+    run_post_write_hook.assert_called_once_with(
+        cmd=None,
+        driver_name=STR.aigfs_ics,
+        cycle=driverobj.cycle,
+        paths={"PATH_ICS": node.ref},
+    )
     ncfiles.assert_called_once_with()
     ds = xr.open_dataset(node.ref)
     # Variables were renamed from GRIB names to descriptive names:
@@ -328,8 +337,10 @@ def test_drivers_ics_schema_content(config, logcap, tmp_path, validator, with_de
     assert not ok(with_set(cfg, "bar", "foo"))
     assert "Additional properties are not allowed" in logcap.text
     logcap.clear()
+    # Optional:
+    assert ok(with_set(cfg, "echo hi", STR.post_write_hook))
     # Expecting a string:
-    for key in (STR.rundir, STR.grib_in_config):
+    for key in (STR.rundir, STR.grib_in_config, STR.post_write_hook):
         assert not ok(with_set(cfg, 42, key))
         assert "is not of type 'string'" in logcap.text
         logcap.clear()

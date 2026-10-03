@@ -8,8 +8,9 @@ from pathlib import Path
 import grib2io  # type: ignore[import-untyped]
 import numpy as np
 import xarray as xr
-from uwtools.api.utils import atomic, run_shell_cmd
+from uwtools.api.utils import atomic
 
+from aigfs.drivers.utils.hooks import run_post_write_hook
 from aigfs.strings import STR
 
 SECTION3 = np.array(
@@ -61,7 +62,7 @@ class Grib2Writer:
     # Public methods
 
     def create_grib2_message(
-        self, var: str, lead: int, level: int | None = None
+        self, var: str, leadtime: int, level: int | None = None
     ) -> grib2io.Grib2Message:
         # Set duration. NOTE: the duration attr exists for all Grib2Message objects.
         # For Grib2Messages that are instantaneous, the duration is just 0.
@@ -69,7 +70,7 @@ class Grib2Writer:
         if var == STR.total_precipitation_6hr:
             duration = timedelta(hours=6)
         elif var == STR.total_precipitation_cumsum:
-            duration = timedelta(hours=lead)
+            duration = timedelta(hours=leadtime)
         # Create GRIB2 message.
         msg = grib2io.Grib2Message(
             section3=SECTION3,
@@ -106,7 +107,7 @@ class Grib2Writer:
         msg.refDate = self.start_date
         msg.duration = duration
         msg.unitOfForecastTime = 1  # hour
-        msg.leadTime = timedelta(hours=lead)
+        msg.leadTime = timedelta(hours=leadtime)
         if level is not None:
             msg.scaledValueOfFirstFixedSurface = level
         return msg
@@ -137,9 +138,9 @@ class Grib2Writer:
         ds = ds.reindex(lat=ds.lat[::-1])
         # Set output GRIB2 file.
         cycle = self.start_date.hour
-        lead = int((ds.time.dt.total_seconds() // 3600).values[0])
-        outfile_sfc = outdir / f"{prefix}.t{cycle:02d}z.sfc.f{lead:03d}.grib2"
-        outfile_pres = outdir / f"{prefix}.t{cycle:02d}z.pres.f{lead:03d}.grib2"
+        leadtime = int((ds.time.dt.total_seconds() // 3600).values[0])
+        outfile_sfc = outdir / f"{prefix}.t{cycle:02d}z.sfc.f{leadtime:03d}.grib2"
+        outfile_pres = outdir / f"{prefix}.t{cycle:02d}z.pres.f{leadtime:03d}.grib2"
         # Delete the old files.
         for outfile in [outfile_sfc, outfile_pres]:
             outfile.unlink(missing_ok=True)
@@ -153,13 +154,13 @@ class Grib2Writer:
                 da: xr.DataArray = ds[var]
                 if STR.level in da.coords:
                     for level in da.coords[STR.level]:
-                        msg = self.create_grib2_message(var, lead, level=level)
+                        msg = self.create_grib2_message(var, leadtime, level=level)
                         msg.data = da.sel(level=level).isel(time=0).values
                         msg.pack()
                         logging.info("  %s", msg)
                         grib2_out_pres.write(msg)
                 else:
-                    msg = self.create_grib2_message(var, lead)
+                    msg = self.create_grib2_message(var, leadtime)
                     msg.data = da.isel(time=0).values
                     msg.pack()
                     logging.info("  %s", msg)
@@ -169,25 +170,13 @@ class Grib2Writer:
         # Release post job to create index files and copy files to COM.
         if os.environ.get("SENDECF", "NO") != "NO":
             seteventsh = os.environ["SETEVENTSH"]
-            cmd = [seteventsh, f"{lead:03d}"]
+            cmd = [seteventsh, f"{leadtime:03d}"]
             logging.info("Running shell subprocess %s", cmd)
             subprocess.run(cmd, check=True)
-        self._run_post_write_hook(lead, outfile_sfc, outfile_pres)
-
-    # Private methods
-
-    def _run_post_write_hook(self, lead: int, outfile_sfc: Path, outfile_pres: Path) -> None:
-        if not self.post_write_hook:
-            return
-        env = {
-            "CYCLE": self.start_date.strftime("%Y-%m-%dT%H:%M:%S"),
-            "LEADTIME": str(lead),
-            "PATH_PRES": str(outfile_pres),
-            "PATH_SFC": str(outfile_sfc),
-            **os.environ,
-        }
-        success, _ = run_shell_cmd(
-            cmd=self.post_write_hook, env=dict(sorted(env.items())), taskname="post_write_hook"
+        run_post_write_hook(
+            cmd=self.post_write_hook,
+            driver_name=STR.aigfs_inference,
+            cycle=self.start_date,
+            paths={"PATH_PRES": outfile_pres, "PATH_SFC": outfile_sfc},
+            leadtime=leadtime,
         )
-        if not success:
-            logging.warning("post_write_hook failed")

@@ -373,6 +373,7 @@ def test_drivers_inference_schema_content(config, logcap, tmp_path, validator, w
         logcap.clear()
     # Optional:
     assert ok(with_del(cfg, STR.forecast_freq))
+    assert ok(with_set(cfg, "echo hi", STR.post_write_hook))
     # No additional properties:
     assert not ok(with_set(cfg, "bar", "foo"))
     assert "Additional properties are not allowed" in logcap.text
@@ -389,6 +390,7 @@ def test_drivers_inference_schema_content(config, logcap, tmp_path, validator, w
         STR.ics_path,
         STR.mean_path,
         STR.model_weights_path,
+        STR.post_write_hook,
         STR.rundir,
         STR.stddev_path,
     ):
