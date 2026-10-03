@@ -22,12 +22,11 @@ def run_post_write_hook(
     """
     Run a user-defined post-write hook command, if one is defined.
 
-    :param cmd: The shell command to run, or None to do nothing.
+    :param cmd: The shell command to run.
     :param driver_name: Name of the driver running the hook.
     :param cycle: The forecast cycle.
-    :param paths: Environment-variable names mapped to just-written paths, exported to the command.
-    :param lead: Forecast leadtime hours: Required for leadtime-based drivers, else forbidden.
-    :raises: ValueError if lead is specified or omitted inappropriately for the driver.
+    :param paths: Environment-variable names mapped to just-written paths.
+    :param lead: Forecast leadtime: Required for leadtime-based drivers, else forbidden.
     """
     if (lead is None) != (driver_name in STR.aigfs_ics):
         msg = "Leadtime must %sbe specified for driver %s"
