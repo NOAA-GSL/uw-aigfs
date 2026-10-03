@@ -17,7 +17,7 @@ def run_post_write_hook(
     driver_name: str,
     cycle: datetime,
     paths: dict[str, Path],
-    lead: int | None = None,
+    leadtime: int | None = None,
 ) -> None:
     """
     Run a user-defined post-write hook command, if one is defined.
@@ -26,21 +26,21 @@ def run_post_write_hook(
     :param driver_name: Name of the driver running the hook.
     :param cycle: The forecast cycle.
     :param paths: Environment-variable names mapped to just-written paths.
-    :param lead: Forecast leadtime: Required for leadtime-based drivers, else forbidden.
+    :param leadtime: Forecast leadtime: Required for leadtime-based drivers, else forbidden.
     """
-    if (lead is None) != (driver_name in STR.aigfs_ics):
+    if (leadtime is None) != (driver_name in STR.aigfs_ics):
         msg = "Leadtime must %sbe specified for driver %s"
-        modifier = "not " if lead is not None else ""
+        modifier = "not " if leadtime is not None else ""
         logging.error(msg, modifier, driver_name)
         return
     if not cmd:
         return
     c = cycle.strftime("%Y-%m-%dT%H:%M:%S")
     env = {**os.environ, "CYCLE": c, **{k: str(v) for k, v in paths.items()}}
-    if lead is None:
+    if leadtime is None:
         env.pop("LEADTIME", None)
     else:
-        env["LEADTIME"] = str(lead)
+        env["LEADTIME"] = str(leadtime)
     success, _ = run_shell_cmd(cmd=cmd, env=dict(sorted(env.items())), taskname=STR.post_write_hook)
     if not success:
         logging.error("%s failed", STR.post_write_hook)

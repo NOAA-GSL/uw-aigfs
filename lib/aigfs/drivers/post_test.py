@@ -167,7 +167,7 @@ def test_drivers_AIGFSPost__run_post_write_hook(cycle, driverobj, tmp_path):
         driver_name=STR.aigfs_post,
         cycle=cycle,
         paths={"PATH_IDX": path},
-        lead=6,
+        leadtime=6,
     )
 
 

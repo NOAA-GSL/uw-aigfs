@@ -120,7 +120,7 @@ class AIGFSPost(DriverCycleLeadtimeBased):
             driver_name=self.driver_name(),
             cycle=self.cycle,
             paths={"PATH_IDX": path},
-            lead=int(self.leadtime.total_seconds()) // 3600,
+            leadtime=int(self.leadtime.total_seconds()) // 3600,
         )
 
     @cached_property

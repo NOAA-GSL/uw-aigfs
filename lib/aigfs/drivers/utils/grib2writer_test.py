@@ -110,59 +110,59 @@ def writer_ens_ctrl(grib_out_config, start_date):
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_basic(utc, writer):
-    msg = writer.create_grib2_message(STR.temperature, lead=6, level=85000)
+    msg = writer.create_grib2_message(STR.temperature, leadtime=6, level=85000)
     assert msg.refDate == utc(2025, 10, 1, 18, 0).replace(tzinfo=None)
     assert msg.unitOfForecastTime == 1
     assert msg.scaledValueOfFirstFixedSurface == 85000
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_ensemble(writer_ens):
-    msg = writer_ens.create_grib2_message(STR.temperature, lead=6, level=85000)
+    msg = writer_ens.create_grib2_message(STR.temperature, leadtime=6, level=85000)
     assert msg.perturbationNumber == 1
     assert msg.typeOfEnsembleForecast == 3
     assert msg.typeOfData == 4
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_ensemble_ctrl(writer_ens_ctrl):
-    msg = writer_ens_ctrl.create_grib2_message(STR.temperature, lead=6, level=85000)
+    msg = writer_ens_ctrl.create_grib2_message(STR.temperature, leadtime=6, level=85000)
     assert msg.perturbationNumber == 0
     assert msg.typeOfEnsembleForecast == 1
     assert msg.typeOfData == 3
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_no_level(utc, writer):
-    msg = writer.create_grib2_message(STR.two_m_temperature, lead=12)
+    msg = writer.create_grib2_message(STR.two_m_temperature, leadtime=12)
     assert msg.refDate == utc(2025, 10, 1, 18, 0).replace(tzinfo=None)
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_precip_6hr(writer):
     # Just verify it creates without error for pdtn=8
-    msg = writer.create_grib2_message(STR.total_precipitation_6hr, lead=12)
+    msg = writer.create_grib2_message(STR.total_precipitation_6hr, leadtime=12)
     assert msg is not None
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_precip_cumsum(writer):
-    msg = writer.create_grib2_message(STR.total_precipitation_cumsum, lead=24)
+    msg = writer.create_grib2_message(STR.total_precipitation_cumsum, leadtime=24)
     assert msg is not None
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_spfh_bad_level(writer):
     with raises(ValueError, match="not included"):
-        writer.create_grib2_message(STR.specific_humidity, lead=6, level=1000)
+        writer.create_grib2_message(STR.specific_humidity, leadtime=6, level=1000)
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_high(writer):
-    msg = writer.create_grib2_message(STR.specific_humidity, lead=6, level=5000)
+    msg = writer.create_grib2_message(STR.specific_humidity, leadtime=6, level=5000)
     assert msg.decScaleFactor == 12
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_low(writer):
-    msg = writer.create_grib2_message(STR.specific_humidity, lead=6, level=85000)
+    msg = writer.create_grib2_message(STR.specific_humidity, leadtime=6, level=85000)
     assert msg.decScaleFactor == 8
 
 
 def test_drivers_utils_grib2writer_create_grib2_message_spfh_scale_mid(writer):
-    msg = writer.create_grib2_message(STR.specific_humidity, lead=6, level=25000)
+    msg = writer.create_grib2_message(STR.specific_humidity, leadtime=6, level=25000)
     assert msg.decScaleFactor == 10
 
 
@@ -343,7 +343,7 @@ def test_drivers_utils_grib2writer_save_grib2_post_write_hook(
     grib_out_config, start_date, ds, tmp_path
 ):
     marker = tmp_path / "hook.log"
-    hook = f"echo lead=$LEADTIME cycle=$CYCLE >{marker}"
+    hook = f"echo leadtime=$LEADTIME cycle=$CYCLE >{marker}"
     writer = Grib2Writer(
         case_name=STR.aigfs,
         grib_out_config=grib_out_config,
@@ -351,7 +351,7 @@ def test_drivers_utils_grib2writer_save_grib2_post_write_hook(
         start_date=start_date,
     )
     writer.save_grib2(ds, tmp_path)
-    assert marker.read_text().strip() == "lead=6 cycle=2025-10-01T18:00:00"
+    assert marker.read_text().strip() == "leadtime=6 cycle=2025-10-01T18:00:00"
 
 
 def test_drivers_utils_grib2writer_save_grib2_post_write_hook_failure(

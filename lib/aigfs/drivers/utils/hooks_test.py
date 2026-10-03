@@ -17,11 +17,11 @@ def cycle(utc):
 # Tests
 
 
-@mark.parametrize(("driver_name", "lead"), [(STR.aigfs_ics, None), (STR.aigfs_post, 6)])
-def test_drivers_utils_hooks_run_post_write_hook__no_cmd(cycle, driver_name, lead):
+@mark.parametrize(("driver_name", "leadtime"), [(STR.aigfs_ics, None), (STR.aigfs_post, 6)])
+def test_drivers_utils_hooks_run_post_write_hook__no_cmd(cycle, driver_name, leadtime):
     with patch.object(hooks, "run_shell_cmd") as run_shell_cmd:
         hooks.run_post_write_hook(
-            cmd=None, driver_name=driver_name, cycle=cycle, paths={}, lead=lead
+            cmd=None, driver_name=driver_name, cycle=cycle, paths={}, leadtime=leadtime
         )
     run_shell_cmd.assert_not_called()
 
@@ -33,7 +33,7 @@ def test_drivers_utils_hooks_run_post_write_hook__leadtime(cycle, tmp_path):
         driver_name=STR.aigfs_post,
         cycle=cycle,
         paths={"PATH_A": tmp_path / "a"},
-        lead=6,
+        leadtime=6,
     )
     assert out.read_text().strip() == f"2025-10-01T18:00:00 6 {tmp_path / 'a'}"
 
@@ -57,17 +57,19 @@ def test_drivers_utils_hooks_run_post_write_hook__failure(cycle, logcap):
 
 
 @mark.parametrize(
-    ("driver_name", "lead", "msg"),
+    ("driver_name", "leadtime", "msg"),
     [
         (STR.aigfs_ics, 6, "Leadtime must not be specified for driver aigfs_ics"),
         (STR.aigfs_inference, None, "Leadtime must be specified for driver aigfs_inference"),
         (STR.aigfs_post, None, "Leadtime must be specified for driver aigfs_post"),
     ],
 )
-def test_drivers_utils_hooks_run_post_write_hook__bad_lead(cycle, driver_name, lead, msg, logcap):
+def test_drivers_utils_hooks_run_post_write_hook__bad_leadtime(
+    cycle, driver_name, leadtime, msg, logcap
+):
     with patch.object(hooks, "run_shell_cmd") as run_shell_cmd:
         hooks.run_post_write_hook(
-            cmd="true", driver_name=driver_name, cycle=cycle, paths={}, lead=lead
+            cmd="true", driver_name=driver_name, cycle=cycle, paths={}, leadtime=leadtime
         )
     assert msg in logcap.text
     run_shell_cmd.assert_not_called()
