@@ -348,39 +348,36 @@ Output index files are written to:
 Each driver supports an optional `post_write_hook` value in its driver-config block:
 
 ```yaml
-prep:
-  aigfs_ics:
-    post_write_hook: <command>
-forecast:
-  aigfs_inference:
-    post_write_hook: <command>
-post:
-  aigfs_post:
-    post_write_hook: <command>
+aigfs_ics:
+  post_write_hook: <command>
+aigfs_inference:
+  post_write_hook: <command>
+aigfs_post:
+  post_write_hook: <command>
 ```
 
 When set, the value is executed as a shell command each time the driver writes an output file (or set of files), as follows:
 
-| Driver config block         | Hook runs after...                                                                                                                      |
-|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `prep.aigfs_ics`            | The merged initial-conditions netCDF file is written                                                                                    |
-| `forecast.aigfs_inference`  | Each leadtime's surface and pressure-level GRIB2 files are atomically written                                                           |
-| `post.aigfs_post`           | Each GRIB index file is copied to `deliver_to`, if `deliver_to` is set; otherwise, after each GRIB index file is written to `outputdir` |
+| Driver config block | Hook runs after...                                                                                                                      |
+|---------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `aigfs_ics`         | The merged initial-conditions netCDF file is written                                                                                    |
+| `aigfs_inference`   | Each leadtime's surface and pressure-level GRIB2 files are written                                                                      |
+| `aigfs_post`        | Each GRIB index file is copied to `deliver_to`, if `deliver_to` is set; otherwise, after each GRIB index file is written to `outputdir` |
 
 The following environment variables are exported to the shell in which the hook runs, and may be used in the command. All other variables from the calling environment are also exported.
 
 | Variable     | Drivers                                    | Value                                                     |
 |--------------|--------------------------------------------|-----------------------------------------------------------|
-| `$CYCLE`     | All                                        | ISO8601 cycle string, e.g. `2025-10-01T18:00:00`          |
-| `$LEADTIME`  | `aigfs_inference`, `aigfs_post`            | Integer leadtime hours (`0`, `6`, ...)                    |
-| `$PATH_ICS`  | `aigfs_ics`                                | Path to the just-written `*.ic.nc` file                   |
-| `$PATH_PRES` | `aigfs_inference`                          | Path to the just-written `*.pres.f<fff>.grib2` file       |
-| `$PATH_SFC`  | `aigfs_inference`                          | Path to the just-written `*.sfc.f<fff>.grib2` file        |
-| `$PATH_IDX`  | `aigfs_post`                               | Path to the just-delivered (or just-written) `*.idx` file |
+| `CYCLE`     | All                                        | ISO8601 cycle string, e.g. `2025-10-01T18:00:00`          |
+| `LEADTIME`  | `aigfs_inference`, `aigfs_post`            | Integer leadtime hours (`0`, `6`, ...)                    |
+| `PATH_ICS`  | `aigfs_ics`                                | Path to the just-written `*.ic.nc` file                   |
+| `PATH_PRES` | `aigfs_inference`                          | Path to the just-written `*.pres.f<fff>.grib2` file       |
+| `PATH_SFC`  | `aigfs_inference`                          | Path to the just-written `*.sfc.f<fff>.grib2` file        |
+| `PATH_IDX`  | `aigfs_post`                               | Path to the just-delivered (or just-written) `*.idx` file |
 
 `$LEADTIME` is never set for the `aigfs_ics` hook, even if it is set in the calling environment, since initial conditions are not associated with a forecast leadtime. The `aigfs_post` hook runs once per index file, i.e. twice per leadtime (once for the surface file, and once for the pressure-level file).
 
-A non-zero exit from a hook is logged at `WARNING` level and does not cause the driver to fail.
+A non-zero exit from a hook is logged at `ERROR` level but does not cause the driver to fail.
 
 ### ecFlow Reference
 
