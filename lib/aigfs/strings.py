@@ -81,8 +81,6 @@ class _STR(_ValsMatchKeys):
     platform: str = _
     plevel: str = _
     post_write_hook: str = _
-    post: str = _
-    prep: str = _
     pressure: str = _
     PRMSL_meansealevel: str = _
     rocoto_xml: str = "rocoto.xml"
@@ -103,7 +101,6 @@ class _STR(_ValsMatchKeys):
     u_component_of_wind: str = _
     UGRD_10maboveground: str = _
     UGRD: str = _
-    user_yaml: str = "user.yaml"
     v_component_of_wind: str = _
     vertical_velocity: str = _
     VGRD_10maboveground: str = _
