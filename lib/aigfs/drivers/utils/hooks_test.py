@@ -1,7 +1,7 @@
 import os
 from unittest.mock import patch
 
-from pytest import fixture, mark, raises
+from pytest import fixture, mark
 
 from aigfs.drivers.utils import hooks
 from aigfs.strings import STR
@@ -64,8 +64,10 @@ def test_drivers_utils_hooks_run_post_write_hook__failure(cycle, logcap):
         (STR.aigfs_post, None, "Leadtime must be specified for driver aigfs_post"),
     ],
 )
-def test_drivers_utils_hooks_run_post_write_hook__bad_lead(cycle, driver_name, lead, msg):
-    with raises(ValueError, match=msg):
+def test_drivers_utils_hooks_run_post_write_hook__bad_lead(cycle, driver_name, lead, msg, logcap):
+    with patch.object(hooks, "run_shell_cmd") as run_shell_cmd:
         hooks.run_post_write_hook(
             cmd="true", driver_name=driver_name, cycle=cycle, paths={}, lead=lead
         )
+    assert msg in logcap.text
+    run_shell_cmd.assert_not_called()

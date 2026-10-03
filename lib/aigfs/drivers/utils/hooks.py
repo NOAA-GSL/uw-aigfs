@@ -11,9 +11,6 @@ from uwtools.api.utils import run_shell_cmd
 
 from aigfs.strings import STR
 
-# Drivers whose output is not associated with a forecast leadtime:
-_NO_LEADTIME = {STR.aigfs_ics}
-
 
 def run_post_write_hook(
     cmd: str | None,
@@ -32,23 +29,19 @@ def run_post_write_hook(
     :param lead: Forecast leadtime hours: Required for leadtime-based drivers, else forbidden.
     :raises: ValueError if lead is specified or omitted inappropriately for the driver.
     """
-    if (lead is None) != (driver_name in _NO_LEADTIME):
-        msg = "Leadtime must %sbe specified for driver %s" % (
-            "not " if lead is not None else "",
-            driver_name,
-        )
-        raise ValueError(msg)
+    if (lead is None) != (driver_name in STR.aigfs_ics):
+        msg = "Leadtime must %sbe specified for driver %s"
+        modifier = "not " if lead is not None else ""
+        logging.error(msg, modifier, driver_name)
+        return
     if not cmd:
         return
-    env = {
-        **os.environ,
-        "CYCLE": cycle.strftime("%Y-%m-%dT%H:%M:%S"),
-        **{k: str(v) for k, v in paths.items()},
-    }
+    c = cycle.strftime("%Y-%m-%dT%H:%M:%S")
+    env = {**os.environ, "CYCLE": c, **{k: str(v) for k, v in paths.items()}}
     if lead is None:
         env.pop("LEADTIME", None)
     else:
         env["LEADTIME"] = str(lead)
     success, _ = run_shell_cmd(cmd=cmd, env=dict(sorted(env.items())), taskname=STR.post_write_hook)
     if not success:
-        logging.warning("%s failed", STR.post_write_hook)
+        logging.error("%s failed", STR.post_write_hook)
