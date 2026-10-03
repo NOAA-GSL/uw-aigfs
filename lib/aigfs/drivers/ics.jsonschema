@@ -59,6 +59,10 @@
           "description": "Path to the YAML file defining variables for GRIB-to-netCDF extraction",
           "type": "string"
         },
+        "post_write_hook": {
+          "description": "Optional shell command run after the initial-conditions netCDF file is written",
+          "type": "string"
+        },
         "rundir": {
           "description": "Path to the driver run directory",
           "type": "string"

@@ -21,6 +21,7 @@ Welcome to the `uw-aigfs` User Guide. This guide describes how to install, confi
     - [Reload a Modified Experiment on the Running Server](#reload-a-modified-experiment-on-the-running-server)
 - [Reference](#reference)
   - [The Model Directory](#the-model-directory)
+  - [Post-Write Hooks](#post-write-hooks)
   - [ecFlow Reference](#ecflow-reference)
 
 ## Overview
@@ -342,6 +343,45 @@ Output index files are written to:
 <rundir>/<yyyymmddhh>/post_<fff>/aigfs.t<hh>z.pres.f<fff>.grib2.idx
 ```
 
+### Post-Write Hooks
+
+Each driver supports an optional `post_write_hook` value in its driver-config block:
+
+```yaml
+prep:
+  aigfs_ics:
+    post_write_hook: <command>
+forecast:
+  aigfs_inference:
+    post_write_hook: <command>
+post:
+  aigfs_post:
+    post_write_hook: <command>
+```
+
+When set, the value is executed as a shell command each time the driver writes an output file (or set of files), as follows:
+
+| Driver config block         | Hook runs after...                                                                                                                      |
+|-----------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `prep.aigfs_ics`            | The merged initial-conditions netCDF file is written                                                                                    |
+| `forecast.aigfs_inference`  | Each leadtime's surface and pressure-level GRIB2 files are atomically written                                                           |
+| `post.aigfs_post`           | Each GRIB index file is copied to `deliver_to`, if `deliver_to` is set; otherwise, after each GRIB index file is written to `outputdir` |
+
+The following environment variables are exported to the shell in which the hook runs, and may be used in the command. All other variables from the calling environment are also exported.
+
+| Variable     | Drivers                                    | Value                                                     |
+|--------------|--------------------------------------------|-----------------------------------------------------------|
+| `$CYCLE`     | All                                        | ISO8601 cycle string, e.g. `2025-10-01T18:00:00`          |
+| `$LEADTIME`  | `aigfs_inference`, `aigfs_post`            | Integer leadtime hours (`0`, `6`, ...)                    |
+| `$PATH_ICS`  | `aigfs_ics`                                | Path to the just-written `*.ic.nc` file                   |
+| `$PATH_PRES` | `aigfs_inference`                          | Path to the just-written `*.pres.f<fff>.grib2` file       |
+| `$PATH_SFC`  | `aigfs_inference`                          | Path to the just-written `*.sfc.f<fff>.grib2` file        |
+| `$PATH_IDX`  | `aigfs_post`                               | Path to the just-delivered (or just-written) `*.idx` file |
+
+`$LEADTIME` is never set for the `aigfs_ics` hook, even if it is set in the calling environment, since initial conditions are not associated with a forecast leadtime. The `aigfs_post` hook runs once per index file, i.e. twice per leadtime (once for the surface file, and once for the pressure-level file).
+
+A non-zero exit from a hook is logged at `WARNING` level and does not cause the driver to fail.
+
 ### ecFlow Reference
 
 #### Alternative Servers
@@ -368,24 +408,6 @@ ecflow_ui
 
 See the [ecFlowUI](https://ecflow.readthedocs.io/en/5.18.0/ug/ecflow_ui/) documentation for information on configuring and using the tool. You will at least need to configure the connection to your running ecFlow server, whose details you can find in the `server.json` file created in your run directory by `uw ecflow server`, if you are using the provided conda environment. Set _Host_ to the `ECF_HOST` value, _Port_ to the `ECF_PORT` value, and select _TCP/IP with SSL_ for _Protocol_ unless you are running the server in insecure mode (not advised).
 
-#### Post-Write Hook
-
-`forecast.aigfs_inference.post_write_hook` is an optional string; when set, it is executed as a shell command by `aigfs.drivers.utils.grib2writer.Grib2Writer` after each leadtime's surface + pressure GRIB2 files have been atomically written. The following environment variables may be used in the command and will be exported to the shell in which it runs:
-
-| Bash Variable     | Value                                                      |
-|--------------|------------------------------------------------------------|
-| `$CYCLE`     | ISO8601 cycle string                                       |
-| `$LEADTIME`  | Integer leadtime hours (`0`, `6`, ...)                     |
-| `$PATH_PRES` | Absolute path to the just-written `*.pres.fXXX.grib2` file |
-| Bash Variable     | Value                                                      |
-|-------------------|------------------------------------------------------------|
-| `$CYCLE`          | ISO8601 cycle string                                       |
-| `$LEADTIME`       | Integer leadtime hours (`0`, `6`, ...)                     |
-| `$PATH_PRES`      | Absolute path to the just-written `*.pres.fXXX.grib2` file |
-| `$PATH_SFC`       | Absolute path to the just-written `*.sfc.fXXX.grib2` file  |
-
-A non-zero exit from the hook is logged at `WARNING` level and does not abort the forecast; each leadtime is processed independently.
-
 #### Server States
 
 `uw ecflow server` starts the server in the `halted` state -- no scheduling happens until `--restart` moves it to `running`. See the [ecFlow glossary → server states](https://ecflow.readthedocs.io/en/latest/glossary.html#term-server-states) for the state-machine details.
@@ -402,7 +424,7 @@ By default, `uw ecflow server` starts the ecFlow server with SSL security enable
 
 The `forecast` task triggers on `prep == complete`.
 
-Every `post_f<fff>` triggers on `../forecast:release_f<fff>`, where the `release_f<fff>` events are set from within the forecast task each time that leadtime's GRIB2 pair has been written. This gives per-leadtime pipelined post-processing: Each `post_f<fff>` starts as soon as its inputs are on disk, without waiting for later leadtimes. Events are sent to the server via the driver's `post_write_hook` value (see [Post-Write Hook](#post-write-hook) above).
+Every `post_f<fff>` triggers on `../forecast:release_f<fff>`, where the `release_f<fff>` events are set from within the forecast task each time that leadtime's GRIB2 pair has been written. This gives per-leadtime pipelined post-processing: Each `post_f<fff>` starts as soon as its inputs are on disk, without waiting for later leadtimes. Events are sent to the server via the driver's `post_write_hook` value (see [Post-Write Hooks](#post-write-hooks)).
 
 #### Task Names
 

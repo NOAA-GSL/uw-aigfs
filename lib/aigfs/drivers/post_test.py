@@ -3,7 +3,7 @@ from pathlib import Path
 from unittest.mock import Mock, patch
 
 from iotaa import Asset, Node, external, task
-from pytest import fixture
+from pytest import fixture, mark
 
 from aigfs.drivers import post
 from aigfs.strings import STR
@@ -101,7 +101,11 @@ def test_drivers_AIGFSPost__gribfile(driverobj, logcap, touch):
     assert f"GRIB file {path}" in logcap.text
 
 
-def test_drivers_AIGFSPost__idx(driverobj, logcap, touch):
+@mark.parametrize("deliver", [True, False])
+def test_drivers_AIGFSPost__idx(deliver, driverobj, logcap, touch):
+    if not deliver:
+        del driverobj._config[STR.deliver_to]
+
     @task
     def mock__gribfile(path: Path):
         yield f"mock__gribfile {path}"
@@ -114,6 +118,7 @@ def test_drivers_AIGFSPost__idx(driverobj, logcap, touch):
     with (
         patch.object(driverobj, "_gribfile", Mock(wraps=mock__gribfile)) as _gribfile,
         patch.object(post, "run_shell_cmd") as run_shell_cmd,
+        patch.object(driverobj, "_run_post_write_hook") as _run_post_write_hook,
     ):
         run_shell_cmd.side_effect = lambda *_args, **_kwargs: touch(path)
         node = driverobj._idx(path)
@@ -123,6 +128,10 @@ def test_drivers_AIGFSPost__idx(driverobj, logcap, touch):
     assert path.is_file()
     assert f"GRIB index {path}" in logcap.text
     assert run_shell_cmd.call_args[0][0].startswith(f"wgrib2 -s {src}")
+    if deliver:
+        _run_post_write_hook.assert_not_called()
+    else:
+        _run_post_write_hook.assert_called_once_with(path)
 
 
 def test_drivers_AIGFSPost__idx_delivered(driverobj, logcap, touch):
@@ -135,14 +144,31 @@ def test_drivers_AIGFSPost__idx_delivered(driverobj, logcap, touch):
 
     path = Path(driverobj._deliver_to, "aigfs.t00z.sfc.f006.grib2.idx")
     assert not path.exists()
-    with patch.object(driverobj, "_idx", Mock(wraps=mock__idx)) as _idx:
+    with (
+        patch.object(driverobj, "_idx", Mock(wraps=mock__idx)) as _idx,
+        patch.object(driverobj, "_run_post_write_hook") as _run_post_write_hook,
+    ):
         node = driverobj._idx_delivered(path)
+    _run_post_write_hook.assert_called_once_with(path)
     assert node.ready
     src = driverobj._delivered2idx[path]
     _idx.assert_called_once_with(src)
     assert path.is_file()
     assert f"Delivered GRIB index {path}" in logcap.text
     assert f"Copied {src} -> {path}" in logcap.text
+
+
+def test_drivers_AIGFSPost__run_post_write_hook(cycle, driverobj, tmp_path):
+    path = tmp_path / "a.idx"
+    with patch.object(post, "run_post_write_hook") as run_post_write_hook:
+        driverobj._run_post_write_hook(path)
+    run_post_write_hook.assert_called_once_with(
+        cmd=None,
+        driver_name=STR.aigfs_post,
+        cycle=cycle,
+        paths={"PATH_IDX": path},
+        lead=6,
+    )
 
 
 def test_drivers_AIGFSPost__valid_driver_config(driverobj, logcap):
@@ -230,12 +256,13 @@ def test_drivers_post_schema_content(config, logcap, tmp_path, validator, with_d
         logcap.clear()
     # Optional:
     assert ok(with_del(cfg, STR.deliver_to))
+    assert ok(with_set(cfg, "echo hi", STR.post_write_hook))
     # No additional properties:
     assert not ok(with_set(cfg, "bar", "foo"))
     assert "Additional properties are not allowed" in logcap.text
     logcap.clear()
     # Expecting a string:
-    for key in (STR.deliver_to, STR.outputdir, STR.rundir):
+    for key in (STR.deliver_to, STR.outputdir, STR.post_write_hook, STR.rundir):
         assert not ok(with_set(cfg, 42, key))
         assert "is not of type 'string'" in logcap.text
         logcap.clear()
