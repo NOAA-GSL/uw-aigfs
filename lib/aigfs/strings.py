@@ -43,6 +43,7 @@ class _STR(_ValsMatchKeys):
     diffs_stddev_path: str = _
     discipline: str = _
     drtn: str = _
+    ecflow: str = _
     files_to_copy: str = _
     files_to_hardlink: str = _
     files_to_link: str = _
@@ -83,6 +84,7 @@ class _STR(_ValsMatchKeys):
     post_write_hook: str = _
     pressure: str = _
     PRMSL_meansealevel: str = _
+    rocoto: str = _
     rocoto_xml: str = "rocoto.xml"
     rundir: str = _
     specific_humidity: str = _
