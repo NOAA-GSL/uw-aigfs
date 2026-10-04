@@ -104,7 +104,6 @@ class _STR(_ValsMatchKeys):
     u_component_of_wind: str = _
     UGRD_10maboveground: str = _
     UGRD: str = _
-    user_yaml: str = "user.yaml"
     v_component_of_wind: str = _
     vertical_velocity: str = _
     VGRD_10maboveground: str = _

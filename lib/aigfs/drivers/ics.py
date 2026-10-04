@@ -10,6 +10,7 @@ from uwtools.api.config import get_yaml_config
 from uwtools.api.driver import DriverCycleBased, FileStager
 from uwtools.api.utils import atomic, run_shell_cmd
 
+from aigfs.drivers.utils.hooks import run_post_write_hook
 from aigfs.strings import STR
 
 
@@ -76,6 +77,12 @@ class AIGFSICs(DriverCycleBased, FileStager):
         # Update total_precipitation_6hr unit to (m) from (kg/m^2) by dividing it by 1000kg/m³.
         ds[STR.total_precipitation_6hr] = ds[STR.total_precipitation_6hr] / 1000
         ds.to_netcdf(path)
+        run_post_write_hook(
+            cmd=self.config.get(STR.post_write_hook),
+            driver_name=self.driver_name(),
+            cycle=self.cycle,
+            paths={"PATH_ICS": path},
+        )
 
     @collection
     def ncfiles(self) -> Iterator:

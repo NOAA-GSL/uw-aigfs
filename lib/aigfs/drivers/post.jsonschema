@@ -24,6 +24,10 @@
           "description": "Directory to write GRIB index files to",
           "type": "string"
         },
+        "post_write_hook": {
+          "description": "Optional shell command run after each GRIB index file is delivered (or written, if not delivered)",
+          "type": "string"
+        },
         "rundir": {
           "description": "Path to the driver run directory",
           "type": "string"

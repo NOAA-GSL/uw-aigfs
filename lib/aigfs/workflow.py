@@ -32,7 +32,7 @@ def config(cycle_: CycleT) -> Iterator:
     yield taskname
     yield Asset(CFG, CFG.is_file)
     yield None
-    user = PWD / STR.user_yaml
+    user = PWD / "user.yaml"
     c = setup.compose_configs(workflow=None, platform=STR.oci, user_config_files=[user])
     setup.validate(c)
     setup.set_up_rundir(c, workflow=None, prefix=taskname)
