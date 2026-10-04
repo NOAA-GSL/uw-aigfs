@@ -80,10 +80,12 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready, tmp_path):
         patch.object(workflow, "AIGFSInference", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
         patch.object(workflow, "prep", Mock(wraps=lambda _: atask(ready))) as prep,
+        patch.object(workflow, "run_shell_cmd") as run_shell_cmd,
     ):
-        run = cls.return_value.run
         if ready:
-            run.side_effect = lambda *_, **_k: [gribfile.touch() for gribfile in gribfiles]
+            run_shell_cmd.side_effect = lambda *_, **_k: [
+                gribfile.touch() for gribfile in gribfiles
+            ]
         node = workflow.forecast(cycle)
     assert node.taskname == "20251001 18Z forecast"
     cls.assert_called_once_with(
@@ -92,9 +94,11 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready, tmp_path):
     prep.assert_called_once_with(cycle)
     assert node.ready is ready
     if ready:
-        run.assert_called_once_with(iotaa={"root": True})
+        run_shell_cmd.assert_called_once_with(
+            "/bin/true", cwd=cls.return_value.rundir, taskname="20251001 18Z forecast"
+        )
     else:
-        run.assert_not_called()
+        run_shell_cmd.assert_not_called()
 
 
 @mark.parametrize("ready", [True, False])
@@ -125,19 +129,21 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
         patch.object(workflow, "AIGFSICs", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
         patch.object(workflow, "_timegate", Mock(wraps=lambda _: atask(ready))) as _timegate,
+        patch.object(workflow, "run_shell_cmd") as run_shell_cmd,
     ):
-        run = cls.return_value.run
         if ready:
-            run.side_effect = lambda *_, **_k: ics.touch()
+            run_shell_cmd.side_effect = lambda *_, **_k: ics.touch()
         node = workflow.prep(cycle)
     assert node.taskname == "20251001 18Z prep"
     cls.assert_called_once_with(cycle=cycle, config=cfg, key_path=["prep"], schema_file=Path("/s"))
     _timegate.assert_called_once_with(cycle)
     assert node.ready is ready
     if ready:
-        run.assert_called_once_with(iotaa={"root": True})
+        run_shell_cmd.assert_called_once_with(
+            "/bin/true", cwd=cls.return_value.rundir, taskname="20251001 18Z prep"
+        )
     else:
-        run.assert_not_called()
+        run_shell_cmd.assert_not_called()
 
 
 @mark.parametrize("ready", [True, False])
@@ -170,10 +176,10 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
         patch.object(
             workflow, "_forecast_one_leadtime", Mock(wraps=lambda *_: atask(ready))
         ) as _forecast_one_leadtime,
+        patch.object(workflow, "run_shell_cmd") as run_shell_cmd,
     ):
-        run = cls.return_value.run
         if ready:
-            run.side_effect = lambda *_, **_k: [x.touch() for x in expected]
+            run_shell_cmd.side_effect = lambda *_, **_k: [x.touch() for x in expected]
         node = workflow._post_one_leadtime(cycle, path)
     assert node.taskname == "20251001 18Z 012 post"
     _forecast_one_leadtime.assert_called_once_with(cycle, path)
@@ -186,9 +192,11 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
         schema_file=Path("/s"),
     )
     if ready:
-        run.assert_called_once_with(iotaa={"root": True})
+        run_shell_cmd.assert_called_once_with(
+            "/bin/true", cwd=cls.return_value.rundir, taskname="20251001 18Z 012 post"
+        )
     else:
-        run.assert_not_called()
+        run_shell_cmd.assert_not_called()
 
 
 @mark.parametrize(("hours", "ready"), [(-4, True), (0, False)])
@@ -207,8 +215,11 @@ def test_workflow__dt_taskname(cycle):
 
 def test_workflow__execute(logcap, lockkit):
     obj, assets, lockfile, output = lockkit
-    workflow._execute(obj, TASKNAME, assets)
-    obj.run.assert_called_once_with(iotaa={"root": True})
+    with patch.object(
+        workflow, "run_shell_cmd", side_effect=lambda *_a, **_k: output.touch()
+    ) as cmd:
+        workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
+    cmd.assert_called_once_with("/bin/true", cwd=obj.rundir, taskname=TASKNAME)
     assert lockfile.is_file()
     assert output.is_file()
     assert "another process" not in logcap.text
@@ -217,29 +228,34 @@ def test_workflow__execute(logcap, lockkit):
 def test_workflow__execute__ready_elsewhere(logcap, lockkit):
     obj, assets, _, output = lockkit
     output.touch()
-    workflow._execute(obj, TASKNAME, assets)
-    obj.run.assert_not_called()
+    with patch.object(workflow, "run_shell_cmd") as cmd:
+        workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
+    cmd.assert_not_called()
     assert f"{TASKNAME}: Made ready by another process" in logcap.text
 
 
 def test_workflow__execute__locked(logcap, lockkit):
     obj, assets, lockfile, output = lockkit
     lockfile.parent.mkdir(parents=True)
-    with lockfile.open("w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        workflow._execute(obj, TASKNAME, assets)
-        obj.run.assert_not_called()
-        assert not output.is_file()
-        assert f"{TASKNAME}: Running in another process" in logcap.text
-    # Lock released by holder, so the driver now runs:
-    workflow._execute(obj, TASKNAME, assets)
-    obj.run.assert_called_once_with(iotaa={"root": True})
+    with patch.object(
+        workflow, "run_shell_cmd", side_effect=lambda *_a, **_k: output.touch()
+    ) as cmd:
+        with lockfile.open("w") as f:
+            fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
+            cmd.assert_not_called()
+            assert not output.is_file()
+            assert f"{TASKNAME}: Running in another process" in logcap.text
+        # Lock released by holder, so the command now runs:
+        workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
+    cmd.assert_called_once_with("/bin/true", cwd=obj.rundir, taskname=TASKNAME)
     assert output.is_file()
 
 
 def test_workflow__execute__lock_released(lockkit):
     obj, assets, lockfile, _ = lockkit
-    workflow._execute(obj, TASKNAME, assets)
+    with patch.object(workflow, "run_shell_cmd"):
+        workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
     with lockfile.open("w") as f:
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)  # would raise if still held
 

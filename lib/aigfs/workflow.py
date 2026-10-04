@@ -8,7 +8,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 from iotaa import Asset, collection, external, task
-from uwtools.api.driver import Driver
+from uwtools.api.utils import run_shell_cmd
 
 from aigfs import setup
 from aigfs.drivers.ics import AIGFSICs
@@ -52,7 +52,7 @@ def forecast(cycle_: CycleT) -> Iterator:
     assets = [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
     yield assets
     yield prep(dt)
-    _execute(driver, taskname, assets)
+    _execute("/bin/true", driver.rundir, taskname, assets)
 
 
 @collection
@@ -84,7 +84,7 @@ def prep(cycle_: CycleT) -> Iterator:
     assets = [Asset(path, path.is_file)]
     yield assets
     yield _timegate(dt)
-    _execute(driver, taskname, assets)
+    _execute("/bin/true", driver.rundir, taskname, assets)
 
 
 # Private tasks:
@@ -119,7 +119,7 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     assets = [Asset(path, path.is_file) for path in paths]
     yield assets
     yield _forecast_one_leadtime(dt, gribfile)
-    _execute(driver, taskname, assets)
+    _execute("/bin/true", driver.rundir, taskname, assets)
 
 
 @external
@@ -141,12 +141,12 @@ def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
     return dt, "%s %s" % (dt.strftime("%Y%m%d %HZ"), step)
 
 
-def _execute(driver: Driver, taskname: str, assets: list[Asset]) -> None:
-    # flock (exclusive, non-blocking) on a per-task lockfile in the driver's rundir so that only one
+def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None:
+    # flock (exclusive, non-blocking) on a per-task lockfile in the rundir so that only one
     # process at a time runs a specific driver parameterization. The lock is released when the file
     # is closed or the process exits.
-    driver.rundir.mkdir(parents=True, exist_ok=True)
-    lockfile = driver.rundir / ("%s.lock" % re.sub(r"[^\w.-]", "_", taskname))
+    rundir.mkdir(parents=True, exist_ok=True)
+    lockfile = rundir / ("%s.lock" % re.sub(r"[^\w.-]", "_", taskname))
     with lockfile.open("w") as f:
         try:
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -156,7 +156,7 @@ def _execute(driver: Driver, taskname: str, assets: list[Asset]) -> None:
         if all(asset.ready() for asset in assets):
             logging.info("%s: Made ready by another process", taskname)
             return
-        driver.run(iotaa={"root": True})
+        run_shell_cmd(cmd, cwd=rundir, taskname=taskname)
 
 
 def _schema(cls: type) -> Path:
