@@ -205,41 +205,41 @@ def test_workflow__dt_taskname(cycle):
     assert workflow._dt_taskname("2025-10-01T18", "foo") == (cycle, "20251001 18Z foo")
 
 
-def test_workflow__run(logcap, lockkit):
+def test_workflow__execute(logcap, lockkit):
     obj, assets, lockfile, output = lockkit
-    workflow._run(obj, TASKNAME, assets)
+    workflow._execute(obj, TASKNAME, assets)
     obj.run.assert_called_once_with(iotaa={"root": True})
     assert lockfile.is_file()
     assert output.is_file()
     assert "another process" not in logcap.text
 
 
-def test_workflow__run__ready_elsewhere(logcap, lockkit):
+def test_workflow__execute__ready_elsewhere(logcap, lockkit):
     obj, assets, _, output = lockkit
     output.touch()
-    workflow._run(obj, TASKNAME, assets)
+    workflow._execute(obj, TASKNAME, assets)
     obj.run.assert_not_called()
     assert f"{TASKNAME}: Made ready by another process" in logcap.text
 
 
-def test_workflow__run__locked(logcap, lockkit):
+def test_workflow__execute__locked(logcap, lockkit):
     obj, assets, lockfile, output = lockkit
     lockfile.parent.mkdir(parents=True)
     with lockfile.open("w") as f:
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
-        workflow._run(obj, TASKNAME, assets)
+        workflow._execute(obj, TASKNAME, assets)
         obj.run.assert_not_called()
         assert not output.is_file()
         assert f"{TASKNAME}: Running in another process" in logcap.text
     # Lock released by holder, so the driver now runs:
-    workflow._run(obj, TASKNAME, assets)
+    workflow._execute(obj, TASKNAME, assets)
     obj.run.assert_called_once_with(iotaa={"root": True})
     assert output.is_file()
 
 
-def test_workflow__run__lock_released(lockkit):
+def test_workflow__execute__lock_released(lockkit):
     obj, assets, lockfile, _ = lockkit
-    workflow._run(obj, TASKNAME, assets)
+    workflow._execute(obj, TASKNAME, assets)
     with lockfile.open("w") as f:
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)  # would raise if still held
 

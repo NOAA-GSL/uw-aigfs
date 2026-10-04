@@ -52,7 +52,7 @@ def forecast(cycle_: CycleT) -> Iterator:
     assets = [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
     yield assets
     yield prep(dt)
-    _run(driver, taskname, assets)
+    _execute(driver, taskname, assets)
 
 
 @collection
@@ -84,7 +84,7 @@ def prep(cycle_: CycleT) -> Iterator:
     assets = [Asset(path, path.is_file)]
     yield assets
     yield _timegate(dt)
-    _run(driver, taskname, assets)
+    _execute(driver, taskname, assets)
 
 
 # Private tasks:
@@ -119,7 +119,7 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     assets = [Asset(path, path.is_file) for path in paths]
     yield assets
     yield _forecast_one_leadtime(dt, gribfile)
-    _run(driver, taskname, assets)
+    _execute(driver, taskname, assets)
 
 
 @external
@@ -141,7 +141,7 @@ def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
     return dt, "%s %s" % (dt.strftime("%Y%m%d %HZ"), step)
 
 
-def _run(driver: Driver, taskname: str, assets: list[Asset]) -> None:
+def _execute(driver: Driver, taskname: str, assets: list[Asset]) -> None:
     # flock (exclusive, non-blocking) on a per-task lockfile in the driver's rundir so that only one
     # process at a time runs a specific driver parameterization. The lock is released when the file
     # is closed or the process exits.
