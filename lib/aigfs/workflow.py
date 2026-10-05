@@ -45,12 +45,7 @@ def forecast(cycle_: CycleT) -> Iterator:
     yield taskname
     cls = AIGFSInference
     key_path: list = [STR.forecast]
-    driver = cls(
-        cycle=dt,
-        config=CFG,
-        key_path=key_path,
-        schema_file=_schema(cls),
-    )
+    driver = cls(cycle=dt, config=CFG, key_path=key_path, schema_file=_schema(cls))
     assets = [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
     yield assets
     yield prep(dt)
@@ -63,12 +58,7 @@ def post(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, "post")
     yield taskname
     cls = AIGFSInference
-    driver = cls(
-        cycle=dt,
-        config=CFG,
-        key_path=[STR.forecast],
-        schema_file=_schema(cls),
-    )
+    driver = cls(cycle=dt, config=CFG, key_path=[STR.forecast], schema_file=_schema(cls))
     yield [_post_one_leadtime(dt, path) for path in driver.output[STR.forecast]]
 
 
@@ -78,12 +68,7 @@ def prep(cycle_: CycleT) -> Iterator:
     yield taskname
     cls = AIGFSICs
     key_path: list = [STR.prep]
-    driver = cls(
-        cycle=dt,
-        config=CFG,
-        key_path=key_path,
-        schema_file=_schema(cls),
-    )
+    driver = cls(cycle=dt, config=CFG, key_path=key_path, schema_file=_schema(cls))
     path = driver.output[STR.ics]
     assets = [Asset(path, path.is_file)]
     yield assets
