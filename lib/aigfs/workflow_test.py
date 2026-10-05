@@ -1,5 +1,6 @@
 import fcntl
 from datetime import UTC, datetime, timedelta
+from io import StringIO
 from pathlib import Path
 from unittest.mock import ANY, Mock, patch
 
@@ -95,7 +96,7 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready, tmp_path):
     assert node.ready is ready
     if ready:
         run_shell_cmd.assert_called_once_with(
-            ANY, cwd=cls.return_value.rundir, taskname="20251001 18Z forecast"
+            ANY, callback=ANY, cwd=cls.return_value.rundir, taskname="20251001 18Z forecast"
         )
     else:
         run_shell_cmd.assert_not_called()
@@ -140,7 +141,7 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
     assert node.ready is ready
     if ready:
         run_shell_cmd.assert_called_once_with(
-            ANY, cwd=cls.return_value.rundir, taskname="20251001 18Z prep"
+            ANY, callback=ANY, cwd=cls.return_value.rundir, taskname="20251001 18Z prep"
         )
     else:
         run_shell_cmd.assert_not_called()
@@ -193,7 +194,7 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
     )
     if ready:
         run_shell_cmd.assert_called_once_with(
-            ANY, cwd=cls.return_value.rundir, taskname="20251001 18Z 012 post"
+            ANY, callback=ANY, cwd=cls.return_value.rundir, taskname="20251001 18Z 012 post"
         )
     else:
         run_shell_cmd.assert_not_called()
@@ -215,13 +216,18 @@ def test_workflow__dt_taskname(cycle):
 
 def test_workflow__execute(logcap, lockkit):
     obj, assets, lockfile, output = lockkit
-    with patch.object(
-        workflow, "run_shell_cmd", side_effect=lambda *_a, **_k: output.touch()
-    ) as cmd:
+
+    def run_cmd(*_args, **kwargs):
+        kwargs["callback"](Mock(stdout=StringIO("first line\nsecond line\n")))
+        output.touch()
+
+    with patch.object(workflow, "run_shell_cmd", side_effect=run_cmd) as cmd:
         workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
-    cmd.assert_called_once_with("/bin/true", cwd=obj.rundir, taskname=TASKNAME)
+    cmd.assert_called_once_with("/bin/true", callback=ANY, cwd=obj.rundir, taskname=TASKNAME)
     assert lockfile.is_file()
     assert output.is_file()
+    assert f"{TASKNAME}: first line" in logcap.text
+    assert f"{TASKNAME}: second line" in logcap.text
     assert "another process" not in logcap.text
 
 
@@ -248,7 +254,7 @@ def test_workflow__execute__locked(logcap, lockkit):
             assert f"{TASKNAME}: Running in another process" in logcap.text
         # Lock released by holder, so the command now runs:
         workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
-    cmd.assert_called_once_with("/bin/true", cwd=obj.rundir, taskname=TASKNAME)
+    cmd.assert_called_once_with("/bin/true", callback=ANY, cwd=obj.rundir, taskname=TASKNAME)
     assert output.is_file()
 
 

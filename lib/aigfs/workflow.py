@@ -168,9 +168,16 @@ def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
 
 
 def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None:
+
     # flock (exclusive, non-blocking) on a per-task lockfile in the rundir so that only one
     # process at a time runs a specific driver parameterization. The lock is released when the file
     # is closed or the process exits.
+
+    def log(proc):
+        if proc.stdout is not None:
+            for line in proc.stdout:
+                logging.info("%s: %s", taskname, line.rstrip("\r\n"))
+
     rundir.mkdir(parents=True, exist_ok=True)
     lockfile = rundir / (".lock-%s" % taskname.replace(" ", "-"))
     with lockfile.open("w") as f:
@@ -182,7 +189,7 @@ def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None
         if all(asset.ready() for asset in assets):
             logging.info("%s: Made ready by another process", taskname)
             return
-        run_shell_cmd(cmd, cwd=rundir, taskname=taskname)
+        run_shell_cmd(cmd, callback=log, cwd=rundir, taskname=taskname)
 
 
 def _schema(cls: type) -> Path:
