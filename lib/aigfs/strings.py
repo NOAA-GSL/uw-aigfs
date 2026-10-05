@@ -39,10 +39,11 @@ class _STR(_ValsMatchKeys):
     data: str = _
     datetime: str = _
     deliver_to: str = _
+    delivered: str = _
     diffs_stddev_path: str = _
     discipline: str = _
     drtn: str = _
-    etc: str = _
+    ecflow: str = _
     files_to_copy: str = _
     files_to_hardlink: str = _
     files_to_link: str = _

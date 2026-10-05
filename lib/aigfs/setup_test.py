@@ -51,7 +51,7 @@ def test_setup_INCLUDE_DIR__ecflow_tail_uses_ssl():
     assert "ecflow_client --complete" in text
 
 
-@mark.parametrize("workflow", ["rocoto", "ecflow", None])
+@mark.parametrize("workflow", [STR.rocoto, STR.ecflow, None])
 def test_setup_compose_configs(logcap, tmp_path, workflow):
     platform = "ursa"
     user_config_files = [Path("/path/to/a.yaml")]
@@ -83,7 +83,7 @@ def test_setup_compose_configs(logcap, tmp_path, workflow):
     assert (msg in logcap.text) == (workflow is None)
 
 
-@mark.parametrize("workflow", ["rocoto", "ecflow", None])
+@mark.parametrize("workflow", [STR.rocoto, STR.ecflow, None])
 def test_setup_main(workflow):
     with (
         patch.object(setup, "compose_configs") as compose_configs,
@@ -113,23 +113,23 @@ def test_setup_main(workflow):
     ("argv", "expected_platform", "expected_workflow", "expected_files", "expected_verbose"),
     [
         (
-            ["--platform", "ursa", "--workflow", "rocoto", "/path/to/a.yaml", "/path/to/b.yaml"],
+            ["--platform", "ursa", "--workflow", STR.rocoto, "/path/to/a.yaml", "/path/to/b.yaml"],
             "ursa",
-            "rocoto",
+            STR.rocoto,
             [Path("/path/to/a.yaml"), Path("/path/to/b.yaml")],
             False,
         ),
         (
-            ["--platform", "ursa", "/path/to/a.yaml", "--workflow", "ecflow"],
+            ["--platform", "ursa", "/path/to/a.yaml", "--workflow", STR.ecflow],
             "ursa",
-            "ecflow",
+            STR.ecflow,
             [Path("/path/to/a.yaml")],
             False,
         ),
         (
-            ["--workflow", "ecflow", "--platform", "ursa", "/path/to/a.yaml"],
+            ["--workflow", STR.ecflow, "--platform", "ursa", "/path/to/a.yaml"],
             "ursa",
-            "ecflow",
+            STR.ecflow,
             [Path("/path/to/a.yaml")],
             False,
         ),
@@ -161,10 +161,10 @@ def test_setup_set_up_rundir(logcap, tmp_path):
     config: dict = {STR.app: {STR.rundir: str(rundir)}}
     with (
         patch.object(setup, "YAMLConfig") as YAMLConfig,
-        patch.object(setup, "rocoto") as rocoto,
+        patch.object(setup, STR.rocoto) as rocoto,
     ):
         rocoto.realize.return_value = True
-        setup.set_up_rundir(config, "rocoto")
+        setup.set_up_rundir(config, STR.rocoto)
     assert rundir.is_dir()
     assert YAMLConfig.call_args_list[0].args[0] == config
     assert YAMLConfig.call_args_list[1].args[0] == config
@@ -178,9 +178,9 @@ def test_setup_set_up_rundir__ecflow(logcap, tmp_path):
     config: dict = {STR.app: {STR.rundir: str(rundir)}}
     with (
         patch.object(setup, "YAMLConfig") as YAMLConfig,
-        patch.object(setup, "ecflow") as ecflow,
+        patch.object(setup, STR.ecflow) as ecflow,
     ):
-        setup.set_up_rundir(config, "ecflow")
+        setup.set_up_rundir(config, STR.ecflow)
     assert rundir.is_dir()
     assert YAMLConfig.call_args_list[0].args[0] == config
     assert YAMLConfig.call_args_list[1].args[0] == config
@@ -194,11 +194,11 @@ def test_setup_set_up_rundir__invalid_xml(logcap, tmp_path):
     config: dict = {STR.app: {STR.rundir: str(rundir)}}
     with (
         patch.object(setup, "YAMLConfig"),
-        patch.object(setup, "rocoto") as rocoto,
+        patch.object(setup, STR.rocoto) as rocoto,
     ):
         rocoto.realize.return_value = False
         with raises(SystemExit):
-            setup.set_up_rundir(config, "rocoto")
+            setup.set_up_rundir(config, STR.rocoto)
     assert "Invalid Rocoto XML" in logcap.text
 
 
@@ -207,8 +207,8 @@ def test_setup_set_up_rundir__no_workflow(logcap, tmp_path):
     config: dict = {STR.app: {STR.rundir: str(rundir)}}
     with (
         patch.object(setup, "YAMLConfig") as YAMLConfig,
-        patch.object(setup, "ecflow") as ecflow,
-        patch.object(setup, "rocoto") as rocoto,
+        patch.object(setup, STR.ecflow) as ecflow,
+        patch.object(setup, STR.rocoto) as rocoto,
     ):
         setup.set_up_rundir(config, None)
     assert rundir.is_dir()
