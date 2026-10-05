@@ -143,7 +143,7 @@ def _cmd(
     leadtime: timedelta | None = None,
     prefix: str = "",
 ) -> str:
-    components = [
+    cmd = [
         prefix,
         f"{PWD}/bin/run cmd",
         "uw execute",
@@ -155,8 +155,8 @@ def _cmd(
         "--cycle %s" % dt.strftime("%Y%m%dT%H"),
     ]
     if leadtime is not None:
-        components.append("--leadtime %s" % int(leadtime.total_seconds() / 3600))
-    return " ".join(components).strip()
+        cmd.append("--leadtime %s" % int(leadtime.total_seconds() / 3600))
+    return " ".join(cmd).strip()
 
 
 def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
