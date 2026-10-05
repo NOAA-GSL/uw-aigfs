@@ -136,8 +136,15 @@ def _timegate(dt: datetime) -> Iterator:
 # Private helpers:
 
 
-def _cmd(driver: Driver, key_path: list, dt: datetime, leadtime: timedelta | None = None) -> str:
+def _cmd(
+    driver: Driver,
+    key_path: list,
+    dt: datetime,
+    leadtime: timedelta | None = None,
+    prefix: str = "",
+) -> str:
     components = [
+        prefix,
         f"{PWD}/bin/run cmd",
         "uw execute",
         "--module %s" % driver.__module__,
@@ -149,7 +156,7 @@ def _cmd(driver: Driver, key_path: list, dt: datetime, leadtime: timedelta | Non
     ]
     if leadtime is not None:
         components.append("--leadtime %s" % int(leadtime.total_seconds() / 3600))
-    return " ".join(components)
+    return " ".join(components).strip()
 
 
 def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
