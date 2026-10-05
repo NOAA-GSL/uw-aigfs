@@ -63,7 +63,7 @@ def parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--workflow",
-        choices=["ecflow", "rocoto"],
+        choices=[STR.ecflow, STR.rocoto],
         help="workflow manager",
         required=False,
     )
@@ -91,9 +91,9 @@ def set_up_rundir(config: dict, workflow: str | None, prefix: str | None = None)
     rundir.mkdir(parents=True, exist_ok=True)
     final = rundir / STR.aigfs_yaml
     YAMLConfig(config).dump(final)
-    if workflow == "ecflow":
+    if workflow == STR.ecflow:
         ecflow.realize(YAMLConfig(config), rundir, scripts_path=rundir / "ecf")
-    elif workflow == "rocoto" and not rocoto.realize(YAMLConfig(config), rundir / STR.rocoto_xml):
+    elif workflow == STR.rocoto and not rocoto.realize(YAMLConfig(config), rundir / STR.rocoto_xml):
         logging.error("%sInvalid Rocoto XML", _pre(prefix))
         sys.exit(1)
 
