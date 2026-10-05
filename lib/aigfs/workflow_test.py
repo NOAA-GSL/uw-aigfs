@@ -214,7 +214,7 @@ def test_workflow__dt_taskname(cycle):
     assert workflow._dt_taskname("2025-10-01T18", "foo") == (cycle, "20251001 18Z foo")
 
 
-def test_workflow__execute(logcap, lockkit):
+def test_workflow__execute(capsys, lockkit):
     obj, assets, lockfile, output = lockkit
 
     def run_cmd(*_args, **kwargs):
@@ -226,9 +226,7 @@ def test_workflow__execute(logcap, lockkit):
     cmd.assert_called_once_with("/bin/true", callback=ANY, cwd=obj.rundir, taskname=TASKNAME)
     assert lockfile.is_file()
     assert output.is_file()
-    assert f"{TASKNAME}: first line" in logcap.text
-    assert f"{TASKNAME}: second line" in logcap.text
-    assert "another process" not in logcap.text
+    assert capsys.readouterr().out == "first line\nsecond line\n"
 
 
 def test_workflow__execute__ready_elsewhere(logcap, lockkit):

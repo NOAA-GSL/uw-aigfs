@@ -2,6 +2,7 @@ import fcntl
 import inspect
 import logging
 import os
+import sys
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
@@ -161,8 +162,18 @@ def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None
     # is closed or the process exits.
 
     def log(proc):
-        for line in proc.stdout:
-            logging.info("%s: %s", taskname, line.rstrip("\r\n"))
+        logger = logging.Logger(taskname)  # noqa: LOG001
+        logger.setLevel(logging.INFO)
+        logger.propagate = False
+        handler = logging.StreamHandler(sys.stdout)
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logger.addHandler(handler)
+        try:
+            for line in proc.stdout:
+                logger.info(line.rstrip("\r\n"))
+        finally:
+            logger.removeHandler(handler)
+            handler.close()
 
     rundir.mkdir(parents=True, exist_ok=True)
     lockfile = rundir / (".lock-%s" % taskname.replace(" ", "-"))
