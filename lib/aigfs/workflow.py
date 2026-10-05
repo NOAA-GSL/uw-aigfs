@@ -9,6 +9,7 @@ from pathlib import Path
 
 from iotaa import Asset, collection, external, task
 from uwtools.api.driver import Driver
+from uwtools.api.logging import use_uwtools_logger
 from uwtools.api.utils import run_shell_cmd
 
 from aigfs import setup
@@ -22,8 +23,7 @@ type CycleT = datetime | str
 PWD = Path(os.environ["PWD"])
 CFG = PWD / STR.aigfs_yaml
 
-# f"podman run -v .:{PWD} ghcr.io/maddenp-cu/aigfs:latest run cmd"
-
+use_uwtools_logger()
 
 # Public tasks:
 
