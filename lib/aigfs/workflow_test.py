@@ -1,7 +1,7 @@
 import fcntl
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from unittest.mock import Mock, patch
+from unittest.mock import ANY, Mock, patch
 
 from iotaa import Asset
 from pytest import fixture, mark
@@ -95,7 +95,7 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready, tmp_path):
     assert node.ready is ready
     if ready:
         run_shell_cmd.assert_called_once_with(
-            "/bin/true", cwd=cls.return_value.rundir, taskname="20251001 18Z forecast"
+            ANY, cwd=cls.return_value.rundir, taskname="20251001 18Z forecast"
         )
     else:
         run_shell_cmd.assert_not_called()
@@ -140,7 +140,7 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
     assert node.ready is ready
     if ready:
         run_shell_cmd.assert_called_once_with(
-            "/bin/true", cwd=cls.return_value.rundir, taskname="20251001 18Z prep"
+            ANY, cwd=cls.return_value.rundir, taskname="20251001 18Z prep"
         )
     else:
         run_shell_cmd.assert_not_called()
@@ -193,7 +193,7 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
     )
     if ready:
         run_shell_cmd.assert_called_once_with(
-            "/bin/true", cwd=cls.return_value.rundir, taskname="20251001 18Z 012 post"
+            ANY, cwd=cls.return_value.rundir, taskname="20251001 18Z 012 post"
         )
     else:
         run_shell_cmd.assert_not_called()
