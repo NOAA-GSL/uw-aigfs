@@ -174,9 +174,8 @@ def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None
     # is closed or the process exits.
 
     def log(proc):
-        if proc.stdout is not None:
-            for line in proc.stdout:
-                logging.info("%s: %s", taskname, line.rstrip("\r\n"))
+        for line in proc.stdout:
+            logging.info("%s: %s", taskname, line.rstrip("\r\n"))
 
     rundir.mkdir(parents=True, exist_ok=True)
     lockfile = rundir / (".lock-%s" % taskname.replace(" ", "-"))
