@@ -20,7 +20,8 @@ type CycleT = datetime | str
 
 PWD = Path(os.environ["PWD"])
 CFG = PWD / STR.aigfs_yaml
-CMD = f"podman run -v .:{PWD} ghcr.io/maddenp-cu/aigfs:latest run cmd"
+
+# f"podman run -v .:{PWD} ghcr.io/maddenp-cu/aigfs:latest run cmd"
 
 
 # Public tasks:
