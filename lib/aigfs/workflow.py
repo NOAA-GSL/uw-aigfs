@@ -136,9 +136,7 @@ def _timegate(dt: datetime) -> Iterator:
 # Private helpers:
 
 
-def _cmd(
-    driver: Driver, key_path: list[str], dt: datetime, leadtime: timedelta | None = None
-) -> str:
+def _cmd(driver: Driver, key_path: list, dt: datetime, leadtime: timedelta | None = None) -> str:
     components = [
         f"{PWD}/bin/run cmd",
         "uw execute",
