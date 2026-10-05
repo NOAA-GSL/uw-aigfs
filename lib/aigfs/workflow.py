@@ -8,6 +8,7 @@ from datetime import UTC, datetime, timedelta, timezone
 from pathlib import Path
 
 from iotaa import Asset, collection, external, task
+from uwtools.api.driver import Driver
 from uwtools.api.utils import run_shell_cmd
 
 from aigfs import setup
@@ -43,16 +44,18 @@ def forecast(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, "forecast")
     yield taskname
     cls = AIGFSInference
+    key_path: list = [STR.forecast]
     driver = cls(
         cycle=dt,
         config=CFG,
-        key_path=[STR.forecast],
+        key_path=key_path,
         schema_file=_schema(cls),
     )
     assets = [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
     yield assets
     yield prep(dt)
-    _execute("/bin/true", driver.rundir, taskname, assets)
+    cmd = _cmd(driver, key_path, dt)
+    _execute(cmd, driver.rundir, taskname, assets)
 
 
 @collection
@@ -74,17 +77,19 @@ def prep(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, "prep")
     yield taskname
     cls = AIGFSICs
+    key_path: list = [STR.prep]
     driver = cls(
         cycle=dt,
         config=CFG,
-        key_path=[STR.prep],
+        key_path=key_path,
         schema_file=_schema(cls),
     )
     path = driver.output[STR.ics]
     assets = [Asset(path, path.is_file)]
     yield assets
     yield _timegate(dt)
-    _execute("/bin/true", driver.rundir, taskname, assets)
+    cmd = _cmd(driver, key_path, dt)
+    _execute(cmd, driver.rundir, taskname, assets)
 
 
 # Private tasks:
@@ -106,12 +111,10 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     dt, taskname = _dt_taskname(dt, "%s %s" % (fff, "post"))
     yield taskname
     cls = AIGFSPost
+    key_path: list = [STR.post]
+    leadtime = timedelta(hours=int(fff))
     driver = cls(
-        cycle=dt,
-        leadtime=timedelta(hours=int(fff)),
-        config=CFG,
-        key_path=[STR.post],
-        schema_file=_schema(cls),
+        cycle=dt, leadtime=leadtime, config=CFG, key_path=key_path, schema_file=_schema(cls)
     )
     # Assets are delivered indexes; fallback is generated indexes:
     output = driver.output
@@ -119,7 +122,8 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     assets = [Asset(path, path.is_file) for path in paths]
     yield assets
     yield _forecast_one_leadtime(dt, gribfile)
-    _execute("/bin/true", driver.rundir, taskname, assets)
+    cmd = _cmd(driver, key_path, dt, leadtime)
+    _execute(cmd, driver.rundir, taskname, assets)
 
 
 @external
@@ -130,6 +134,24 @@ def _timegate(dt: datetime) -> Iterator:
 
 
 # Private helpers:
+
+
+def _cmd(
+    driver: Driver, key_path: list[str], dt: datetime, leadtime: timedelta | None = None
+) -> str:
+    components = [
+        f"{PWD}/bin/run cmd",
+        "uw execute",
+        "--module %s" % driver.__module__,
+        "--classname %s" % driver.__class__.__name__,
+        "--task run",
+        "--config %s" % CFG,
+        "--key-path %s" % ".".join(key_path),
+        "--cycle %s" % dt.strftime("%Y%m%dT%H"),
+    ]
+    if leadtime is not None:
+        components.append("--leadtime %s" % int(leadtime.total_seconds() / 3600))
+    return " ".join(components)
 
 
 def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
