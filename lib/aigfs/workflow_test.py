@@ -37,7 +37,7 @@ def lockkit(tmp_path):
     obj = Mock(rundir=rundir)
     obj.run.side_effect = lambda *_, **_k: output.touch()
     assets = [Asset(output, output.is_file)]
-    return obj, assets, rundir / "20251001_18Z_012_post.lock", output
+    return obj, assets, rundir / ".lock-20251001-18Z-012-post", output
 
 
 TASKNAME = "20251001 18Z 012 post"

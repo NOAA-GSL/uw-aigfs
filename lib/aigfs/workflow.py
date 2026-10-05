@@ -173,7 +173,7 @@ def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None
     # process at a time runs a specific driver parameterization. The lock is released when the file
     # is closed or the process exits.
     rundir.mkdir(parents=True, exist_ok=True)
-    lockfile = rundir / ("%s.lock" % re.sub(r"[^\w.-]", "_", taskname))
+    lockfile = rundir / (".lock-%s" % re.sub(r"[^A-Za-z0-9.-]+", "-", taskname))
     with lockfile.open("w") as f:
         try:
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
