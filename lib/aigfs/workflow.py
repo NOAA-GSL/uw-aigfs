@@ -50,7 +50,7 @@ def forecast(cycle_: CycleT) -> Iterator:
     assets = [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
     yield assets
     yield prep(dt)
-    prefix = "srun --exclusive --nodes=1 --time=00:30:00"
+    prefix = "srun --exclusive --nodes=1 --time=30"
     cmd = _cmd(driver, key_path, dt, prefix=prefix)
     _execute(cmd, driver.rundir, taskname, assets)
 
