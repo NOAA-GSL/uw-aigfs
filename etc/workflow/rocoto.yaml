@@ -99,18 +99,3 @@ workflow:
               value:
                 cyclestr:
                   value: '{{ app.rundir }}/@Y@m@d@H/forecast/aigfs.t@Hz.sfc.f#fhr#.grib2'
-    task_all:
-      account: '{{ app.platform.scheduler.account }}'
-      command: /bin/true
-      cores: 1
-      dependency:
-        metataskdep:
-          attrs:
-            metatask: post
-      jobname:
-        cyclestr:
-          value: all-@Y@m@d-@H
-      join:
-        cyclestr:
-          value: '&LOGDIR;/{{ jobname.cyclestr.value }}.log'
-      walltime: 00:00:01
