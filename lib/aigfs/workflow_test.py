@@ -222,18 +222,17 @@ def test_workflow__dt_taskname(cycle):
 
 
 def test_workflow__execute(capsys, lockkit):
-    obj, assets, lockfile, output = lockkit
-
     def run_cmd(*_args, **kwargs):
         kwargs["callback"](Mock(stdout=StringIO("first line\nsecond line\n")))
         output.touch()
 
+    obj, assets, lockfile, output = lockkit
     with patch.object(workflow, "run_shell_cmd", side_effect=run_cmd) as cmd:
         workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
     cmd.assert_called_once_with("/bin/true", callback=ANY, cwd=obj.rundir, taskname=TASKNAME)
     assert lockfile.is_file()
     assert output.is_file()
-    assert capsys.readouterr().out == "first line\nsecond line\n"
+    assert capsys.readouterr().err == "first line\nsecond line\n"
 
 
 def test_workflow__execute__ready_elsewhere(logcap, lockkit):
@@ -271,7 +270,25 @@ def test_workflow__execute__lock_released(lockkit):
         fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)  # would raise if still held
 
 
+def test_workflow__fff():
+    assert workflow._fff(Path("/path/to/aigfs.t00z.pres.f018.grib2")) == "018"
+
+
+def test_workflow__passthrough_logger(capsys):
+    logger = workflow._passthrough_logger()
+    logger.info("some log message")
+    assert capsys.readouterr().err.strip() == "some log message"
+    assert workflow._passthrough_logger() is logger  # due to @cache
+
+
 def test_workflow__schema():
     path = workflow._schema(AIGFSInference)
     assert path.name == "inference.jsonschema"
     assert path.is_file()
+
+
+def test_workflow__utc():
+    dt = datetime(1970, 1, 1)  # noqa: DTZ001
+    assert dt.tzinfo is None
+    dt = workflow._utc(dt)
+    assert dt.tzinfo is UTC

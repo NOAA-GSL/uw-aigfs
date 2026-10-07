@@ -223,10 +223,15 @@ def _fff(gribfile: Path) -> str:
 
 @cache
 def _passthrough_logger() -> logging.Logger:
+    class _StderrHandler(logging.StreamHandler):
+        def emit(self, record: logging.LogRecord) -> None:
+            self.stream = sys.stderr
+            super().emit(record)
+
     logger = logging.getLogger("passthrough")
     logger.setLevel(logging.INFO)
     logger.propagate = False
-    handler = logging.StreamHandler(sys.stdout)
+    handler = _StderrHandler()
     handler.setFormatter(logging.Formatter("%(message)s"))
     logger.addHandler(handler)
     return logger
