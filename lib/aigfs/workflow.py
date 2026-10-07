@@ -60,9 +60,11 @@ def forecast(cycle_: CycleT) -> Iterator:
 def post(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, "post")
     yield taskname
+    # Instantiate the inference driver and use its declared output to define the one-per-leadtime
+    # post tasks required to post-process the full forecast cycle.
     cls = AIGFSInference
-    driver = cls(cycle=dt, config=CFG, key_path=[STR.forecast], schema_file=_schema(cls))
-    yield [_post_one_leadtime(dt, path) for path in driver.output[STR.forecast]]
+    inference = cls(cycle=dt, config=CFG, key_path=[STR.forecast], schema_file=_schema(cls))
+    yield [_post_one_leadtime(dt, path) for path in inference.output[STR.forecast]]
 
 
 @task
