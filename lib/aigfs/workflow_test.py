@@ -154,7 +154,7 @@ def test_workflow__forecast_one_leadtime(atask, cycle, gribfiles, ready, touch):
         touch(path)
     with patch.object(workflow, "forecast", Mock(wraps=lambda _: atask(ready=True))) as forecast:
         node = workflow._forecast_one_leadtime(cycle, path)
-    assert node.taskname == f"20251001 18Z {path}"
+    assert node.taskname == "20251001 18Z 006 forecast"
     assert node.ready is ready
     forecast.assert_called_once_with(cycle)
 

@@ -87,7 +87,8 @@ def prep(cycle_: CycleT) -> Iterator:
 
 @task
 def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
-    dt, taskname = _dt_taskname(dt, str(gribfile))
+    fff = _fff(gribfile)
+    dt, taskname = _dt_taskname(dt, "%s %s" % (fff, "forecast"))
     yield taskname
     yield Asset(gribfile, gribfile.is_file)
     yield forecast(dt)
@@ -95,9 +96,7 @@ def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
 
 @task
 def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
-    # e.g. aigfs.t00z.pres.f018.grib2
-    #                       fff
-    fff = str(gribfile.name).split(".")[3][1:]
+    fff = _fff(gribfile)
     dt, taskname = _dt_taskname(dt, "%s %s" % (fff, "post"))
     yield taskname
     cls = AIGFSPost
@@ -180,6 +179,12 @@ def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None
             logging.info("%s: Made ready by another process", taskname)
             return
         run_shell_cmd(cmd, callback=log, cwd=rundir, taskname=taskname)
+
+
+def _fff(gribfile: Path) -> str:
+    # e.g. aigfs.t00z.pres.f018.grib2
+    #                       fff
+    return gribfile.name.split(".")[3][1:]
 
 
 @cache
