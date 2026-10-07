@@ -92,14 +92,13 @@ def prep(cycle_: CycleT) -> Iterator:
 @task
 def _forecast_one_leadtime(dt: datetime, pres: Path, sfc: Path) -> Iterator:
 
-    # This task serves as a gate on availability of a specific GRIB file from execution of the
-    # inherence driver. If the GRIB file in question is available, then the task is ready, the
-    # final yield is never reached, and the task requiring this one can make use of its asset
-    # (the GRIB file). If the GRIB file is not available, then the forecast task is yielded as
-    # a requirement and subsequently executed, this task is not ready during the current iteration,
-    # and the task requiring this one is blocked. Note that the task has no action code and could
-    # have been an external task except that the final yield is needed to ensure that the forecast
-    # task runs.
+    # This task models availability of a one-leadtime pres/sfc GRIB-file forecast pair. If the pair
+    # is available, then the task is ready, the final yield is never reached, and the task requiring
+    # this one can make use of its assets, the GRIB files. If the pair is not available, then the
+    # forecast task is yielded as a requirement and executed, this task remains not ready during the
+    # current invocation, and the task requiring this one is blocked. Note that this task has no
+    # action code and could have been an @external task, except that the final yield is needed to
+    # ensure that the forecast task runs.
 
     fff = _fff(pres)
     dt, taskname = _dt_taskname(dt, "%s %s" % (fff, STR.forecast))
