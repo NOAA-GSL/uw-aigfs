@@ -43,7 +43,7 @@ def config(cycle_: CycleT) -> Iterator:
 
 @task
 def forecast(cycle_: CycleT) -> Iterator:
-    dt, taskname = _dt_taskname(cycle_, "forecast")
+    dt, taskname = _dt_taskname(cycle_, STR.forecast)
     yield taskname
     cls = AIGFSInference
     key_path: list = [STR.forecast]
@@ -58,7 +58,7 @@ def forecast(cycle_: CycleT) -> Iterator:
 
 @collection
 def post(cycle_: CycleT) -> Iterator:
-    dt, taskname = _dt_taskname(cycle_, "post")
+    dt, taskname = _dt_taskname(cycle_, STR.post)
     yield taskname
     # Instantiate the inference driver and use its declared output to define the one-per-leadtime
     # post tasks required to post-process the full forecast cycle.
@@ -69,7 +69,7 @@ def post(cycle_: CycleT) -> Iterator:
 
 @task
 def prep(cycle_: CycleT) -> Iterator:
-    dt, taskname = _dt_taskname(cycle_, "prep")
+    dt, taskname = _dt_taskname(cycle_, STR.prep)
     yield taskname
     cls = AIGFSICs
     key_path: list = [STR.prep]
@@ -88,7 +88,7 @@ def prep(cycle_: CycleT) -> Iterator:
 @task
 def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     fff = _fff(gribfile)
-    dt, taskname = _dt_taskname(dt, "%s %s" % (fff, "forecast"))
+    dt, taskname = _dt_taskname(dt, "%s %s" % (fff, STR.forecast))
     yield taskname
     yield Asset(gribfile, gribfile.is_file)
     yield forecast(dt)
@@ -97,7 +97,7 @@ def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
 @task
 def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     fff = _fff(gribfile)
-    dt, taskname = _dt_taskname(dt, "%s %s" % (fff, "post"))
+    dt, taskname = _dt_taskname(dt, "%s %s" % (fff, STR.post))
     yield taskname
     cls = AIGFSPost
     key_path: list = [STR.post]

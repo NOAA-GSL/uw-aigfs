@@ -76,7 +76,7 @@ def test_workflow_config__missing(tmp_path):
 
 @mark.parametrize("ready", [True, False])
 def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready, tmp_path):
-    cls = driver({"forecast": gribfiles}, tmp_path / "run")
+    cls = driver({STR.forecast: gribfiles}, tmp_path / "run")
     with (
         patch.object(workflow, "AIGFSInference", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
@@ -90,7 +90,7 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready, tmp_path):
         node = workflow.forecast(cycle)
     assert node.taskname == "20251001 18Z forecast"
     cls.assert_called_once_with(
-        cycle=cycle, config=cfg, key_path=["forecast"], schema_file=Path("/s")
+        cycle=cycle, config=cfg, key_path=[STR.forecast], schema_file=Path("/s")
     )
     prep.assert_called_once_with(cycle)
     assert node.ready is ready
@@ -104,7 +104,7 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready, tmp_path):
 
 @mark.parametrize("ready", [True, False])
 def test_workflow_post(atask, cfg, cycle, gribfiles, ready, tmp_path):
-    cls = driver({"forecast": gribfiles}, tmp_path / "run")
+    cls = driver({STR.forecast: gribfiles}, tmp_path / "run")
     with (
         patch.object(workflow, "AIGFSInference", cls),
         patch.object(workflow, "_schema", return_value=Path("/s")),
@@ -116,7 +116,7 @@ def test_workflow_post(atask, cfg, cycle, gribfiles, ready, tmp_path):
     assert node.ready is ready
     assert node.taskname == "20251001 18Z post"
     cls.assert_called_once_with(
-        cycle=cycle, config=cfg, key_path=["forecast"], schema_file=Path("/s")
+        cycle=cycle, config=cfg, key_path=[STR.forecast], schema_file=Path("/s")
     )
     for path in gribfiles:
         _post_one_leadtime.assert_any_call(cycle, path)
@@ -136,7 +136,9 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
             run_shell_cmd.side_effect = lambda *_, **_k: ics.touch()
         node = workflow.prep(cycle)
     assert node.taskname == "20251001 18Z prep"
-    cls.assert_called_once_with(cycle=cycle, config=cfg, key_path=["prep"], schema_file=Path("/s"))
+    cls.assert_called_once_with(
+        cycle=cycle, config=cfg, key_path=[STR.prep], schema_file=Path("/s")
+    )
     _timegate.assert_called_once_with(cycle)
     assert node.ready is ready
     if ready:
@@ -152,7 +154,7 @@ def test_workflow__forecast_one_leadtime(atask, cycle, gribfiles, ready, touch):
     path = gribfiles[0]
     if ready:
         touch(path)
-    with patch.object(workflow, "forecast", Mock(wraps=lambda _: atask(ready=True))) as forecast:
+    with patch.object(workflow, STR.forecast, Mock(wraps=lambda _: atask(ready=True))) as forecast:
         node = workflow._forecast_one_leadtime(cycle, path)
     assert node.taskname == "20251001 18Z 006 forecast"
     assert node.ready is ready
@@ -164,7 +166,7 @@ def test_workflow__forecast_one_leadtime(atask, cycle, gribfiles, ready, touch):
 def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, ready, tmp_path):
     path = gribfiles[1]
     names = [f"{x.name}.idx" for x in gribfiles]
-    output = {STR.idx: [tmp_path / "post" / x for x in names]}
+    output = {STR.idx: [tmp_path / STR.post / x for x in names]}
     if deliver:
         output[STR.delivered] = [tmp_path / "delivery" / x for x in names]
     expected = output[STR.delivered] if deliver else output[STR.idx]
@@ -189,7 +191,7 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
         cycle=cycle,
         leadtime=timedelta(hours=12),
         config=cfg,
-        key_path=["post"],
+        key_path=[STR.post],
         schema_file=Path("/s"),
     )
     if ready:
