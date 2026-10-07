@@ -180,7 +180,7 @@ class AIGFSInference(DriverCycleBased):
         template = "aigfs.t%sz.%s.f%03d.grib2"
         paths = [
             self.rundir / (template % (self.cycle.strftime("%H"), kind, leadtime))
-            for kind in ("pres", "sfc")
+            for kind in (STR.pres, STR.sfc)
             for leadtime in range(0, self.config["forecast_length"] + delta, delta)
         ]
         return {STR.forecast: paths}
