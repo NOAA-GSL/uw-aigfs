@@ -58,10 +58,12 @@ def forecast(cycle_: CycleT) -> Iterator:
 
 @collection
 def post(cycle_: CycleT) -> Iterator:
-    dt, taskname = _dt_taskname(cycle_, STR.post)
-    yield taskname
+
     # Instantiate the inference driver and use its declared output to define the one-per-leadtime
     # post tasks required to post-process the full forecast cycle.
+
+    dt, taskname = _dt_taskname(cycle_, STR.post)
+    yield taskname
     cls = AIGFSInference
     inference = cls(cycle=dt, config=CFG, key_path=[STR.forecast], schema_file=_schema(cls))
     yield [_post_one_leadtime(dt, path) for path in inference.output[STR.forecast]]
@@ -195,8 +197,10 @@ def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None
 
 
 def _fff(gribfile: Path) -> str:
+
     # e.g. aigfs.t00z.pres.f018.grib2
     #                       fff
+
     return gribfile.name.split(".")[3][1:]
 
 
