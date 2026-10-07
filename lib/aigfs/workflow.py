@@ -60,13 +60,15 @@ def forecast(cycle_: CycleT) -> Iterator:
 def post(cycle_: CycleT) -> Iterator:
 
     # Instantiate the inference driver and use its declared output to define the one-per-leadtime
-    # post tasks required to post-process the full forecast cycle.
+    # post tasks required to post-process the full forecast cycle. Each leadtime involves two GRIB
+    # files, one '.pres.' and one '.sfc.', so process them as per-leadtime pairs.
 
     dt, taskname = _dt_taskname(cycle_, STR.post)
     yield taskname
     cls = AIGFSInference
     inference = cls(cycle=dt, config=CFG, key_path=[STR.forecast], schema_file=_schema(cls))
-    yield [_post_one_leadtime(dt, path) for path in inference.output[STR.forecast]]
+    paths = iter(sorted(sorted(inference.output[STR.forecast]), key=_fff))
+    yield [_post_one_leadtime(dt, pres, sfc) for pres, sfc in zip(paths, paths, strict=False)]
 
 
 @task
@@ -88,7 +90,7 @@ def prep(cycle_: CycleT) -> Iterator:
 
 
 @task
-def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
+def _forecast_one_leadtime(dt: datetime, pres: Path, sfc: Path) -> Iterator:
 
     # This task serves as a gate on availability of a specific GRIB file from execution of the
     # inherence driver. If the GRIB file in question is available, then the task is ready, the
@@ -99,20 +101,20 @@ def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     # have been an external task except that the final yield is needed to ensure that the forecast
     # task runs.
 
-    fff = _fff(gribfile)
+    fff = _fff(pres)
     dt, taskname = _dt_taskname(dt, "%s %s" % (fff, STR.forecast))
     yield taskname
-    yield Asset(gribfile, gribfile.is_file)
+    yield [Asset(path, path.is_file) for path in (pres, sfc)]
     yield forecast(dt)
 
 
 @task
-def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
+def _post_one_leadtime(dt: datetime, pres: Path, sfc: Path) -> Iterator:
 
     # This task's assets are indexes in the delivery directory if delivery is enabled, and are
     # otherwise indexes in the original location where they were generated.
 
-    fff = _fff(gribfile)
+    fff = _fff(pres)
     dt, taskname = _dt_taskname(dt, "%s %s" % (fff, STR.post))
     yield taskname
     cls = AIGFSPost
@@ -125,7 +127,7 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     paths = output.get(STR.delivered, output[STR.idx])
     assets = [Asset(path, path.is_file) for path in paths]
     yield assets
-    yield _forecast_one_leadtime(dt, gribfile)
+    yield _forecast_one_leadtime(dt, pres, sfc)
     cmd = _cmd(driver, key_path, dt, leadtime)
     _execute(cmd, driver.rundir, taskname, assets)
 
