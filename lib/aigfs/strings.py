@@ -38,8 +38,8 @@ class _STR(_ValsMatchKeys):
     batch: str = _
     data: str = _
     datetime: str = _
-    deliver_to: str = _
     delivered: str = _
+    deliver_to: str = _
     diffs_stddev_path: str = _
     discipline: str = _
     drtn: str = _
@@ -82,14 +82,16 @@ class _STR(_ValsMatchKeys):
     pdtn: str = _
     platform: str = _
     plevel: str = _
-    post_write_hook: str = _
     post: str = _
+    post_write_hook: str = _
     prep: str = _
+    pres: str = _
     pressure: str = _
     PRMSL_meansealevel: str = _
     rocoto: str = _
     rocoto_xml: str = "rocoto.xml"
     rundir: str = _
+    sfc: str = _
     specific_humidity: str = _
     SPFH: str = _
     stddev_path: str = _

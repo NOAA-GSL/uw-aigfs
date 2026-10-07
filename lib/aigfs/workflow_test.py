@@ -28,7 +28,11 @@ def cycle(utc):
 
 @fixture
 def gribfiles(tmp_path):
-    return [tmp_path / ("aigfs.t18z.pres.f%03d.grib2" % h) for h in (6, 12)]
+    return [
+        tmp_path / ("aigfs.t18z.%s.f%03d.grib2" % (kind, hour))
+        for hour in (6, 12)
+        for kind in (STR.pres, STR.sfc)
+    ]
 
 
 @fixture
@@ -118,8 +122,8 @@ def test_workflow_post(atask, cfg, cycle, gribfiles, ready, tmp_path):
     cls.assert_called_once_with(
         cycle=cycle, config=cfg, key_path=[STR.forecast], schema_file=Path("/s")
     )
-    for path in gribfiles:
-        _post_one_leadtime.assert_any_call(cycle, path)
+    for pres, sfc in zip(gribfiles[::2], gribfiles[1::2], strict=True):
+        _post_one_leadtime.assert_any_call(cycle, pres, sfc)
 
 
 @mark.parametrize("ready", [True, False])
@@ -151,11 +155,12 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
 
 @mark.parametrize("ready", [True, False])
 def test_workflow__forecast_one_leadtime(atask, cycle, gribfiles, ready, touch):
-    path = gribfiles[0]
+    pres, sfc = gribfiles[:2]
     if ready:
-        touch(path)
+        touch(pres)
+        touch(sfc)
     with patch.object(workflow, STR.forecast, Mock(wraps=lambda _: atask(ready=True))) as forecast:
-        node = workflow._forecast_one_leadtime(cycle, path)
+        node = workflow._forecast_one_leadtime(cycle, pres, sfc)
     assert node.taskname == "20251001 18Z 006 forecast"
     assert node.ready is ready
     forecast.assert_called_once_with(cycle)
@@ -164,8 +169,8 @@ def test_workflow__forecast_one_leadtime(atask, cycle, gribfiles, ready, touch):
 @mark.parametrize("deliver", [True, False])
 @mark.parametrize("ready", [True, False])
 def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, ready, tmp_path):
-    path = gribfiles[1]
-    names = [f"{x.name}.idx" for x in gribfiles]
+    pres, sfc = gribfiles[2:]
+    names = [f"{x.name}.idx" for x in (pres, sfc)]
     output = {STR.idx: [tmp_path / STR.post / x for x in names]}
     if deliver:
         output[STR.delivered] = [tmp_path / "delivery" / x for x in names]
@@ -183,9 +188,9 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
     ):
         if ready:
             run_shell_cmd.side_effect = lambda *_, **_k: [x.touch() for x in expected]
-        node = workflow._post_one_leadtime(cycle, path)
+        node = workflow._post_one_leadtime(cycle, pres, sfc)
     assert node.taskname == "20251001 18Z 012 post"
-    _forecast_one_leadtime.assert_called_once_with(cycle, path)
+    _forecast_one_leadtime.assert_called_once_with(cycle, pres, sfc)
     assert node.ready is ready
     cls.assert_called_once_with(
         cycle=cycle,
