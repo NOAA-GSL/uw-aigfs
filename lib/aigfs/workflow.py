@@ -87,6 +87,16 @@ def prep(cycle_: CycleT) -> Iterator:
 
 @task
 def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
+
+    # This task serves as a gate on availability of a specific GRIB file from execution of the
+    # inherence driver. If the GRIB file in question is available, then the task is ready, the
+    # final yield is never reached, and the task requiring this one can make use of its asset
+    # (the GRIB file). If the GRIB file is not available, then the forecast task is yielded as
+    # a requirement and subsequently executed, this task is not ready during the current iteration,
+    # and the task requiring this one is blocked. Note that the task has no action code and could
+    # have been an external task except that the final yield is needed to ensure that the forecast
+    # task runs.
+
     fff = _fff(gribfile)
     dt, taskname = _dt_taskname(dt, "%s %s" % (fff, STR.forecast))
     yield taskname
@@ -96,6 +106,10 @@ def _forecast_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
 
 @task
 def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
+
+    # This task's assets are indexes in the delivery directory if delivery is enabled, and are
+    # otherwise indexes in the original location where they were generated.
+
     fff = _fff(gribfile)
     dt, taskname = _dt_taskname(dt, "%s %s" % (fff, STR.post))
     yield taskname
@@ -105,7 +119,6 @@ def _post_one_leadtime(dt: datetime, gribfile: Path) -> Iterator:
     driver = cls(
         cycle=dt, leadtime=leadtime, config=CFG, key_path=key_path, schema_file=_schema(cls)
     )
-    # Assets are delivered indexes; fallback is generated indexes:
     output = driver.output
     paths = output.get(STR.delivered, output[STR.idx])
     assets = [Asset(path, path.is_file) for path in paths]
