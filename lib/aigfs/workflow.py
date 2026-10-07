@@ -158,9 +158,9 @@ def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
 
 def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None:
 
-    # flock (exclusive, non-blocking) on a per-task lockfile in the rundir so that only one
-    # process at a time runs a specific driver parameterization. The lock is released when the file
-    # is closed or the process exits.
+    # flock (exclusive, non-blocking) on a per-task lockfile in the rundir so that one process at a
+    # time runs a specific driver parameterization. The lock is released when the file is closed or
+    # the process exits.
 
     def log(proc):
         for line in proc.stdout:
