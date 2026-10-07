@@ -5,6 +5,7 @@ import os
 import sys
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta, timezone
+from functools import cache
 from pathlib import Path
 
 from iotaa import Asset, collection, external, task
@@ -162,18 +163,8 @@ def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None
     # is closed or the process exits.
 
     def log(proc):
-        logger = logging.Logger(taskname)  # noqa: LOG001
-        logger.setLevel(logging.INFO)
-        logger.propagate = False
-        handler = logging.StreamHandler(sys.stdout)
-        handler.setFormatter(logging.Formatter("%(message)s"))
-        logger.addHandler(handler)
-        try:
-            for line in proc.stdout:
-                logger.info(line.rstrip("\r\n"))
-        finally:
-            logger.removeHandler(handler)
-            handler.close()
+        for line in proc.stdout:
+            _passthrough_logger().info(line.rstrip("\r\n"))
 
     rundir.mkdir(parents=True, exist_ok=True)
     lockfile = rundir / (".lock-%s" % taskname.replace(" ", "-"))
@@ -187,6 +178,17 @@ def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None
             logging.info("%s: Made ready by another process", taskname)
             return
         run_shell_cmd(cmd, callback=log, cwd=rundir, taskname=taskname)
+
+
+@cache
+def _passthrough_logger() -> logging.Logger:
+    logger = logging.getLogger("passthrough")
+    logger.setLevel(logging.INFO)
+    logger.propagate = False
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(handler)
+    return logger
 
 
 def _schema(cls: type) -> Path:
