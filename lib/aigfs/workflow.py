@@ -9,6 +9,7 @@ from functools import cache
 from pathlib import Path
 
 from iotaa import Asset, collection, external, task
+from uwtools.api.config import realize_to_dict
 from uwtools.api.driver import Driver
 from uwtools.api.logging import use_uwtools_logger
 from uwtools.api.utils import run_shell_cmd
@@ -54,6 +55,25 @@ def forecast(cycle_: CycleT) -> Iterator:
     prefix = "srun --exclusive --nodes=1 --time=30"
     cmd = _cmd(driver, key_path, dt, prefix=prefix)
     _execute(cmd, driver.rundir, taskname, assets)
+
+
+@collection
+def cycle(cycle_: CycleT) -> Iterator:
+    dt, taskname = _dt_taskname(cycle_, "cycle")
+    yield taskname
+    yield post(dt)
+
+
+@collection
+def cycles() -> Iterator:
+    yield "cycles"
+    app = realize_to_dict(CFG)["app"]
+    reqs = []
+    dt = app["first_cycle"]
+    while dt <= app["last_cycle"]:
+        reqs.append(cycle(dt))
+        dt += app["cycle_freq"]
+    yield reqs
 
 
 @collection
@@ -135,7 +155,7 @@ def _post_one_leadtime(dt: datetime, pres: Path, sfc: Path) -> Iterator:
 def _timegate(dt: datetime) -> Iterator:
     cutoff = dt + timedelta(hours=3, minutes=35)
     yield "UTC > %s" % cutoff.replace(tzinfo=None)
-    yield Asset(None, lambda: datetime.now(UTC) > cutoff)
+    yield Asset(None, lambda: datetime.now(UTC) > _utc(cutoff))
 
 
 # Private helpers:
@@ -165,11 +185,7 @@ def _cmd(
 
 
 def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
-    dt = (
-        datetime.fromisoformat(cycle_).replace(tzinfo=timezone.utc)
-        if isinstance(cycle_, str)
-        else cycle_
-    )
+    dt = _utc(datetime.fromisoformat(cycle_)) if isinstance(cycle_, str) else cycle_
     return dt, "%s %s" % (dt.strftime("%Y%m%d %HZ"), step)
 
 
@@ -218,3 +234,7 @@ def _passthrough_logger() -> logging.Logger:
 
 def _schema(cls: type) -> Path:
     return Path(inspect.getfile(cls)).with_suffix(".jsonschema")
+
+
+def _utc(dt: datetime) -> datetime:
+    return dt.replace(tzinfo=timezone.utc)
