@@ -216,6 +216,7 @@ def test_validation_Config__workflow_requires_cycle_range(args_config, engine, o
 
 
 def test_validation_Config__optional_cycles_without_engine(args_config):
+    # This is fine:
     args_config["ecflow"] = None
     args_config["workflow"] = None
     args_config["app"]["cycle_freq"] = None
