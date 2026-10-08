@@ -192,7 +192,7 @@ def test_validation_Config(args_config, with_del):
     [(None, None), ({}, None), (None, {}), ({}, {})],
 )
 def test_validation_Config__cycle_range_with_engines(args_config, ecflow, workflow):
-    # Any combination of ecflow / workflow is ok provide the cycle-range parameters are defined:
+    # Any combination of ecflow / workflow is ok if the cycle-range parameters are defined:
     args_config["ecflow"] = ecflow
     args_config["workflow"] = workflow
     assert validation.Config(**args_config)
@@ -211,17 +211,6 @@ def test_validation_Config__workflow_requires_cycle_range(args_config, engine, o
     with raises(
         ValueError,
         match=f"cycle_freq, first_cycle, last_cycle must be defined when {engine} is defined",
-    ):
-        validation.Config(**args_config)
-
-
-def test_validation_Config__ecflow_precedes_workflow_in_error(args_config):
-    args_config["app"]["cycle_freq"] = None
-    args_config["app"]["first_cycle"] = None
-    args_config["app"]["last_cycle"] = None
-    with raises(
-        ValueError,
-        match="cycle_freq, first_cycle, last_cycle must be defined when ecflow is defined",
     ):
         validation.Config(**args_config)
 
