@@ -31,8 +31,8 @@ use_uwtools_logger()
 
 
 @task
-def config(cycle_: CycleT) -> Iterator:
-    _, taskname = _dt_taskname(cycle_, "config")
+def config() -> Iterator:
+    taskname = "config"
     yield taskname
     yield Asset(CFG, CFG.is_file)
     yield None
