@@ -147,7 +147,7 @@ def test_validation_App__bad_cycle_freq_not_0_mod_6(args_app):
 def test_validation_App__bad_partial_cycle_range(args_app, key):
     args_app[key] = None
     with raises(
-        ValueError, match="first_cycle and last_cycle must be both defined or both undefined"
+        ValueError, match="first_cycle and last_cycle must both be defined if either is defined"
     ):
         validation.App(**args_app)
 

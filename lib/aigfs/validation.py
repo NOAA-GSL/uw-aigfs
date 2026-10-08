@@ -117,7 +117,7 @@ class App(BaseModel):
     @model_validator(mode="after")
     def first_and_last_cycle(self) -> "App":
         if (self.first_cycle is not None) ^ (self.last_cycle is not None):
-            msg = "first_cycle and last_cycle must be both defined or both undefined"
+            msg = "first_cycle and last_cycle must both be defined if either is defined"
             raise ValueError(msg)
         if self.first_cycle is not None and self.last_cycle is not None:
             if self.last_cycle < self.first_cycle:
