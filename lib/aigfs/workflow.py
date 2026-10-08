@@ -5,7 +5,6 @@ import os
 import sys
 from collections.abc import Iterator
 from datetime import UTC, datetime, timedelta, timezone
-from functools import cache
 from pathlib import Path
 
 from iotaa import Asset, collection, external, task
@@ -199,8 +198,9 @@ def _execute(cmd: str, rundir: Path, taskname: str, assets: list[Asset]) -> None
     # the process exits.
 
     def log(proc):
+        logger = _passthrough_logger()
         for line in proc.stdout:
-            _passthrough_logger().info(line.rstrip("\r\n"))
+            logger.info(line.rstrip("\r\n"))
 
     rundir.mkdir(parents=True, exist_ok=True)
     lockfile = rundir / (".lock-%s" % taskname.replace(" ", "-"))
@@ -224,19 +224,16 @@ def _fff(gribfile: Path) -> str:
     return gribfile.name.split(".")[3][1:]
 
 
-@cache
 def _passthrough_logger() -> logging.Logger:
-    class _StderrHandler(logging.StreamHandler):
-        def emit(self, record: logging.LogRecord) -> None:
-            self.stream = sys.stderr
-            super().emit(record)
-
     logger = logging.getLogger("passthrough")
     logger.setLevel(logging.INFO)
     logger.propagate = False
-    handler = _StderrHandler()
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    logger.addHandler(handler)
+    handler = next((h for h in logger.handlers if isinstance(h, logging.StreamHandler)), None)
+    if handler is None:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(message)s"))
+        logger.addHandler(handler)
+    handler.stream = sys.stderr
     return logger
 
 
