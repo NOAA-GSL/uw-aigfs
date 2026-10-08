@@ -105,11 +105,10 @@ class App(BaseModel):
     @classmethod
     def validate_cycle_freq(cls, val: timedelta) -> timedelta:
         if val is not None:
-            s = val.total_seconds()
-            if s <= 0:
+            if val.total_seconds() <= 0:
                 msg = "cycle_freq must be greater than 0"
                 raise ValueError(msg)
-            if s % (6 * 3600) != 0:
+            if val.total_seconds() % (6 * 3600) != 0:
                 msg = "cycle_freq must be a multiple of 6"
                 raise ValueError(msg)
         return val
