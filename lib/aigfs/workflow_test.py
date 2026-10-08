@@ -56,26 +56,26 @@ def driver(output: dict, rundir: Path) -> Mock:
 # Tests
 
 
-def test_workflow_config__exists(cfg, cycle, touch):
+def test_workflow_config__exists(cfg, touch):
     touch(cfg)
     with patch.object(workflow, "setup") as setup:
-        node = workflow.config(cycle)
+        node = workflow.config()
     assert node.ready
-    assert node.taskname == "20251001 18Z config"
+    assert node.taskname == "config"
     setup.compose_configs.assert_not_called()
 
 
 @mark.usefixtures("cfg")
 def test_workflow_config__missing(tmp_path):
     with patch.object(workflow, "setup") as setup:
-        node = workflow.config("2025-10-01T18")
+        node = workflow.config()
     assert not node.ready
     setup.compose_configs.assert_called_once_with(
         workflow=None, platform="oci", user_config_files=[tmp_path / "user.yaml"]
     )
     c = setup.compose_configs.return_value
     setup.validate.assert_called_once_with(c)
-    setup.set_up_rundir.assert_called_once_with(c, workflow=None, prefix="20251001 18Z config")
+    setup.set_up_rundir.assert_called_once_with(c, workflow=None, prefix="config")
 
 
 @mark.parametrize("ready", [True, False])
