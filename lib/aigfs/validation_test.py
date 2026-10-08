@@ -122,9 +122,8 @@ def test_validation_Time(args_time, with_del):
         assert e.value.errors()[0]["type"] == "missing"
 
 
-def test_validation_App(args_app, with_del):
-    obj = validation.App(**args_app)
-    for key in obj.model_dump():
+def test_validation_App__required(args_app, with_del):
+    for key in ["home", "modeldir", "platform", "rundir", "time"]:
         with raises(ValidationError) as e:
             validation.App(**with_del(args_app, key))
         assert e.value.error_count() == 1
