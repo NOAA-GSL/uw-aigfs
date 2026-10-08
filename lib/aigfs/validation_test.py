@@ -202,41 +202,20 @@ def test_validation_Config__cycle_range_with_engines(args_config, ecflow, workfl
     ("engine", "other_engine"),
     [("ecflow", "workflow"), ("workflow", "ecflow")],
 )
-@mark.parametrize(
-    ("cycle_freq_defined", "first_cycle_defined", "last_cycle_defined"),
-    [
-        (cycle_freq_defined, first_cycle_defined, last_cycle_defined)
-        for cycle_freq_defined in [False, True]
-        for first_cycle_defined in [False, True]
-        for last_cycle_defined in [False, True]
-    ],
-)
-def test_validation_Config__workflow_requires_cycle_range(
-    args_config, engine, other_engine, cycle_freq_defined, first_cycle_defined, last_cycle_defined
-):
+def test_validation_Config__workflow_requires_cycle_range(args_config, engine, other_engine):
     args_config[engine] = {}
     args_config[other_engine] = None
-    args_config["app"]["cycle_freq"] = (
-        args_config["app"]["cycle_freq"] if cycle_freq_defined else None
-    )
-    args_config["app"]["first_cycle"] = (
-        args_config["app"]["first_cycle"] if first_cycle_defined else None
-    )
-    args_config["app"]["last_cycle"] = (
-        args_config["app"]["last_cycle"] if last_cycle_defined else None
-    )
-    if cycle_freq_defined and first_cycle_defined and last_cycle_defined:
-        assert validation.Config(**args_config)
-    else:
-        with raises(
-            ValueError,
-            match=(
-                "first_cycle and last_cycle must be both defined or both undefined|"
-                "cycle_freq must be defined when first_cycle and last_cycle are defined|"
-                f"cycle_freq, first_cycle, last_cycle must be defined when {engine} is defined"
-            ),
-        ):
-            validation.Config(**args_config)
+    # While it would be an error for any of the following three cycle-range values to be None, we
+    # only need to test the case where ALL THREE are None because all the other cases are covered
+    # by different validation rules and their assocaited tests.
+    args_config["app"]["cycle_freq"] = None
+    args_config["app"]["first_cycle"] = None
+    args_config["app"]["last_cycle"] = None
+    with raises(
+        ValueError,
+        match=f"cycle_freq, first_cycle, last_cycle must be defined when {engine} is defined",
+    ):
+        validation.Config(**args_config)
 
 
 def test_validation_Config__optional_cycles_without_engine(args_config):
