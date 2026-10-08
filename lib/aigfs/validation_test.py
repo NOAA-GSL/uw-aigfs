@@ -143,18 +143,95 @@ def test_validation_App__bad_cycle_freq_not_0_mod_6(args_app):
         validation.App(**args_app)
 
 
+@mark.parametrize("key", ["first_cycle", "last_cycle"])
+def test_validation_App__bad_partial_cycle_range(args_app, key):
+    args_app[key] = None
+    with raises(
+        ValueError, match="first_cycle and last_cycle must be both defined or both undefined"
+    ):
+        validation.App(**args_app)
+
+
 def test_validation_App__bad_first_vs_last_cycle(args_app, utc):
     args_app["last_cycle"] = utc(1970, 1, 1, 0)
     with raises(ValueError, match="last_cycle cannot precede first_cycle"):
         validation.App(**args_app)
 
 
+def test_validation_App__cycle_range_requires_cycle_freq(args_app):
+    args_app["cycle_freq"] = None
+    with raises(
+        ValueError,
+        match="cycle_freq must be defined when first_cycle and last_cycle are defined",
+    ):
+        validation.App(**args_app)
+
+
+def test_validation_App__undefined_cycle_range(args_app):
+    # This is fine:
+    args_app["cycle_freq"] = None
+    args_app["first_cycle"] = None
+    args_app["last_cycle"] = None
+    obj = validation.App(**args_app)
+    assert obj.cycle_freq is None
+    assert obj.first_cycle is None
+    assert obj.last_cycle is None
+
+
 def test_validation_Config(args_config, with_del):
     assert validation.Config(**args_config)
     obj = validation.Config(**with_del(args_config, "user"))
-    for key in obj.model_dump():
+    for key in ["app", "forecast", "post", "prep"]:
         with raises(ValidationError):
-            validation.App(**with_del(args_config, key))
+            validation.Config(**with_del(args_config, key))
+    assert obj.user is None
+
+
+@mark.parametrize(
+    ("ecflow", "workflow"),
+    [(None, None), ({}, None), (None, {}), ({}, {})],
+)
+def test_validation_Config__cycle_range_with_engines(args_config, ecflow, workflow):
+    args_config["ecflow"] = ecflow
+    args_config["workflow"] = workflow
+    assert validation.Config(**args_config)
+
+
+@mark.parametrize(
+    ("engine", "other_engine"),
+    [("ecflow", "workflow"), ("workflow", "ecflow")],
+)
+def test_validation_Config__workflow_requires_cycle_range(args_config, engine, other_engine):
+    args_config[engine] = {}
+    args_config[other_engine] = None
+    args_config["app"]["cycle_freq"] = None
+    args_config["app"]["first_cycle"] = None
+    args_config["app"]["last_cycle"] = None
+    with raises(
+        ValueError,
+        match=f"cycle_freq, first_cycle, last_cycle must be defined when {engine} is defined",
+    ):
+        validation.Config(**args_config)
+
+
+def test_validation_Config__ecflow_precedes_workflow_in_error(args_config):
+    args_config["app"]["cycle_freq"] = None
+    args_config["app"]["first_cycle"] = None
+    args_config["app"]["last_cycle"] = None
+    with raises(
+        ValueError,
+        match="cycle_freq, first_cycle, last_cycle must be defined when ecflow is defined",
+    ):
+        validation.Config(**args_config)
+
+
+def test_validation_Config__optional_cycles_without_engine(args_config):
+    args_config["ecflow"] = None
+    args_config["workflow"] = None
+    args_config["app"]["cycle_freq"] = None
+    args_config["app"]["first_cycle"] = None
+    args_config["app"]["last_cycle"] = None
+    assert validation.Config(**args_config)
 
 
 def test_validation_validate(args_config, with_set):
