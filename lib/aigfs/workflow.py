@@ -66,6 +66,9 @@ def cycle(cycle_: CycleT) -> Iterator:
 
 @collection
 def cycles() -> Iterator:
+
+    # Process leading-edge cycles first.
+
     yield "cycles"
     app = realize_to_dict(CFG)["app"]
     dts = []
