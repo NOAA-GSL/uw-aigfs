@@ -79,6 +79,36 @@ def test_workflow_config__missing(tmp_path):
 
 
 @mark.parametrize("ready", [True, False])
+def test_workflow_cycle(atask, cycle, ready):
+    with patch.object(workflow, STR.post, Mock(wraps=lambda _: atask(ready))) as post:
+        node = workflow.cycle(cycle)
+    assert node.ready is ready
+    assert node.taskname == "20251001 18Z cycle"
+    post.assert_called_once_with(cycle)
+
+
+@mark.parametrize("ready", [True, False])
+def test_workflow_cycles(atask, cycle, ready):
+    app = {
+        "first_cycle": cycle,
+        "last_cycle": cycle + timedelta(hours=12),
+        "cycle_freq": timedelta(hours=6),
+    }
+    with (
+        patch.object(workflow, "realize_to_dict", return_value={"app": app}),
+        patch.object(workflow, "cycle", Mock(wraps=lambda _: atask(ready))) as cycle_,
+    ):
+        node = workflow.cycles()
+    assert node.ready is ready
+    assert node.taskname == "cycles"
+    assert [c.args for c in cycle_.call_args_list] == [
+        (cycle,),
+        (cycle + timedelta(hours=6),),
+        (cycle + timedelta(hours=12),),
+    ]
+
+
+@mark.parametrize("ready", [True, False])
 def test_workflow_forecast(atask, cfg, cycle, gribfiles, ready, tmp_path):
     cls = driver({STR.forecast: gribfiles}, tmp_path / "run")
     with (
