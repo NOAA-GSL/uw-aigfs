@@ -308,7 +308,7 @@ def test_workflow__passthrough_logger(capsys):
     logger = workflow._passthrough_logger()
     logger.info("some log message")
     assert capsys.readouterr().err.strip() == "some log message"
-    assert workflow._passthrough_logger() is logger  # due to @cache
+    assert workflow._passthrough_logger() is logger  # logging module reuses loggers
 
 
 def test_workflow__schema():
