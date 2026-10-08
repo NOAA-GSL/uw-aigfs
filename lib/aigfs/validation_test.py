@@ -192,6 +192,7 @@ def test_validation_Config(args_config, with_del):
     [(None, None), ({}, None), (None, {}), ({}, {})],
 )
 def test_validation_Config__cycle_range_with_engines(args_config, ecflow, workflow):
+    # Any combination of ecflow / workflow is ok provide the cycle-range parameters are defined:
     args_config["ecflow"] = ecflow
     args_config["workflow"] = workflow
     assert validation.Config(**args_config)
