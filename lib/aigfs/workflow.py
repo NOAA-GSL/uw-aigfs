@@ -68,12 +68,12 @@ def cycle(cycle_: CycleT) -> Iterator:
 def cycles() -> Iterator:
     yield "cycles"
     app = realize_to_dict(CFG)["app"]
-    reqs = []
-    dt = app["first_cycle"]
-    while dt <= app["last_cycle"]:
-        reqs.append(cycle(dt))
-        dt += app["cycle_freq"]
-    yield reqs
+    dts = []
+    dt = app["last_cycle"]
+    while dt >= app["first_cycle"]:
+        dts.append(dt)
+        dt -= app["cycle_freq"]
+    yield [cycle(dt) for dt in dts]
 
 
 @collection

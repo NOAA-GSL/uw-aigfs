@@ -102,9 +102,9 @@ def test_workflow_cycles(atask, cycle, ready):
     assert node.ready is ready
     assert node.taskname == "cycles"
     assert [c.args for c in cycle_.call_args_list] == [
-        (cycle,),
+        (cycle + timedelta(hours=12),),  # leading-edge first
         (cycle + timedelta(hours=6),),
-        (cycle + timedelta(hours=12),),
+        (cycle,),
     ]
 
 
