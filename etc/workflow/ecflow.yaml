@@ -1,7 +1,3 @@
-app:
-  cycle_freq: null # USER-MUST-OVERRIDE
-  first_cycle: null # USER-MUST-OVERRIDE
-  last_cycle: null # USER-MUST-OVERRIDE
 forecast:
   aigfs_inference:
     post_write_hook: 'ecflow_client --alter change event release_f$(printf "%03d" $LEADTIME) set $ECF_NAME'

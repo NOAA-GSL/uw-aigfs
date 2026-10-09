@@ -1,6 +1,4 @@
 app:
-  modeldir: null # USER MUST OVERRIDE
-  rundir: null # USER MUST OVERRIDE
   time:
     fff: '{{ "%03d" % (leadtime.total_seconds() // 3600) }}'
     hh: '{{ cycle.strftime("%H") }}'
