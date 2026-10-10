@@ -4,7 +4,7 @@ import logging
 import os
 import re
 import sys
-from collections.abc import Iterator
+from collections.abc import Callable, Iterator
 from datetime import UTC, datetime, timedelta, timezone
 from functools import cache
 from pathlib import Path
@@ -176,9 +176,10 @@ def realtime() -> Iterator:
     yield f"{c.user.window_size} realtime cycles"
     ts = datetime.now(UTC).timestamp()
     latest = datetime.fromtimestamp(ts - (ts % c.app.cycle_freq.total_seconds()), UTC)
-    reqs: list[Node] = [cycle(latest - (n * c.app.cycle_freq)) for n in range(c.user.window_size)]
-    if c.user.window_prune:
-        reqs.append(_prune(Path(c.app.rundir), c.user.window_size))
+    reqs: list[Node] = (
+        [_prune(Path(c.app.rundir), c.user.window_size)] if c.user.window_prune else []
+    )
+    reqs.extend([cycle(latest - (n * c.app.cycle_freq)) for n in range(c.user.window_size)])
     yield reqs
 
 
@@ -232,6 +233,9 @@ def _prune(rundir: Path, window_size: int) -> Iterator:
 
     # Remove trailing-edge cycle directories, keeping the newest window_size.
 
+    def handler(_function: Callable, failed: str, exc: BaseException) -> None:
+        logging.error("Could not remove %s: %s", failed, exc)
+
     def prunable() -> list[Path]:
         if not rundir.is_dir():
             return []
@@ -243,7 +247,7 @@ def _prune(rundir: Path, window_size: int) -> Iterator:
     yield None
     for path in prunable():
         logging.info("Pruning cycle directory %s", path)
-        rmtree(path)
+        rmtree(path, onexc=handler)
 
 
 @external

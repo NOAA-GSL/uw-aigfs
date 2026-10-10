@@ -1,4 +1,5 @@
 import fcntl
+import os
 from datetime import UTC, datetime, timedelta
 from io import StringIO
 from pathlib import Path
@@ -270,6 +271,21 @@ def test_workflow__prune__nothing_to_prune(cycledirs, tmp_path):
 
 def test_workflow__prune__no_rundir(tmp_path):
     assert workflow._prune(tmp_path / "missing", 2).ready
+
+
+def test_workflow__prune__rmtree_error(cycledirs, logcap, tmp_path):
+    old = cycledirs[0]
+    failed = old / "somefile"
+    err = PermissionError(13, "Permission denied", str(failed))
+
+    def rmtree(_path, onexc):
+        onexc(os.unlink, str(failed), err)
+
+    with patch.object(workflow, "rmtree", side_effect=rmtree):
+        node = workflow._prune(tmp_path, 2)
+    assert not node.ready  # directory still present
+    assert old.is_dir()
+    assert f"Could not remove {failed}: {err}" in logcap.text
 
 
 @mark.parametrize(
