@@ -217,21 +217,13 @@ def test_workflow_cycles(atask, cycle, ready):
 
 @mark.parametrize("prune", [True, False])
 def test_workflow_realtime(atask, tmp_path, prune):
-    cycles = [tmp_path / f"20261010{hh}" for hh in ("00", "06", "12")]
-    for path in cycles:
-        path.mkdir()
-    old_cycle = cycles.pop(0)
-    app = workflow.AppRealtime.model_construct(
-        cycle_freq=timedelta(hours=6),
-        first_cycle=datetime(2026, 1, 1, tzinfo=UTC),
-        last_cycle=datetime(2026, 1, 2, tzinfo=UTC),
-        rundir=tmp_path,
-    )
+    app = workflow.AppRealtime.model_construct(cycle_freq=timedelta(hours=6), rundir=tmp_path)
     user = workflow.User(window_prune=prune, window_size=2)
     config = workflow.ConfigRealtime.model_construct(app=app, user=user)
     with (
         patch.object(workflow, "_config", return_value=config),
         patch.object(workflow, "cycle", Mock(wraps=lambda _: atask(ready=True))) as cycle,
+        patch.object(workflow, "_prune", Mock(wraps=lambda *_: atask(ready=True))) as _prune,
     ):
         node = workflow.realtime()
     assert node.ready
@@ -240,8 +232,44 @@ def test_workflow_realtime(atask, tmp_path, prune):
     assert len(active) == 2
     assert active[0].tzinfo is UTC
     assert active[0] - active[1] == timedelta(hours=6)
-    assert old_cycle.is_dir() is not prune
-    assert all(path.is_dir() for path in cycles)
+    if prune:
+        _prune.assert_called_once_with(tmp_path, 2)
+    else:
+        _prune.assert_not_called()
+
+
+@fixture
+def cycledirs(tmp_path):
+    paths = [tmp_path / f"20261010{hh}" for hh in ("00", "06", "12")]
+    for path in paths:
+        path.mkdir()
+    (tmp_path / "not-a-cycle").mkdir()
+    (tmp_path / "2026101018").touch()  # cycle-like name, but a file
+    return paths
+
+
+@mark.parametrize("dry_run", [True, False])
+def test_workflow__prune(cycledirs, dry_run, tmp_path):
+    old, *recent = cycledirs
+    node = workflow._prune(tmp_path, 2, iotaa={"dry_run": dry_run})
+    assert node.taskname == f"Prune cycle directories in {tmp_path}"
+    assert node.ready is not dry_run
+    assert old.is_dir() is dry_run  # deleted only when not a dry run
+    assert all(path.is_dir() for path in recent)
+    assert (tmp_path / "not-a-cycle").is_dir()
+    assert (tmp_path / "2026101018").is_file()
+
+
+def test_workflow__prune__nothing_to_prune(cycledirs, tmp_path):
+    with patch.object(workflow, "rmtree") as rmtree:
+        node = workflow._prune(tmp_path, 3)
+    assert node.ready
+    rmtree.assert_not_called()
+    assert all(path.is_dir() for path in cycledirs)
+
+
+def test_workflow__prune__no_rundir(tmp_path):
+    assert workflow._prune(tmp_path / "missing", 2).ready
 
 
 @mark.parametrize(

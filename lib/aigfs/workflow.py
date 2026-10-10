@@ -11,7 +11,7 @@ from pathlib import Path
 from shutil import rmtree
 from typing import TypeVar
 
-from iotaa import Asset, collection, external, task
+from iotaa import Asset, Node, collection, external, task
 from pydantic import BaseModel, ConfigDict
 from uwtools.api.config import realize_to_dict
 from uwtools.api.driver import Driver
@@ -174,15 +174,12 @@ def realtime() -> Iterator:
 
     c = _config(ConfigRealtime)
     yield f"{c.user.window_size} realtime cycles"
-    if c.user.window_prune:
-        is_cycledir = lambda path: path.is_dir() and re.match(r"^\d{10}$", path.name)
-        cycledirs = sorted(filter(is_cycledir, Path(c.app.rundir).iterdir()))
-        for path in cycledirs[: -c.user.window_size]:
-            logging.info("Pruning cycle directory %s", path)
-            rmtree(path)
     ts = datetime.now(UTC).timestamp()
     latest = datetime.fromtimestamp(ts - (ts % c.app.cycle_freq.total_seconds()), UTC)
-    yield [cycle(latest - (n * c.app.cycle_freq)) for n in range(c.user.window_size)]
+    reqs: list[Node] = [cycle(latest - (n * c.app.cycle_freq)) for n in range(c.user.window_size)]
+    if c.user.window_prune:
+        reqs.append(_prune(Path(c.app.rundir), c.user.window_size))
+    yield reqs
 
 
 # Private tasks:
@@ -228,6 +225,25 @@ def _post_one_leadtime(dt: datetime, pres: Path, sfc: Path) -> Iterator:
     yield _forecast_one_leadtime(dt, pres, sfc)
     cmd = _cmd(driver, key_path, dt, leadtime)
     _execute(cmd, driver.rundir, taskname, assets)
+
+
+@task
+def _prune(rundir: Path, window_size: int) -> Iterator:
+
+    # Remove trailing-edge cycle directories, keeping the newest window_size.
+
+    def prunable() -> list[Path]:
+        if not rundir.is_dir():
+            return []
+        is_cycledir = lambda path: path.is_dir() and re.match(r"^\d{10}$", path.name)
+        return sorted(filter(is_cycledir, rundir.iterdir()))[:-window_size]
+
+    yield "Prune cycle directories in %s" % rundir
+    yield Asset(None, lambda: not prunable())
+    yield None
+    for path in prunable():
+        logging.info("Pruning cycle directory %s", path)
+        rmtree(path)
 
 
 @external
