@@ -28,7 +28,7 @@ from aigfs.validation import Config as Config_
 
 type CycleT = datetime | str
 
-APPDIR = Path(os.environ.get("APPDIR", os.environ["PWD"]))
+APPDIR = Path(os.environ.get("APPDIR") or Path.cwd())
 CONFIG = APPDIR / STR.aigfs_yaml
 
 use_uwtools_logger()
