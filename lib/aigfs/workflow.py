@@ -12,7 +12,7 @@ from shutil import rmtree
 from typing import TypeVar
 
 from iotaa import Asset, Node, collection, external, task
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, PositiveInt
 from uwtools.api.config import realize_to_dict
 from uwtools.api.driver import Driver
 from uwtools.api.logging import use_uwtools_logger
@@ -47,7 +47,7 @@ class AppRealtime(App_):
 class User(BaseModel):
     model_config = ConfigDict(extra="allow", strict=True)
     window_prune: bool = False
-    window_size: int
+    window_size: PositiveInt
 
 
 class ConfigCycles(Config_):

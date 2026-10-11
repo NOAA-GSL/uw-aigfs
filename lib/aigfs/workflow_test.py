@@ -147,7 +147,16 @@ def test_workflow_Config(workflow_config, model, app_model, optional_cycles):
 
 
 @mark.parametrize("model", [workflow.ConfigCycles, workflow.ConfigRealtime])
-@mark.parametrize("user", [{}, {"window_size": True}, {"window_size": 3, "window_prune": 1}])
+@mark.parametrize(
+    "user",
+    [
+        {},
+        {"window_size": True},
+        {"window_size": 0},
+        {"window_size": -1},
+        {"window_size": 3, "window_prune": 1},
+    ],
+)
 def test_workflow_Config__user_bad(model, user, workflow_config):
     workflow_config["user"] = user
     with raises(ValidationError) as e:
