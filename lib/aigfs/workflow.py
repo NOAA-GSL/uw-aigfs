@@ -26,12 +26,14 @@ from aigfs.strings import STR
 from aigfs.validation import App as App_
 from aigfs.validation import Config as Config_
 
-type CycleT = datetime | str
-
 APPDIR = Path(os.environ.get("APPDIR") or Path.cwd())
 CONFIG = APPDIR / STR.aigfs_yaml
 
+type CycleT = datetime | str
+
 use_uwtools_logger()
+
+# Validation classes:
 
 
 class AppCycles(App_):
@@ -62,7 +64,6 @@ class ConfigRealtime(Config_):
 
 ConfigT = TypeVar("ConfigT", ConfigCycles, ConfigRealtime)
 
-
 # Public tasks:
 
 
@@ -79,24 +80,6 @@ def config() -> Iterator:
     c = setup.compose_configs(workflow=None, platform=STR.oci, user_config_files=[user])
     setup.validate(c)
     setup.set_up_rundir(c, workflow=None, prefix=taskname)
-
-
-@task
-def forecast(cycle_: CycleT) -> Iterator:
-    """
-    Execution of the inference driver for one cycle.
-    """
-    dt, taskname = _dt_taskname(cycle_, STR.forecast)
-    yield taskname
-    cls = AIGFSInference
-    key_path: list = [STR.forecast]
-    driver = cls(cycle=dt, config=CONFIG, key_path=key_path, schema_file=_schema(cls))
-    assets = [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
-    yield assets
-    yield prep(dt)
-    prefix = "srun --exclusive --nodes=1 --time=30"
-    cmd = _cmd(driver, key_path, dt, prefix=prefix)
-    _execute(cmd, driver.rundir, taskname, assets)
 
 
 @collection
@@ -125,6 +108,24 @@ def cycles() -> Iterator:
         dts.append(dt)
         dt -= app.cycle_freq
     yield [cycle(dt) for dt in dts]
+
+
+@task
+def forecast(cycle_: CycleT) -> Iterator:
+    """
+    Execution of the inference driver for one cycle.
+    """
+    dt, taskname = _dt_taskname(cycle_, STR.forecast)
+    yield taskname
+    cls = AIGFSInference
+    key_path: list = [STR.forecast]
+    driver = cls(cycle=dt, config=CONFIG, key_path=key_path, schema_file=_schema(cls))
+    assets = [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
+    yield assets
+    yield prep(dt)
+    prefix = "srun --exclusive --nodes=1 --time=30"
+    cmd = _cmd(driver, key_path, dt, prefix=prefix)
+    _execute(cmd, driver.rundir, taskname, assets)
 
 
 @collection

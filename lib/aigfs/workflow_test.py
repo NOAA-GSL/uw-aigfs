@@ -13,7 +13,9 @@ from aigfs import workflow
 from aigfs.drivers.inference import AIGFSInference
 from aigfs.strings import STR
 
-# Fixtures
+TASKNAME = "20251001 18Z 012 post"
+
+# Fixtures:
 
 
 @fixture
@@ -86,7 +88,7 @@ def lockkit(tmp_path):
     return obj, assets, rundir / ".lock-20251001-18Z-012-post", output
 
 
-TASKNAME = "20251001 18Z 012 post"
+# Helpers:
 
 
 def driver(output: dict, rundir: Path) -> Mock:
@@ -94,7 +96,7 @@ def driver(output: dict, rundir: Path) -> Mock:
     return Mock(return_value=obj)
 
 
-# Tests
+# Tests for validation classes:
 
 
 def test_workflow_AppCycles(workflow_config):
@@ -133,7 +135,7 @@ def test_workflow_AppRealtime__required(delete, with_del, with_set, workflow_con
     assert e.value.errors()[0]["loc"] == ("cycle_freq",)
 
 
-def test_workflow_User__optional_window_prune():
+def test_workflow_User():
     user = workflow.User(window_size=3)
     assert user.window_size == 3
     assert user.window_prune is False
@@ -179,6 +181,9 @@ def test_workflow_Config__user_missing(model, with_del, workflow_config):
     with raises(ValidationError) as e:
         model.model_validate(with_del(workflow_config, "user"))
     assert e.value.errors()[0]["loc"] == ("user",)
+
+
+# Tests for public tasks:
 
 
 def test_workflow_config__exists(cfg, touch):
@@ -239,103 +244,6 @@ def test_workflow_cycles(atask, cycle, ready, tz):
         (cycle,),
     ]
     assert all(c.args[0].tzinfo is UTC for c in cycle_.call_args_list)
-
-
-@mark.parametrize(
-    ("now", "freq", "expected"),
-    [
-        # Mid-interval "now" rounds down to the latest cycle:
-        ((14, 37, 12), 6, [(10, 12), (10, 6), (10, 0)]),
-        # "Now" exactly on a cycle boundary is that cycle:
-        ((12, 0, 0), 6, [(10, 12), (10, 6), (10, 0)]),
-        # Daily cycles:
-        ((14, 37, 12), 24, [(10, 0), (9, 0), (8, 0)]),
-    ],
-)
-@mark.parametrize("prune", [True, False])
-def test_workflow_realtime(atask, expected, freq, now, prune, tmp_path, utc):
-    app = workflow.AppRealtime.model_construct(cycle_freq=timedelta(hours=freq), rundir=tmp_path)
-    user = workflow.User(window_prune=prune, window_size=3)
-    config = workflow.ConfigRealtime.model_construct(app=app, user=user)
-    dt = Mock(wraps=datetime)
-    dt.now.return_value = utc(2026, 10, 10, *now)
-    with (
-        patch.object(workflow, "_config", return_value=config),
-        patch.object(workflow, "_prune", Mock(wraps=lambda *_: atask(ready=True))) as _prune,
-        patch.object(workflow, "cycle", Mock(wraps=lambda _: atask(ready=True))) as cycle,
-        patch.object(workflow, "datetime", dt),
-    ):
-        node = workflow.realtime()
-    assert node.ready
-    assert node.taskname == "3 realtime cycles"
-    dt.now.assert_called_once_with(UTC)
-    active = [call.args[0] for call in cycle.call_args_list]
-    assert active == [utc(2026, 10, day, hour) for day, hour in expected]  # leading-edge first
-    assert all(x.tzinfo is UTC for x in active)
-    if prune:
-        _prune.assert_called_once_with(tmp_path, 3)
-    else:
-        _prune.assert_not_called()
-
-
-@mark.parametrize("dry_run", [True, False])
-def test_workflow__prune(cycledirs, dry_run, tmp_path):
-    old, *recent = cycledirs
-    node = workflow._prune(tmp_path, 2, iotaa={"dry_run": dry_run})
-    assert node.taskname == f"Prune cycle directories in {tmp_path}"
-    assert node.ready is not dry_run
-    assert old.is_dir() is dry_run  # not deleted for dry run
-    assert all(path.is_dir() for path in recent)
-    assert (tmp_path / "not-a-cycle").is_dir()
-    assert (tmp_path / "2026101018").is_file()
-
-
-def test_workflow__prune__nothing_to_prune(cycledirs, tmp_path):
-    with patch.object(workflow, "rmtree") as rmtree:
-        node = workflow._prune(tmp_path, 3)
-    assert node.ready
-    rmtree.assert_not_called()
-    assert all(path.is_dir() for path in cycledirs)
-
-
-def test_workflow__prune__no_rundir(tmp_path):
-    with patch.object(workflow, "rmtree") as rmtree:
-        assert workflow._prune(tmp_path / "missing", 2).ready
-    rmtree.assert_not_called()
-
-
-def test_workflow__prune__rmtree_error(cycledirs, logcap, tmp_path):
-    old = cycledirs[0]
-    failed = old / "somefile"
-    err = PermissionError(13, "Permission denied", str(failed))
-
-    def rmtree(_path, onexc):
-        onexc(os.unlink, str(failed), err)
-
-    with patch.object(workflow, "rmtree", side_effect=rmtree):
-        node = workflow._prune(tmp_path, 2)
-    assert not node.ready  # directory still present
-    assert old.is_dir()
-    assert f"Could not remove {failed}: {err}" in logcap.text
-
-
-@mark.parametrize(
-    ("model", "expected_type"),
-    [
-        (workflow.ConfigCycles, workflow.ConfigCycles),
-        (workflow.ConfigRealtime, workflow.ConfigRealtime),
-    ],
-)
-def test_workflow__config(workflow_config, model, expected_type):
-    workflow_config["user"] = {"window_size": 2}
-    with patch.object(workflow, "realize_to_dict", return_value=workflow_config) as realize:
-        workflow._config.cache_clear()
-        try:
-            config = workflow._config(model)
-            assert isinstance(config, expected_type)
-            realize.assert_called_once_with(workflow.CONFIG)
-        finally:
-            workflow._config.cache_clear()
 
 
 @mark.parametrize("ready", [True, False])
@@ -413,6 +321,46 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
         run_shell_cmd.assert_not_called()
 
 
+@mark.parametrize(
+    ("now", "freq", "expected"),
+    [
+        # Mid-interval "now" rounds down to the latest cycle:
+        ((14, 37, 12), 6, [(10, 12), (10, 6), (10, 0)]),
+        # "Now" exactly on a cycle boundary is that cycle:
+        ((12, 0, 0), 6, [(10, 12), (10, 6), (10, 0)]),
+        # Daily cycles:
+        ((14, 37, 12), 24, [(10, 0), (9, 0), (8, 0)]),
+    ],
+)
+@mark.parametrize("prune", [True, False])
+def test_workflow_realtime(atask, expected, freq, now, prune, tmp_path, utc):
+    app = workflow.AppRealtime.model_construct(cycle_freq=timedelta(hours=freq), rundir=tmp_path)
+    user = workflow.User(window_prune=prune, window_size=3)
+    config = workflow.ConfigRealtime.model_construct(app=app, user=user)
+    dt = Mock(wraps=datetime)
+    dt.now.return_value = utc(2026, 10, 10, *now)
+    with (
+        patch.object(workflow, "_config", return_value=config),
+        patch.object(workflow, "_prune", Mock(wraps=lambda *_: atask(ready=True))) as _prune,
+        patch.object(workflow, "cycle", Mock(wraps=lambda _: atask(ready=True))) as cycle,
+        patch.object(workflow, "datetime", dt),
+    ):
+        node = workflow.realtime()
+    assert node.ready
+    assert node.taskname == "3 realtime cycles"
+    dt.now.assert_called_once_with(UTC)
+    active = [call.args[0] for call in cycle.call_args_list]
+    assert active == [utc(2026, 10, day, hour) for day, hour in expected]  # leading-edge first
+    assert all(x.tzinfo is UTC for x in active)
+    if prune:
+        _prune.assert_called_once_with(tmp_path, 3)
+    else:
+        _prune.assert_not_called()
+
+
+# Tests for private tasks:
+
+
 @mark.parametrize("ready", [True, False])
 def test_workflow__forecast_one_leadtime(atask, cycle, gribfiles, ready, touch):
     pres, sfc = gribfiles[:2]
@@ -467,6 +415,47 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
         run_shell_cmd.assert_not_called()
 
 
+@mark.parametrize("dry_run", [True, False])
+def test_workflow__prune(cycledirs, dry_run, tmp_path):
+    old, *recent = cycledirs
+    node = workflow._prune(tmp_path, 2, iotaa={"dry_run": dry_run})
+    assert node.taskname == f"Prune cycle directories in {tmp_path}"
+    assert node.ready is not dry_run
+    assert old.is_dir() is dry_run  # not deleted for dry run
+    assert all(path.is_dir() for path in recent)
+    assert (tmp_path / "not-a-cycle").is_dir()
+    assert (tmp_path / "2026101018").is_file()
+
+
+def test_workflow__prune__no_old_cycles(cycledirs, tmp_path):
+    with patch.object(workflow, "rmtree") as rmtree:
+        node = workflow._prune(tmp_path, 3)
+    assert node.ready
+    rmtree.assert_not_called()
+    assert all(path.is_dir() for path in cycledirs)
+
+
+def test_workflow__prune__no_rundir(tmp_path):
+    with patch.object(workflow, "rmtree") as rmtree:
+        assert workflow._prune(tmp_path / "missing", 2).ready
+    rmtree.assert_not_called()
+
+
+def test_workflow__prune__rmtree_error(cycledirs, logcap, tmp_path):
+    old = cycledirs[0]
+    failed = old / "somefile"
+    err = PermissionError(13, "Permission denied", str(failed))
+
+    def rmtree(_path, onexc):
+        onexc(os.unlink, str(failed), err)
+
+    with patch.object(workflow, "rmtree", side_effect=rmtree):
+        node = workflow._prune(tmp_path, 2)
+    assert not node.ready  # directory still present
+    assert old.is_dir()
+    assert f"Could not remove {failed}: {err}" in logcap.text
+
+
 @mark.parametrize("tz", [UTC, timezone(timedelta(hours=5))])
 @mark.parametrize(("hours", "ready"), [(-4, True), (0, False)])
 def test_workflow__timegate(hours, ready, tz):
@@ -477,21 +466,7 @@ def test_workflow__timegate(hours, ready, tz):
     assert node.taskname == "UTC > %s" % cutoff.replace(tzinfo=None)  # always UTC
 
 
-@mark.parametrize(
-    "cycle_",
-    [
-        datetime(2025, 10, 1, 18, tzinfo=UTC),
-        datetime(2025, 10, 1, 18),  # noqa: DTZ001
-        datetime(2025, 10, 1, 23, tzinfo=timezone(timedelta(hours=5))),
-        "2025-10-01T18",
-        "2025-10-01T23+05:00",
-    ],
-)
-def test_workflow__dt_taskname(cycle, cycle_):
-    dt, taskname = workflow._dt_taskname(cycle_, "foo")
-    assert dt == cycle
-    assert dt.tzinfo is UTC
-    assert taskname == "20251001 18Z foo"
+# Tests for private helpers:
 
 
 def test_workflow__cmd(cycle, cfg, tmp_path):
@@ -514,6 +489,42 @@ def test_workflow__cmd(cycle, cfg, tmp_path):
     )
 
 
+@mark.parametrize(
+    ("model", "expected_type"),
+    [
+        (workflow.ConfigCycles, workflow.ConfigCycles),
+        (workflow.ConfigRealtime, workflow.ConfigRealtime),
+    ],
+)
+def test_workflow__config(workflow_config, model, expected_type):
+    workflow_config["user"] = {"window_size": 2}
+    with patch.object(workflow, "realize_to_dict", return_value=workflow_config) as realize:
+        workflow._config.cache_clear()
+        try:
+            config = workflow._config(model)
+            assert isinstance(config, expected_type)
+            realize.assert_called_once_with(workflow.CONFIG)
+        finally:
+            workflow._config.cache_clear()
+
+
+@mark.parametrize(
+    "cycle_",
+    [
+        datetime(2025, 10, 1, 18, tzinfo=UTC),
+        datetime(2025, 10, 1, 18),  # noqa: DTZ001
+        datetime(2025, 10, 1, 23, tzinfo=timezone(timedelta(hours=5))),
+        "2025-10-01T18",
+        "2025-10-01T23+05:00",
+    ],
+)
+def test_workflow__dt_taskname(cycle, cycle_):
+    dt, taskname = workflow._dt_taskname(cycle_, "foo")
+    assert dt == cycle
+    assert dt.tzinfo is UTC
+    assert taskname == "20251001 18Z foo"
+
+
 def test_workflow__execute(capsys, lockkit):
     def run_cmd(*_args, **kwargs):
         kwargs["callback"](Mock(stdout=StringIO("first line\nsecond line\n")))
@@ -528,13 +539,12 @@ def test_workflow__execute(capsys, lockkit):
     assert capsys.readouterr().err == "first line\nsecond line\n"
 
 
-def test_workflow__execute__ready_elsewhere(logcap, lockkit):
-    obj, assets, _, output = lockkit
-    output.touch()
-    with patch.object(workflow, "run_shell_cmd") as cmd:
+def test_workflow__execute__lock_released(lockkit):
+    obj, assets, lockfile, _ = lockkit
+    with patch.object(workflow, "run_shell_cmd"):
         workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
-    cmd.assert_not_called()
-    assert f"{TASKNAME}: Made ready by another process" in logcap.text
+    with lockfile.open("w") as f:
+        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)  # would raise if still held
 
 
 def test_workflow__execute__locked(logcap, lockkit):
@@ -555,12 +565,13 @@ def test_workflow__execute__locked(logcap, lockkit):
     assert output.is_file()
 
 
-def test_workflow__execute__lock_released(lockkit):
-    obj, assets, lockfile, _ = lockkit
-    with patch.object(workflow, "run_shell_cmd"):
+def test_workflow__execute__ready_elsewhere(logcap, lockkit):
+    obj, assets, _, output = lockkit
+    output.touch()
+    with patch.object(workflow, "run_shell_cmd") as cmd:
         workflow._execute("/bin/true", obj.rundir, TASKNAME, assets)
-    with lockfile.open("w") as f:
-        fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)  # would raise if still held
+    cmd.assert_not_called()
+    assert f"{TASKNAME}: Made ready by another process" in logcap.text
 
 
 def test_workflow__fff():
