@@ -24,6 +24,16 @@ def cfg(tmp_path):
 
 
 @fixture
+def cycledirs(tmp_path):
+    paths = [tmp_path / f"20261010{hh}" for hh in ("00", "06", "12")]
+    for path in paths:
+        path.mkdir()
+    (tmp_path / "not-a-cycle").mkdir()
+    (tmp_path / "2026101018").touch()  # cycle-like name, but a file
+    return paths
+
+
+@fixture
 def workflow_config(tmp_path):
     return {
         "app": {
@@ -266,16 +276,6 @@ def test_workflow_realtime(atask, expected, freq, now, prune, tmp_path, utc):
         _prune.assert_called_once_with(tmp_path, 3)
     else:
         _prune.assert_not_called()
-
-
-@fixture
-def cycledirs(tmp_path):
-    paths = [tmp_path / f"20261010{hh}" for hh in ("00", "06", "12")]
-    for path in paths:
-        path.mkdir()
-    (tmp_path / "not-a-cycle").mkdir()
-    (tmp_path / "2026101018").touch()  # cycle-like name, but a file
-    return paths
 
 
 @mark.parametrize("dry_run", [True, False])
