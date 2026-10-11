@@ -250,10 +250,10 @@ def test_workflow_realtime(atask, expected, freq, now, prune, tmp_path, utc):
     dt = Mock(wraps=datetime)
     dt.now.return_value = utc(2026, 10, 10, *now)
     with (
-        patch.object(workflow, "datetime", dt),
         patch.object(workflow, "_config", return_value=config),
-        patch.object(workflow, "cycle", Mock(wraps=lambda _: atask(ready=True))) as cycle,
         patch.object(workflow, "_prune", Mock(wraps=lambda *_: atask(ready=True))) as _prune,
+        patch.object(workflow, "cycle", Mock(wraps=lambda _: atask(ready=True))) as cycle,
+        patch.object(workflow, "datetime", dt),
     ):
         node = workflow.realtime()
     assert node.ready
