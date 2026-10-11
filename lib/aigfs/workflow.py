@@ -5,7 +5,7 @@ import os
 import re
 import sys
 from collections.abc import Callable, Iterator
-from datetime import UTC, datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from functools import cache
 from pathlib import Path
 from shutil import rmtree
@@ -120,8 +120,8 @@ def cycles() -> Iterator:
     yield "cycles"
     app = _config(ConfigCycles).app
     dts = []
-    dt = app.last_cycle
-    while dt >= app.first_cycle:
+    dt, first = _utc(app.last_cycle), _utc(app.first_cycle)
+    while dt >= first:
         dts.append(dt)
         dt -= app.cycle_freq
     yield [cycle(dt) for dt in dts]
@@ -252,9 +252,9 @@ def _prune(rundir: Path, window_size: int) -> Iterator:
 
 @external
 def _timegate(dt: datetime) -> Iterator:
-    cutoff = dt + timedelta(hours=3, minutes=35)
+    cutoff = _utc(dt) + timedelta(hours=3, minutes=35)
     yield "UTC > %s" % cutoff.replace(tzinfo=None)
-    yield Asset(None, lambda: datetime.now(UTC) > _utc(cutoff))
+    yield Asset(None, lambda: datetime.now(UTC) > cutoff)
 
 
 # Private helpers:
@@ -289,7 +289,7 @@ def _config(model: type[ConfigT]) -> ConfigT:
 
 
 def _dt_taskname(cycle_: CycleT, step: str) -> tuple[datetime, str]:
-    dt = _utc(datetime.fromisoformat(cycle_)) if isinstance(cycle_, str) else cycle_
+    dt = _utc(datetime.fromisoformat(cycle_) if isinstance(cycle_, str) else cycle_)
     return dt, "%s %s" % (dt.strftime("%Y%m%d %HZ"), step)
 
 
@@ -344,4 +344,7 @@ def _schema(cls: type) -> Path:
 
 
 def _utc(dt: datetime) -> datetime:
-    return dt.replace(tzinfo=timezone.utc)
+
+    # Treat a naive datetime as UTC; convert an aware one to UTC.
+
+    return dt.replace(tzinfo=UTC) if dt.tzinfo is None else dt.astimezone(UTC)

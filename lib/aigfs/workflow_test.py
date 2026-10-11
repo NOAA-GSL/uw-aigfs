@@ -1,6 +1,6 @@
 import fcntl
 import os
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime, timedelta, timezone
 from io import StringIO
 from pathlib import Path
 from unittest.mock import ANY, Mock, patch
@@ -202,12 +202,17 @@ def test_workflow_cycle(atask, cycle, ready):
     post.assert_called_once_with(cycle)
 
 
+@mark.parametrize(
+    "tz",
+    [UTC, None, timezone(timedelta(hours=5))],  # UTC, naive (assumed UTC), and non-UTC
+)
 @mark.parametrize("ready", [True, False])
-def test_workflow_cycles(atask, cycle, ready):
+def test_workflow_cycles(atask, cycle, ready, tz):
+    local = lambda dt: dt.replace(tzinfo=None) if tz is None else dt.astimezone(tz)
     config = workflow.ConfigCycles.model_construct(
         app=workflow.AppCycles.model_construct(
-            first_cycle=cycle,
-            last_cycle=cycle + timedelta(hours=12),
+            first_cycle=local(cycle),
+            last_cycle=local(cycle + timedelta(hours=12)),
             cycle_freq=timedelta(hours=6),
         )
     )
@@ -223,6 +228,7 @@ def test_workflow_cycles(atask, cycle, ready):
         (cycle + timedelta(hours=6),),
         (cycle,),
     ]
+    assert all(c.args[0].tzinfo is UTC for c in cycle_.call_args_list)
 
 
 @mark.parametrize(
@@ -459,18 +465,31 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
         run_shell_cmd.assert_not_called()
 
 
+@mark.parametrize("tz", [UTC, timezone(timedelta(hours=5))])
 @mark.parametrize(("hours", "ready"), [(-4, True), (0, False)])
-def test_workflow__timegate(hours, ready):
+def test_workflow__timegate(hours, ready, tz):
     dt = datetime.now(UTC).replace(microsecond=0) + timedelta(hours=hours)
-    node = workflow._timegate(dt)
+    node = workflow._timegate(dt.astimezone(tz))
     assert node.ready is ready
     cutoff = dt + timedelta(hours=3, minutes=35)
-    assert node.taskname == "UTC > %s" % cutoff.replace(tzinfo=None)
+    assert node.taskname == "UTC > %s" % cutoff.replace(tzinfo=None)  # always UTC
 
 
-def test_workflow__dt_taskname(cycle):
-    assert workflow._dt_taskname(cycle, "foo") == (cycle, "20251001 18Z foo")
-    assert workflow._dt_taskname("2025-10-01T18", "foo") == (cycle, "20251001 18Z foo")
+@mark.parametrize(
+    "cycle_",
+    [
+        datetime(2025, 10, 1, 18, tzinfo=UTC),
+        datetime(2025, 10, 1, 18),  # noqa: DTZ001
+        datetime(2025, 10, 1, 23, tzinfo=timezone(timedelta(hours=5))),
+        "2025-10-01T18",
+        "2025-10-01T23+05:00",
+    ],
+)
+def test_workflow__dt_taskname(cycle, cycle_):
+    dt, taskname = workflow._dt_taskname(cycle_, "foo")
+    assert dt == cycle
+    assert dt.tzinfo is UTC
+    assert taskname == "20251001 18Z foo"
 
 
 def test_workflow__cmd(cycle, cfg, tmp_path):
@@ -560,7 +579,9 @@ def test_workflow__schema():
 
 
 def test_workflow__utc():
-    dt = datetime(1970, 1, 1)  # noqa: DTZ001
-    assert dt.tzinfo is None
-    dt = workflow._utc(dt)
-    assert dt.tzinfo is UTC
+    naive = datetime(1970, 1, 1, 12)  # noqa: DTZ001
+    assert workflow._utc(naive) == datetime(1970, 1, 1, 12, tzinfo=UTC)  # assumed UTC
+    plus5 = datetime(1970, 1, 1, 12, tzinfo=timezone(timedelta(hours=5)))
+    assert workflow._utc(plus5) == datetime(1970, 1, 1, 7, tzinfo=UTC)  # converted
+    for dt in (naive, plus5):
+        assert workflow._utc(dt).tzinfo is UTC
