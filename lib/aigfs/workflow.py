@@ -174,11 +174,10 @@ def realtime() -> Iterator:
     c = _config(ConfigRealtime)
     yield f"{c.user.window_size} realtime cycles"
     ts = datetime.now(UTC).timestamp()
+    n = c.user.window_size
     latest = datetime.fromtimestamp(ts - (ts % c.app.cycle_freq.total_seconds()), UTC)
-    reqs: list[Node] = (
-        [_prune(Path(c.app.rundir), c.user.window_size)] if c.user.window_prune else []
-    )
-    reqs.extend([cycle(latest - (n * c.app.cycle_freq)) for n in range(c.user.window_size)])
+    reqs: list[Node] = [_prune(Path(c.app.rundir), n)] if c.user.window_prune else []
+    reqs.extend([cycle(latest - (n * c.app.cycle_freq)) for n in range(n)])
     yield reqs
 
 
