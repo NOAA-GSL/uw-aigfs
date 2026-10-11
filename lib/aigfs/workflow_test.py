@@ -284,7 +284,7 @@ def test_workflow__prune(cycledirs, dry_run, tmp_path):
     node = workflow._prune(tmp_path, 2, iotaa={"dry_run": dry_run})
     assert node.taskname == f"Prune cycle directories in {tmp_path}"
     assert node.ready is not dry_run
-    assert old.is_dir() is dry_run  # deleted only when not a dry run
+    assert old.is_dir() is dry_run  # not deleted for dry run
     assert all(path.is_dir() for path in recent)
     assert (tmp_path / "not-a-cycle").is_dir()
     assert (tmp_path / "2026101018").is_file()
