@@ -477,16 +477,8 @@ def test_workflow__cmd(cycle, cfg, tmp_path):
         f"--classname AIGFSInference --task run --config {cfg} --key-path forecast "
         "--cycle 20251001T18 --leadtime 12"
     )
-    assert (
-        workflow._cmd(
-            obj,
-            ["forecast"],
-            cycle,
-            leadtime=timedelta(hours=12),
-            prefix="srun",
-        )
-        == expected
-    )
+    actual = workflow._cmd(obj, ["forecast"], cycle, leadtime=timedelta(hours=12), prefix="srun")
+    assert actual == expected
 
 
 @mark.parametrize(
