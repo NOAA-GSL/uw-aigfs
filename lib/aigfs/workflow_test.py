@@ -299,7 +299,9 @@ def test_workflow__prune__nothing_to_prune(cycledirs, tmp_path):
 
 
 def test_workflow__prune__no_rundir(tmp_path):
-    assert workflow._prune(tmp_path / "missing", 2).ready
+    with patch.object(workflow, "rmtree") as rmtree:
+        assert workflow._prune(tmp_path / "missing", 2).ready
+    rmtree.assert_not_called()
 
 
 def test_workflow__prune__rmtree_error(cycledirs, logcap, tmp_path):
