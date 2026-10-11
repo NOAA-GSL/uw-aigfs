@@ -225,25 +225,39 @@ def test_workflow_cycles(atask, cycle, ready):
     ]
 
 
+@mark.parametrize(
+    ("now", "freq", "expected"),
+    [
+        # Mid-interval "now" rounds down to the latest cycle:
+        ((14, 37, 12), 6, [(10, 12), (10, 6), (10, 0)]),
+        # "Now" exactly on a cycle boundary is that cycle:
+        ((12, 0, 0), 6, [(10, 12), (10, 6), (10, 0)]),
+        # Daily cycles:
+        ((14, 37, 12), 24, [(10, 0), (9, 0), (8, 0)]),
+    ],
+)
 @mark.parametrize("prune", [True, False])
-def test_workflow_realtime(atask, tmp_path, prune):
-    app = workflow.AppRealtime.model_construct(cycle_freq=timedelta(hours=6), rundir=tmp_path)
-    user = workflow.User(window_prune=prune, window_size=2)
+def test_workflow_realtime(atask, expected, freq, now, prune, tmp_path, utc):
+    app = workflow.AppRealtime.model_construct(cycle_freq=timedelta(hours=freq), rundir=tmp_path)
+    user = workflow.User(window_prune=prune, window_size=3)
     config = workflow.ConfigRealtime.model_construct(app=app, user=user)
+    dt = Mock(wraps=datetime)
+    dt.now.return_value = utc(2026, 10, 10, *now)
     with (
+        patch.object(workflow, "datetime", dt),
         patch.object(workflow, "_config", return_value=config),
         patch.object(workflow, "cycle", Mock(wraps=lambda _: atask(ready=True))) as cycle,
         patch.object(workflow, "_prune", Mock(wraps=lambda *_: atask(ready=True))) as _prune,
     ):
         node = workflow.realtime()
     assert node.ready
-    assert node.taskname == "2 realtime cycles"
+    assert node.taskname == "3 realtime cycles"
+    dt.now.assert_called_once_with(UTC)
     active = [call.args[0] for call in cycle.call_args_list]
-    assert len(active) == 2
-    assert active[0].tzinfo is UTC
-    assert active[0] - active[1] == timedelta(hours=6)
+    assert active == [utc(2026, 10, day, hour) for day, hour in expected]  # leading-edge first
+    assert all(x.tzinfo is UTC for x in active)
     if prune:
-        _prune.assert_called_once_with(tmp_path, 2)
+        _prune.assert_called_once_with(tmp_path, 3)
     else:
         _prune.assert_not_called()
 
