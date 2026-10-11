@@ -169,8 +169,7 @@ def realtime() -> Iterator:
     Execution of a rolling realtime window of cycles.
     """
 
-    # Optionally remove trailing-edge cycle directories, then process leading-edge cycles, latest
-    # first.
+    # Process leading-edge cycles, latest first. Optionally remove trailing-edge cycle directories.
 
     c = _config(ConfigRealtime)
     yield f"{c.user.window_size} realtime cycles"
