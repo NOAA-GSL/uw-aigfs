@@ -124,9 +124,9 @@ def test_workflow_Config(test_config, model, app_model, optional_cycles):
     if optional_cycles:
         del test_config["app"]["first_cycle"]
         del test_config["app"]["last_cycle"]
-    config = model.model_validate(test_config)
-    assert isinstance(config.app, app_model)
-    assert config.user.model_dump() == test_config["user"]
+    c = model.model_validate(test_config)
+    assert isinstance(c.app, app_model)
+    assert c.user.model_dump() == test_config["user"]
 
 
 @mark.parametrize("model", [workflow.ConfigCycles, workflow.ConfigRealtime])
@@ -198,7 +198,7 @@ def test_workflow_cycle(atask, cycle, ready):
 @mark.parametrize("ready", [True, False])
 def test_workflow_cycles(atask, cycle, ready, tz):
     local = lambda dt: dt.replace(tzinfo=None) if tz is None else dt.astimezone(tz)
-    config = workflow.ConfigCycles.model_construct(
+    c = workflow.ConfigCycles.model_construct(
         app=workflow.AppCycles.model_construct(
             first_cycle=local(cycle),
             last_cycle=local(cycle + timedelta(hours=12)),
@@ -206,18 +206,18 @@ def test_workflow_cycles(atask, cycle, ready, tz):
         )
     )
     with (
-        patch.object(workflow, "_config", return_value=config),
+        patch.object(workflow, "_config", return_value=c),
         patch.object(workflow, "cycle", Mock(wraps=lambda _: atask(ready))) as cycle_,
     ):
         node = workflow.cycles()
     assert node.ready is ready
     assert node.taskname == "cycles"
-    assert [c.args for c in cycle_.call_args_list] == [
+    assert [x.args for x in cycle_.call_args_list] == [
         (cycle + timedelta(hours=12),),  # leading-edge first
         (cycle + timedelta(hours=6),),
         (cycle,),
     ]
-    assert all(c.args[0].tzinfo is UTC for c in cycle_.call_args_list)
+    assert all(x.args[0].tzinfo is UTC for x in cycle_.call_args_list)
 
 
 @mark.parametrize("ready", [True, False])
@@ -310,11 +310,11 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
 def test_workflow_realtime(atask, expected, freq, now, prune, tmp_path, utc):
     app = workflow.AppRealtime.model_construct(cycle_freq=timedelta(hours=freq), rundir=tmp_path)
     user = workflow.User(window_prune=prune, window_size=3)
-    config = workflow.ConfigRealtime.model_construct(app=app, user=user)
+    c = workflow.ConfigRealtime.model_construct(app=app, user=user)
     dt = Mock(wraps=datetime)
     dt.now.return_value = utc(2026, 10, 10, *now)
     with (
-        patch.object(workflow, "_config", return_value=config),
+        patch.object(workflow, "_config", return_value=c),
         patch.object(workflow, "_prune", Mock(wraps=lambda *_: atask(ready=True))) as _prune,
         patch.object(workflow, "cycle", Mock(wraps=lambda _: atask(ready=True))) as cycle,
         patch.object(workflow, "datetime", dt),
@@ -467,8 +467,8 @@ def test_workflow__config(test_config, model, expected_type):
     with patch.object(workflow, "realize_to_dict", return_value=test_config) as realize:
         workflow._config.cache_clear()
         try:
-            config = workflow._config(model)
-            assert isinstance(config, expected_type)
+            c = workflow._config(model)
+            assert isinstance(c, expected_type)
             realize.assert_called_once_with(workflow.CONFIG)
         finally:
             workflow._config.cache_clear()
