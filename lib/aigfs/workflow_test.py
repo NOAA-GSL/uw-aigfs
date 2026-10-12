@@ -36,35 +36,6 @@ def cycledirs(tmp_path):
 
 
 @fixture
-def workflow_config(tmp_path):
-    return {
-        "app": {
-            "cycle_freq": timedelta(hours=12),
-            "first_cycle": datetime(2026, 1, 1, tzinfo=UTC),
-            "home": tmp_path,
-            "last_cycle": datetime(2026, 1, 31, tzinfo=UTC),
-            "modeldir": tmp_path,
-            "platform": {"name": "ursa"},
-            "rundir": tmp_path,
-            "time": {
-                "fff": "006",
-                "hh": "00",
-                "m1_hh": "18",
-                "m1_yyyymmdd": "20260826",
-                "m2_hh": "12",
-                "m2_yyyymmdd": "20260826",
-                "m6h": timedelta(hours=6),
-                "yyyymmdd": "20260827",
-            },
-        },
-        "forecast": {},
-        "post": {},
-        "prep": {},
-        "user": {},
-    }
-
-
-@fixture
 def cycle(utc):
     return utc(2025, 10, 1, 18)
 
@@ -99,25 +70,25 @@ def driver(output: dict, rundir: Path) -> Mock:
 # Tests for validation classes:
 
 
-def test_workflow_AppCycles(workflow_config):
-    app = workflow.AppCycles.model_validate(workflow_config["app"])
+def test_workflow_AppCycles(test_config):
+    app = workflow.AppCycles.model_validate(test_config["app"])
     assert app.cycle_freq == timedelta(hours=12)
-    assert app.first_cycle == workflow_config["app"]["first_cycle"]
-    assert app.last_cycle == workflow_config["app"]["last_cycle"]
+    assert app.first_cycle == test_config["app"]["first_cycle"]
+    assert app.last_cycle == test_config["app"]["last_cycle"]
 
 
 @mark.parametrize("delete", [True, False])
 @mark.parametrize("field", ["cycle_freq", "first_cycle", "last_cycle"])
-def test_workflow_AppCycles__required(delete, field, with_del, with_set, workflow_config):
-    app = workflow_config["app"]
+def test_workflow_AppCycles__required(delete, field, with_del, with_set, test_config):
+    app = test_config["app"]
     app = with_del(app, field) if delete else with_set(app, None, field)
     with raises(ValidationError) as e:
         workflow.AppCycles.model_validate(app)
     assert e.value.errors()[0]["loc"] == (field,)
 
 
-def test_workflow_AppRealtime(workflow_config):
-    app_data = workflow_config["app"]
+def test_workflow_AppRealtime(test_config):
+    app_data = test_config["app"]
     del app_data["first_cycle"]
     del app_data["last_cycle"]
     app = workflow.AppRealtime.model_validate(app_data)
@@ -127,8 +98,8 @@ def test_workflow_AppRealtime(workflow_config):
 
 
 @mark.parametrize("delete", [True, False])
-def test_workflow_AppRealtime__required(delete, with_del, with_set, workflow_config):
-    app = workflow_config["app"]
+def test_workflow_AppRealtime__required(delete, with_del, with_set, test_config):
+    app = test_config["app"]
     app = with_del(app, "cycle_freq") if delete else with_set(app, None, "cycle_freq")
     with raises(ValidationError) as e:
         workflow.AppRealtime.model_validate(app)
@@ -148,14 +119,14 @@ def test_workflow_User():
         (workflow.ConfigRealtime, workflow.AppRealtime, True),
     ],
 )
-def test_workflow_Config(workflow_config, model, app_model, optional_cycles):
-    workflow_config["user"] = {"extra_setting": ["ok"], "window_prune": False, "window_size": 3}
+def test_workflow_Config(test_config, model, app_model, optional_cycles):
+    test_config["user"] = {"extra_setting": ["ok"], "window_prune": False, "window_size": 3}
     if optional_cycles:
-        del workflow_config["app"]["first_cycle"]
-        del workflow_config["app"]["last_cycle"]
-    config = model.model_validate(workflow_config)
+        del test_config["app"]["first_cycle"]
+        del test_config["app"]["last_cycle"]
+    config = model.model_validate(test_config)
     assert isinstance(config.app, app_model)
-    assert config.user.model_dump() == workflow_config["user"]
+    assert config.user.model_dump() == test_config["user"]
 
 
 @mark.parametrize("model", [workflow.ConfigCycles, workflow.ConfigRealtime])
@@ -169,24 +140,24 @@ def test_workflow_Config(workflow_config, model, app_model, optional_cycles):
         {"window_size": 3, "window_prune": 1},
     ],
 )
-def test_workflow_Config__user_bad(model, user, workflow_config):
-    workflow_config["user"] = user
+def test_workflow_Config__user_bad(model, user, test_config):
+    test_config["user"] = user
     with raises(ValidationError) as e:
-        model.model_validate(workflow_config)
+        model.model_validate(test_config)
     assert e.value.errors()[0]["loc"][0] == "user"
 
 
 @mark.parametrize("model", [workflow.ConfigCycles, workflow.ConfigRealtime])
-def test_workflow_Config__user_missing(model, with_del, workflow_config):
+def test_workflow_Config__user_missing(model, with_del, test_config):
     with raises(ValidationError) as e:
-        model.model_validate(with_del(workflow_config, "user"))
+        model.model_validate(with_del(test_config, "user"))
     assert e.value.errors()[0]["loc"] == ("user",)
 
 
 # Tests for public tasks:
 
 
-def test_workflow_config__exists(cfg, touch):
+def test_config__exists(cfg, touch):
     touch(cfg)
     with patch.object(workflow, "setup") as setup:
         node = workflow.config()
@@ -196,16 +167,16 @@ def test_workflow_config__exists(cfg, touch):
 
 
 @mark.usefixtures("cfg")
-def test_workflow_config__missing(config, tmp_path):
+def test_config__missing(test_config, tmp_path):
     setup = Mock()
-    setup.compose_configs.return_value = config
+    setup.compose_configs.return_value = test_config
     with patch.object(workflow, "setup", setup):
         node = workflow.config()
     assert not node.ready
     setup.compose_configs.assert_called_once_with(
         workflow=None, platform="oci", user_config_files=[tmp_path / "user.yaml"]
     )
-    setup.validate.assert_called_once_with(config)
+    setup.validate.assert_called_once_with(test_config)
     setup.set_up_rundir.assert_called_once_with(
         setup.validate.return_value, workflow=None, prefix="config"
     )
@@ -491,9 +462,9 @@ def test_workflow__cmd(cycle, cfg, tmp_path):
         (workflow.ConfigRealtime, workflow.ConfigRealtime),
     ],
 )
-def test_workflow__config(workflow_config, model, expected_type):
-    workflow_config["user"] = {"window_size": 2}
-    with patch.object(workflow, "realize_to_dict", return_value=workflow_config) as realize:
+def test_workflow__config(test_config, model, expected_type):
+    test_config["user"] = {"window_size": 2}
+    with patch.object(workflow, "realize_to_dict", return_value=test_config) as realize:
         workflow._config.cache_clear()
         try:
             config = workflow._config(model)

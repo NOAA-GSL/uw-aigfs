@@ -76,7 +76,7 @@ def config() -> Iterator:
     yield taskname
     yield Asset(CONFIG, CONFIG.is_file)
     yield None
-    user = PWD / "user.yaml"
+    user = APPDIR / "user.yaml"
     raw_config = setup.compose_configs(workflow=None, platform=STR.oci, user_config_files=[user])
     valid_config = setup.validate(raw_config)
     setup.set_up_rundir(valid_config, workflow=None, prefix=taskname)
