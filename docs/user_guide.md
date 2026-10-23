@@ -110,7 +110,7 @@ app:
 Create the composed `aigfs.yaml` config (supply additional user configs if needed):
 
 ```bash
-setup --platform <platform> --workflow rocoto|ecflow user.yaml [user.yaml ...]
+setup --platform <platform> --workflow rocoto|ecflow user.yaml
 ```
 
 Then `cd` to your run directory, where the following files/directories should be available:
@@ -173,7 +173,7 @@ Notes:
 - The `app` block supplies values required for all configurations of the application. Some must be supplied by the user, while others are injected automatically by automation. This block is validated by `setup`, which will exit with an informative error message if errors are detected.
 - The `app.cycle_freq`, `app.first_cycle`, `app.last_cycle` values are required if either of the top-level `ecflow` or `workflow` values are defined. Both the ecFlow and Rocoto workflow definitions require all three of these variables. Similarly, `app.first_cycle` and `app.last_cycle` must both be defined if either is defined, and `app.cycle_freq` must be defined when either of `app.first_cycle` or `app.last_cycle` is defined.
 - The `app.home` value is set to the root directory of the `uw-aigfs` git clone. If set in a user config, it will be overwritten by automation.
-- The `app.platform.name` value is taken from the first argument to `setup`. If set in a user config, it will be overwritten by automation.
+- The `app.platform.name` value is taken from the `--platform` argument to `setup`. If set in a user config, it will be overwritten by automation.
 - The `app.platform.partition` values may be set if driver and Rocoto configs use them to request specific batch partitions.
 - The `app.time.*` values are set in `etc/base.yaml`. A user config may override them, but this is unlikely to be useful. This block does not support additional content, but arbitrary keys and values may be defined in the top-level `user:` block.
 - The `forecast:`, `post:` and `prep:` blocks are described by their associated JSON Schema files under `lib/aigfs/drivers`. These blocks are validated when drivers are instantiated rather than by `setup`.
