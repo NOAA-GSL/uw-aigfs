@@ -42,27 +42,27 @@ class Workflow(BaseModel):
     window_size: PositiveInt
 
 
-class AppCycles(App):
+class AppRealtime(App):
+    cycle_freq: timedelta
+    workflow: Workflow
+
+
+class AppRetro(App):
     cycle_freq: timedelta
     first_cycle: datetime
     last_cycle: datetime
     workflow: Workflow
 
 
-class AppRealtime(App):
-    cycle_freq: timedelta
-    workflow: Workflow
-
-
-class ConfigCycles(Config):
-    app: AppCycles
-
-
 class ConfigRealtime(Config):
     app: AppRealtime
 
 
-ConfigT = TypeVar("ConfigT", ConfigCycles, ConfigRealtime)
+class ConfigRetro(Config):
+    app: AppRetro
+
+
+ConfigT = TypeVar("ConfigT", ConfigRetro, ConfigRealtime)
 
 # Public tasks:
 
@@ -101,7 +101,7 @@ def cycles() -> Iterator:
     # Process leading-edge cycles first.
 
     yield "cycles"
-    app = _config(ConfigCycles).app
+    app = _config(ConfigRetro).app
     dts = []
     dt, first = _utc(app.last_cycle), _utc(app.first_cycle)
     while dt >= first:

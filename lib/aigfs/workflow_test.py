@@ -70,25 +70,6 @@ def driver(output: dict, rundir: Path) -> Mock:
 # Tests for validation classes:
 
 
-def test_workflow_AppCycles(test_config):
-    test_config["app"]["workflow"] = {"window_size": 2}
-    app = workflow.AppCycles.model_validate(test_config["app"])
-    assert app.cycle_freq == timedelta(hours=12)
-    assert app.first_cycle == test_config["app"]["first_cycle"]
-    assert app.last_cycle == test_config["app"]["last_cycle"]
-
-
-@mark.parametrize("delete", [True, False])
-@mark.parametrize("field", ["cycle_freq", "first_cycle", "last_cycle"])
-def test_workflow_AppCycles__required(delete, field, with_del, with_set, test_config):
-    app = test_config["app"]
-    app["workflow"] = {"window_size": 2}
-    app = with_del(app, field) if delete else with_set(app, None, field)
-    with raises(ValidationError) as e:
-        workflow.AppCycles.model_validate(app)
-    assert e.value.errors()[0]["loc"] == (field,)
-
-
 def test_workflow_AppRealtime(test_config):
     app_data = test_config["app"]
     app_data["workflow"] = {"window_size": 2}
@@ -110,6 +91,25 @@ def test_workflow_AppRealtime__required(delete, with_del, with_set, test_config)
     assert e.value.errors()[0]["loc"] == ("cycle_freq",)
 
 
+def test_workflow_AppRetro(test_config):
+    test_config["app"]["workflow"] = {"window_size": 2}
+    app = workflow.AppRetro.model_validate(test_config["app"])
+    assert app.cycle_freq == timedelta(hours=12)
+    assert app.first_cycle == test_config["app"]["first_cycle"]
+    assert app.last_cycle == test_config["app"]["last_cycle"]
+
+
+@mark.parametrize("delete", [True, False])
+@mark.parametrize("field", ["cycle_freq", "first_cycle", "last_cycle"])
+def test_workflow_AppRetro__required(delete, field, with_del, with_set, test_config):
+    app = test_config["app"]
+    app["workflow"] = {"window_size": 2}
+    app = with_del(app, field) if delete else with_set(app, None, field)
+    with raises(ValidationError) as e:
+        workflow.AppRetro.model_validate(app)
+    assert e.value.errors()[0]["loc"] == (field,)
+
+
 def test_workflow_Workflow():
     workflow_ = workflow.Workflow(window_size=3)
     assert workflow_.remote_exec_forecast is None
@@ -120,7 +120,7 @@ def test_workflow_Workflow():
 @mark.parametrize(
     ("model", "app_model", "optional_cycles"),
     [
-        (workflow.ConfigCycles, workflow.AppCycles, False),
+        (workflow.ConfigRetro, workflow.AppRetro, False),
         (workflow.ConfigRealtime, workflow.AppRealtime, True),
     ],
 )
@@ -157,7 +157,7 @@ def test_workflow_Workflow__bad(settings):
         workflow.Workflow.model_validate(settings)
 
 
-@mark.parametrize("model", [workflow.ConfigCycles, workflow.ConfigRealtime])
+@mark.parametrize("model", [workflow.ConfigRetro, workflow.ConfigRealtime])
 def test_workflow_Config__workflow_missing(model, test_config):
     with raises(ValidationError) as e:
         model.model_validate(test_config)
@@ -200,8 +200,8 @@ def test_workflow_cycle(atask, cycle, ready):
 @mark.parametrize("ready", [True, False])
 def test_workflow_cycles(atask, cycle, ready, tz):
     local = lambda dt: dt.replace(tzinfo=None) if tz is None else dt.astimezone(tz)
-    c = workflow.ConfigCycles.model_construct(
-        app=workflow.AppCycles.model_construct(
+    c = workflow.ConfigRetro.model_construct(
+        app=workflow.AppRetro.model_construct(
             first_cycle=local(cycle),
             last_cycle=local(cycle + timedelta(hours=12)),
             cycle_freq=timedelta(hours=6),
@@ -472,7 +472,7 @@ def test_workflow__cmd(cycle, cfg, tmp_path):
     assert actual == expected
 
 
-@mark.parametrize("model", [workflow.ConfigCycles, workflow.ConfigRealtime])
+@mark.parametrize("model", [workflow.ConfigRetro, workflow.ConfigRealtime])
 def test_workflow__config(test_config, model):
     test_config["app"]["workflow"] = {"window_size": 2, "remote_exec_forecast": "foo"}
     with patch.object(workflow, "realize_to_dict", return_value=test_config) as realize:
