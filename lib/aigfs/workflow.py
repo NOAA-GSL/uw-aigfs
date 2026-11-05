@@ -89,7 +89,7 @@ def cycle(cycle_: CycleT) -> Iterator:
     """
     dt, taskname = _dt_taskname(cycle_, "cycle")
     yield taskname
-    yield prep(dt)
+    yield post(dt)
 
 
 @collection
