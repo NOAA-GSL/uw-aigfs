@@ -212,18 +212,41 @@ def test_validation_Config__cycle_range_with_engines(args_config, ecflow, workfl
     ("engine", "other_engine"),
     [("ecflow", "workflow"), ("workflow", "ecflow")],
 )
-def test_validation_Config__workflow_requires_cycle_range(args_config, engine, other_engine):
+def test_validation_Config__workflow_requires_cycle_freq(args_config, engine, other_engine):
     args_config[engine] = {}
     args_config[other_engine] = None
-    # While it would be an error for any of the following three cycle-range values to be None, we
-    # only need to test the case where ALL THREE are None because all the other cases are covered
-    # by different validation rules and their associated tests.
+    # Both engines need cycle_freq for cycle spacing, so a missing cycle_freq is rejected first,
+    # before any first_cycle/last_cycle requirement.
     args_config["app"]["cycle_freq"] = None
     args_config["app"]["first_cycle"] = None
     args_config["app"]["last_cycle"] = None
     with raises(
         ValueError,
-        match=f"cycle_freq, first_cycle, last_cycle must be defined when {engine} is defined",
+        match=f"cycle_freq must be defined when {engine} is defined",
+    ):
+        validation.Config(**args_config)
+
+
+def test_validation_Config__ecflow_realtime_without_bounds(args_config):
+    # ecFlow deduces its real-time window from the current time, so first_cycle/last_cycle are
+    # optional when only ecflow is defined.
+    args_config["ecflow"] = {}
+    args_config["workflow"] = None
+    args_config["app"]["first_cycle"] = None
+    args_config["app"]["last_cycle"] = None
+    assert validation.Config(**args_config)
+
+
+def test_validation_Config__rocoto_requires_bounds(args_config):
+    # Rocoto (the workflow block) always requires an explicit cycle range, even for a real-time
+    # configuration, so omitting first_cycle/last_cycle is an error.
+    args_config["ecflow"] = None
+    args_config["workflow"] = {}
+    args_config["app"]["first_cycle"] = None
+    args_config["app"]["last_cycle"] = None
+    with raises(
+        ValueError,
+        match=r"first_cycle and last_cycle must be defined when workflow \(Rocoto\) is defined",
     ):
         validation.Config(**args_config)
 

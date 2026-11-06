@@ -1,0 +1,83 @@
+#!/bin/bash
+
+# ensure-server: ensure a persistent ecFlow server is running for the real-time
+# ecFlow AIGFS workflow. Intended to run ON the dedicated ecFlow node (uecflow01
+# on Ursa), typically invoked over ssh by the real-time driver on a schedule.
+#
+# A non-blocking flock is the "is it already running?" mechanism: the ecFlow
+# server (started via "uw ecflow server") inherits and holds the lock for its
+# whole lifetime, so a second invocation while it runs cannot acquire the lock
+# and simply does nothing. If the server has died the lock is free, so this
+# invocation starts it again, recovering prior suite state from the checkpoint in
+# ECF_HOME. This is more robust than probing the server over the network, since
+# it needs no port/SSL round-trip.
+#
+# The server runs in a disowned background job with its streams redirected to
+# files, so it survives this (ssh) session and logout. The script returns
+# promptly; the caller waits until the server is reachable and moves it to the
+# RUNNING state.
+
+set -aeuo pipefail
+
+usage() {
+  echo "usage: $0 --rundir DIR --config FILE [--port PORT] [--platform NAME]" >&2
+  exit 2
+}
+
+platform=ursa
+rundir=
+config=
+port=
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+  --rundir)
+    rundir=$2
+    shift 2
+    ;;
+  --config)
+    config=$2
+    shift 2
+    ;;
+  --port)
+    port=$2
+    shift 2
+    ;;
+  --platform)
+    platform=$2
+    shift 2
+    ;;
+  *) usage ;;
+  esac
+done
+
+[[ -n $rundir && -n $config ]] || usage
+
+# Default to a per-user port, which avoids collisions with other users' ecFlow
+# servers on the shared ecFlow node and is deterministic: the driver, running as
+# the same user, computes the same value.
+port=${port:-$(($(id -u) + 1500))}
+
+# Resolve the clone root from this script's location (<clone>/<install>/bin/ensure-server).
+self=$(readlink -f "$0")
+install=$(dirname "$(dirname "$self")")
+clone=$(dirname "$install")
+
+mkdir -p "$rundir"
+cd "$rundir"
+
+server() {
+  echo "Starting ecFlow server on $(hostname):$port at $(date -u)" >&2
+  # shellcheck source=/dev/null
+  source "$clone/bin/activate-$platform"
+  uw ecflow server --config-file "$config" --port "$port" --report >server.json
+}
+
+run() {
+  # The server inherits the lock fd and holds it until it exits, so a concurrent
+  # invocation's "flock -n" fails and does nothing.
+  flock -n server.lock -c server
+}
+
+run </dev/null >>server.log 2>&1 &
+disown
