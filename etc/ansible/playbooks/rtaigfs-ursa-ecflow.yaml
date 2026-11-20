@@ -1,0 +1,19 @@
+---
+# Deploys the ecFlow real-time application directory (app-ecflow/). Scheduling (cron) and the
+# production report are handled once, for both streams, by the rtaigfs-ursa-all playbook,
+# so this playbook installs no crontab.
+- name: Configure rtaigfs-ursa-ecflow
+  hosts: localhost
+  gather_facts: true
+
+  vars_files:
+    - ../roles/rtaigfs_ursa_ecflow/defaults/main.yaml
+
+  vars:
+    rtaigfs_app: "{{ rtaigfs_ecflow_install_dir | realpath }}"
+    rtaigfs_app_keep: run
+    rtaigfs_app_role: rtaigfs_ursa_ecflow
+
+  tasks:
+    - name: Deploy app-ecflow/
+      ansible.builtin.include_tasks: tasks/deploy-app.yaml

@@ -66,7 +66,7 @@ make env
 
 This installs [Miniforge](https://github.com/conda-forge/miniforge) and creates the `aigfs` conda environment defined by `etc/env/aigfs.yaml`.
 
-(If you need an environment that includes developer tools (linters, test frameworks, etc.), see the [Developer Guide](contributor_guide.md).)
+(If you need an environment that includes developer tools (linters, test frameworks, etc.), see the [Contributor Guide](contributor_guide.md).)
 
 Once the environment is built, activate it for a given platform by sourcing the module loader from the repository root:
 
