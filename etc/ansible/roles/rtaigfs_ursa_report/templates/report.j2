@@ -6,7 +6,7 @@
 ;; Select recipients at deployment time, not when the report runs.
 (def RECIPIENTS {{ (
   'anna.smoot@noaa.gov christina.holt@noaa.gov emily.l.carpenter@noaa.gov paul.madden@noaa.gov'
-  if ansible_facts['user_id'] == rtaigfs_service_user
+  if ansible_facts['user_id'] == rtaigfs_user
   else ansible_facts['user_id']
 ) | to_json }})
 
