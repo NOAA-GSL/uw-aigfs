@@ -184,7 +184,7 @@ Additionally, each Python `.py` module is accompanied by a `_test.py` unit-test 
 
 **Configuration** follows the `uwtools` YAML model. `etc/base.yaml` is the baseline; it is merged with workflow and platform configs, then with any user-provided YAML configs by `bin/setup` using `uwtools.api.config.compose`. The resulting `aigfs.yaml` is the single source of truth at runtime.
 
-**Workflow** is managed by [Rocoto](https://github.com/NOAA-GSL/rocoto). The `etc/workflow/rocoto.yaml` template is realized by `uwtools` to produce `rocoto.xml`. Task dependencies (prep → forecast → post) are expressed in that template.
+**Workflow** support is provided for both [Rocoto](https://github.com/NOAA-GSL/rocoto) and [ecFlow](https://ecflow.readthedocs.io/en/latest/). The `etc/workflow/<engine>.yaml` configs are realized by `uwtools` to produce the appropriate workflow runtime artifacts. Task dependencies (prep → forecast → post) are expressed in those configs.
 
 When adding a new workflow stage, you will typically need to:
 
@@ -197,7 +197,7 @@ When adding a new workflow stage, you will typically need to:
 
 ## Deploying Realtime AIGFS on Ursa
 
-Realtime AIGFS on Ursa runs two workflow streams side by side under the `role.rtaigfs` account, one driven by Rocoto and one by ecFlow, so that the two workflow engines can be compared. The `rtaigfs-ursa-all` Ansible playbook deploys both, along with a shared daily report and a `crontab` that schedules both streams and the report.
+Realtime AIGFS on Ursa runs two workflow streams side by side under the `role.rtaigfs` account, one driven by ecFlow and one by Rocoto, so that the two workflow engines can be compared. The `rtaigfs-ursa-all` Ansible playbook deploys both, along with a shared daily report and a `crontab` that schedules both streams and the report.
 
 ### Production User Deploy Procedure
 
@@ -210,7 +210,7 @@ make env
 make deploy playbook=rtaigfs-ursa-all
 ```
 
-This creates the `app-rocoto/`, `app-ecflow/`, and `report/` directories described in [Application Directory Layout](#application-directory-layout) and installs the `crontab`. `crontab -l` should show one entry that runs the Rocoto stream (`app-rocoto/bin/run`), one that runs the ecFlow stream (`app-ecflow/bin/run`), and one that emails the daily production report.
+This creates the `app-ecflow`, `app-rocoto/`, and `report/` directories described in [Application Directory Layout](#application-directory-layout) and installs the `crontab`. `crontab -l` should show one entry that runs the ecFlow stream (`app-ecflow/bin/run`), one that runs the Rocoto stream (`app-rocoto/bin/run`), and one that emails the daily production report.
 
 The ecFlow driver starts the ecFlow server on `uecflow01` when needed, so no manual server setup is required. See [The ecFlow Stream](#the-ecflow-stream) for details.
 
@@ -230,18 +230,18 @@ The `crontab` is installed only for `role.rtaigfs`, so a developer can deploy un
 
 1. Deploy both streams: `make deploy playbook=rtaigfs-ursa-all`.
 1. Check each stream's configuration and edit as needed:
-   - `app-rocoto/rtaigfs.yaml`, especially `app.platform.scheduler.account`.
    - `app-ecflow/rtaigfs.yaml`, especially `app.platform.scheduler.account`.
+   - `app-rocoto/rtaigfs.yaml`, especially `app.platform.scheduler.account`.
 1. Run each stream's main automation script repeatedly to execute its workflow:
-   - Rocoto: `app-rocoto/bin/run`
    - ecFlow: `app-ecflow/bin/run`
+   - Rocoto: `app-rocoto/bin/run`
 1. When finished, [stop your ecFlow server](#operate-and-monitor), which keeps running after `run` exits. It uses its own per-user port, so it does not affect the production server.
 
 Running `report/bin/bb report/report` by hand emails the production recipient list.
 
 #### Deploying a Single Stream
 
-The `rtaigfs-ursa-rocoto` and `rtaigfs-ursa-ecflow` playbooks each install only one stream's application directory, with no report and no `crontab`. They can speed up iteration on one stream, but test both streams before opening a PR.
+The `rtaigfs-ursa-ecflow` and `rtaigfs-ursa-rocoto` playbooks each install only one stream's application directory, with no report and no `crontab`. They can speed up iteration on one stream, but test both streams before opening a PR.
 
 ### The ecFlow Stream
 
@@ -278,10 +278,24 @@ eval "$(jq -r 'to_entries | .[] | "export \(.key)=\(.value)"' app-ecflow/run/ser
 A deployment creates the following directories in the git clone:
 
 ```
-app-rocoto/ # Rocoto stream
 app-ecflow/ # ecFlow stream
+app-rocoto/ # Rocoto stream
 report/     # Shared daily production report
 ```
+
+#### ecFlow
+
+```
+app-ecflow/
+├── bin              # Executables
+├── model            # AIGFS model files
+├── rtaigfs.log      # Log file from latest run
+├── rtaigfs.log.last # Log file from previous run (created after first run)
+├── rtaigfs.yaml     # Parameterized configuration (no first_cycle/last_cycle)
+└── run              # Root of yyyymmddhh cycle run directories and ecFlow server state
+```
+
+The `run/` directory holds one `yyyymmddhh/` run directory per cycle, the fully realized config (`aigfs.yaml`), the suite definition (`suite.def`), the server's connection settings (`server.json`) and startup log (`server.log`), and the ecFlow `ECF_HOME` (`ecf/`, with the generated ecf scripts, task output, and the server's checkpoint and log).
 
 #### Rocoto
 
@@ -309,20 +323,6 @@ The structure of a `yyyymmddhh` cycle run directory is as follows:
 ├── rocoto_lock.db   # Rocoto database lockfile
 └── rocoto.xml       # Rocoto workflow document
 ```
-
-#### ecFlow
-
-```
-app-ecflow/
-├── bin              # Executables
-├── model            # AIGFS model files
-├── rtaigfs.log      # Log file from latest run
-├── rtaigfs.log.last # Log file from previous run (created after first run)
-├── rtaigfs.yaml     # Parameterized configuration (no first_cycle/last_cycle)
-└── run              # Root of yyyymmddhh cycle run directories and ecFlow server state
-```
-
-The `run/` directory holds one `yyyymmddhh/` run directory per cycle, the fully realized config (`aigfs.yaml`), the suite definition (`suite.def`), the server's connection settings (`server.json`) and startup log (`server.log`), and the ecFlow `ECF_HOME` (`ecf/`, with the generated ecf scripts, task output, and the server's checkpoint and log).
 
 #### Report
 
