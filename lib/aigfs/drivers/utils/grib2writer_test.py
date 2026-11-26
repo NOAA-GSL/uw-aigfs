@@ -331,7 +331,7 @@ def test_drivers_utils_grib2writer_save_grib2_precip_scaled(writer, ds, tmp_path
 def test_drivers_utils_grib2writer_save_grib2_sendecf(writer, ds, tmp_path, logcap):
     # When SENDECF is set, subprocess is called.
     script = tmp_path / "setevent.sh"
-    script.write_text("#!/bin/bash\nexit 0\n")
+    script.write_text("#!/usr/bin/env bash\nexit 0\n")
     script.chmod(0o755)
     env = {"SENDECF": "YES", "SETEVENTSH": str(script)}
     with patch.dict(os.environ, env):

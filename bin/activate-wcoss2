@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 run=$(readlink -f $(dirname ${BASH_SOURCE[0]}))/run
 module use $($run rootdir)/modulefiles

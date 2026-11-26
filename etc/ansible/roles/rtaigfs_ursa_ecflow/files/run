@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # run: advance the ecFlow AIGFS real-time rolling window once. Intended to be
 # invoked periodically (e.g. from cron). A non-blocking flock ensures that only

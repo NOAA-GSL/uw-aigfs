@@ -28,7 +28,7 @@
     - name: Save crontab
       ansible.builtin.shell:
         cmd: "crontab -l >{{ rtaigfs_all_crontab_save }} 2>/dev/null || : >{{ rtaigfs_all_crontab_save }}"
-        executable: /bin/bash
+        executable: bash
       changed_when: false
       when: rtaigfs_all_is_service_user
 
