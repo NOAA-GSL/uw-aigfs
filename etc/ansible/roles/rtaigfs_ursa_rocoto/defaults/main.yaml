@@ -3,4 +3,4 @@ rtaigfs_rocoto_bin_dir: "{{ rtaigfs_rocoto_install_dir | realpath }}/bin"
 rtaigfs_rocoto_install_dir: "{{ playbook_dir }}/../../../app-rocoto"
 rtaigfs_rocoto_model_archive: aigfs-v1.1.tgz
 rtaigfs_rocoto_model_archive_path: "/home/{{ rtaigfs_rocoto_user }}/models/{{ rtaigfs_rocoto_model_archive }}"
-rtaigfs_rocoto_user: role.rtaigfs
+rtaigfs_rocoto_user: "{{ rtaigfs_user }}"

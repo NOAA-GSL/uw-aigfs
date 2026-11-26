@@ -151,21 +151,21 @@ class Config(BaseModel):
     forecast: dict
     post: dict
     prep: dict
+    rocoto: dict | None = None
     user: dict | None = None
-    workflow: dict | None = None
 
     @model_validator(mode="after")
-    def cycle_range_vs_workflow(self) -> "Config":
-        # Both engines need cycle_freq. Rocoto (the workflow block) also needs first_cycle and
-        # last_cycle, even in real time; ecFlow can choose its cycles from the current time.
-        if (self.ecflow is not None or self.workflow is not None) and self.app.cycle_freq is None:
-            engine = "ecflow" if self.ecflow is not None else "workflow"
-            msg = f"cycle_freq must be defined when {engine} is defined"
+    def cycle_range(self) -> "Config":
+        # Both engines need cycle_freq. Rocoto also needs first_cycle and last_cycle, even in real
+        # time; ecFlow can choose its cycles from the current time.
+        if (self.ecflow is not None or self.rocoto is not None) and self.app.cycle_freq is None:
+            engine = "ecflow" if self.ecflow is not None else "rocoto"
+            msg = f"cycle_freq must be defined when '{engine}' is defined"
             raise ValueError(msg)
-        if self.workflow is not None and (
+        if self.rocoto is not None and (
             self.app.first_cycle is None or self.app.last_cycle is None
         ):
-            msg = "first_cycle and last_cycle must be defined when workflow (Rocoto) is defined"
+            msg = "first_cycle and last_cycle must be defined when 'rocoto' is defined"
             raise ValueError(msg)
         return self
 

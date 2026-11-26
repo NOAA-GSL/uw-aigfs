@@ -18,7 +18,7 @@
     rtaigfs_all_crontab_save: "{{ rtaigfs_all_root }}/rtaigfs-crontab.{{ rtaigfs_all_save_ts }}"
     rtaigfs_all_is_service_user: "{{ ansible_facts['user_id'] == rtaigfs_all_user }}"
     rtaigfs_all_root: "{{ lookup('ansible.builtin.env', 'PWD') }}"
-    rtaigfs_all_user: role.rtaigfs
+    rtaigfs_all_user: "{{ rtaigfs_user }}"
 
   pre_tasks:
     - name: Set timestamp

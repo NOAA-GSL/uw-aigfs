@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # ensure-server: start the real-time ecFlow server on the ecFlow node if it is not already
 # running. The driver runs this over ssh. The server holds a non-blocking flock for its whole

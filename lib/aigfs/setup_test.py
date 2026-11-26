@@ -52,7 +52,7 @@ def test_setup_INCLUDE_DIR__ecflow_tail_uses_ssl():
     assert "ecflow_client --complete" in text
 
 
-@mark.parametrize("workflow", [STR.rocoto, STR.ecflow, None])
+@mark.parametrize("workflow", [STR.ecflow, STR.rocoto, None])
 def test_setup_compose_configs(logcap, tmp_path, workflow):
     platform = "ursa"
     user_config_files = [Path("/path/to/a.yaml")]
@@ -105,7 +105,7 @@ def test_setup_compose_configs_rundir(tmp_path):
     assert YAMLConfig(reserved_path) == expected
 
 
-@mark.parametrize("workflow", [STR.rocoto, STR.ecflow, None])
+@mark.parametrize("workflow", [STR.ecflow, STR.rocoto, None])
 def test_setup_main(workflow):
     with (
         patch.object(setup, "compose_configs") as compose_configs,
