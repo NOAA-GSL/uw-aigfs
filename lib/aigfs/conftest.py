@@ -59,8 +59,8 @@ def test_config(tmp_path):
         "forecast": {},
         "post": {},
         "prep": {},
+        "rocoto": None,
         "user": {},
-        "workflow": None,
     }
 
 

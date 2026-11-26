@@ -26,7 +26,7 @@ def args_app(args_platform, args_time, tmp_path, utc):
 
 @fixture
 def args_config(args_app):
-    return dict(app=args_app, ecflow={}, forecast={}, post={}, prep={}, user={}, workflow={})
+    return dict(app=args_app, ecflow={}, forecast={}, post={}, prep={}, rocoto={}, user={})
 
 
 @fixture
@@ -198,19 +198,19 @@ def test_validation_Config(args_config, with_del):
 
 
 @mark.parametrize(
-    ("ecflow", "workflow"),
+    ("ecflow", "rocoto"),
     [(None, None), ({}, None), (None, {}), ({}, {})],
 )
-def test_validation_Config__cycle_range_with_engines(args_config, ecflow, workflow):
-    # Any combination of ecflow / workflow is ok if the cycle-range parameters are defined:
+def test_validation_Config__cycle_range_with_engines(args_config, ecflow, rocoto):
+    # Any combination of ecflow / rocoto is ok if the cycle-range parameters are defined:
     args_config["ecflow"] = ecflow
-    args_config["workflow"] = workflow
+    args_config["rocoto"] = rocoto
     assert validation.Config(**args_config)
 
 
 @mark.parametrize(
     ("engine", "other_engine"),
-    [("ecflow", "workflow"), ("workflow", "ecflow")],
+    [("ecflow", "rocoto"), ("rocoto", "ecflow")],
 )
 def test_validation_Config__workflow_requires_cycle_freq(args_config, engine, other_engine):
     args_config[engine] = {}
@@ -222,7 +222,7 @@ def test_validation_Config__workflow_requires_cycle_freq(args_config, engine, ot
     args_config["app"]["last_cycle"] = None
     with raises(
         ValueError,
-        match=f"cycle_freq must be defined when {engine} is defined",
+        match=f"cycle_freq must be defined when '{engine}' is defined",
     ):
         validation.Config(**args_config)
 
@@ -231,22 +231,22 @@ def test_validation_Config__ecflow_realtime_without_bounds(args_config):
     # ecFlow deduces its real-time window from the current time, so first_cycle/last_cycle are
     # optional when only ecflow is defined.
     args_config["ecflow"] = {}
-    args_config["workflow"] = None
+    args_config["rocoto"] = None
     args_config["app"]["first_cycle"] = None
     args_config["app"]["last_cycle"] = None
     assert validation.Config(**args_config)
 
 
 def test_validation_Config__rocoto_requires_bounds(args_config):
-    # Rocoto (the workflow block) always requires an explicit cycle range, even for a real-time
-    # configuration, so omitting first_cycle/last_cycle is an error.
+    # Rocoto always requires an explicit cycle range, even for a real-time configuration, so
+    # omitting first_cycle/last_cycle is an error.
     args_config["ecflow"] = None
-    args_config["workflow"] = {}
+    args_config["rocoto"] = {}
     args_config["app"]["first_cycle"] = None
     args_config["app"]["last_cycle"] = None
     with raises(
         ValueError,
-        match=r"first_cycle and last_cycle must be defined when workflow \(Rocoto\) is defined",
+        match=r"first_cycle and last_cycle must be defined when 'rocoto' is defined",
     ):
         validation.Config(**args_config)
 
@@ -254,7 +254,7 @@ def test_validation_Config__rocoto_requires_bounds(args_config):
 def test_validation_Config__optional_cycles_without_engine(args_config):
     # This is fine:
     args_config["ecflow"] = None
-    args_config["workflow"] = None
+    args_config["rocoto"] = None
     args_config["app"]["cycle_freq"] = None
     args_config["app"]["first_cycle"] = None
     args_config["app"]["last_cycle"] = None
