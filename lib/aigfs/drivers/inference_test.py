@@ -42,7 +42,7 @@ def driverobj(config, cycle):
     return inference.AIGFSInference(
         config=config,
         cycle=cycle,
-        schema_file=Path(__file__).parent / "inference.jsonschema",
+        schema_file=Path(__file__).parent / "aigfs_inference.jsonschema",
     )
 
 

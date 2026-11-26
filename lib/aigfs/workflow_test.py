@@ -565,7 +565,7 @@ def test_workflow__passthrough_logger(capsys):
 
 def test_workflow__schema():
     path = workflow._schema(AIGFSInference)
-    assert path.name == "inference.jsonschema"
+    assert path.name == "aigfs_inference.jsonschema"
     assert path.is_file()
 
 

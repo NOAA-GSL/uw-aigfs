@@ -339,7 +339,8 @@ def _passthrough_logger() -> logging.Logger:
 
 
 def _schema(cls: type) -> Path:
-    return Path(inspect.getfile(cls)).with_suffix(".jsonschema")
+    path = Path(inspect.getfile(cls))
+    return path.with_name("aigfs_%s.jsonschema" % path.stem)
 
 
 def _utc(dt: datetime) -> datetime:

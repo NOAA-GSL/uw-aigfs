@@ -84,7 +84,8 @@ def utc():
 @fixture
 def validator():
     def validator(module: ModuleType, outdir: Path, *args: Any) -> Callable:
-        schema = json.loads(Path(cast(str, module.__file__)).with_suffix(".jsonschema").read_text())
+        modpath = Path(cast(str, module.__file__))
+        schema = json.loads(modpath.with_name("aigfs_%s.jsonschema" % modpath.stem).read_text())
         defs = schema.get("$defs", {})
         for arg in args:
             schema = schema[arg]
