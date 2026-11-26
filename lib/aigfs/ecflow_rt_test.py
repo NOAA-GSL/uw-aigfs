@@ -209,7 +209,20 @@ def test_ecflow_rt_wait_until_running_retries_then_succeeds():
     client.ping.side_effect = [RuntimeError("not up"), None]
     with patch("ecflow.Client", return_value=client), patch.object(ecflow_rt, "sleep") as sleep:
         ecflow_rt.wait_until_running("host", 20, attempts=5, delay=0.0)
+    assert client.enable_ssl.call_count == 2
     assert client.ping.call_count == 2
+    sleep.assert_called_once_with(0.0)
+    client.restart_server.assert_called_once()
+
+
+def test_ecflow_rt_wait_until_running_retries_until_certs_exist():
+    # enable_ssl() raises until the newly started server has created its certificates.
+    client = Mock()
+    client.enable_ssl.side_effect = [RuntimeError("no certificate"), None]
+    with patch("ecflow.Client", return_value=client), patch.object(ecflow_rt, "sleep") as sleep:
+        ecflow_rt.wait_until_running("host", 20, attempts=5, delay=0.0)
+    assert client.enable_ssl.call_count == 2
+    client.ping.assert_called_once()
     sleep.assert_called_once_with(0.0)
     client.restart_server.assert_called_once()
 
