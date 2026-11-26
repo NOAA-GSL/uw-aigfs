@@ -237,8 +237,6 @@ The `crontab` is installed only for `role.rtaigfs`, so a developer can deploy un
    - Rocoto: `app-rocoto/bin/run`
 1. When finished, [stop your ecFlow server](#operate-and-monitor), which keeps running after `run` exits. It uses its own per-user port, so it does not affect the production server.
 
-Running `report/bin/bb report/report` by hand emails the production recipient list.
-
 #### Deploying a Single Stream
 
 The `rtaigfs-ursa-ecflow` and `rtaigfs-ursa-rocoto` playbooks each install only one stream's application directory, with no report and no `crontab`. They can speed up iteration on one stream, but test both streams before opening a PR.
