@@ -31,7 +31,7 @@ rocoto:
         timedep:
           cyclestr:
             attrs:
-              offset: "03:45:00" # Current 0h forecasts hit /public at 3:42.
+              offset: "04:00:00" # post cycle-start time to begin
             value: "@Y@m@d@H@M@S"
     metatask_post:
       task_post_#fhr#:

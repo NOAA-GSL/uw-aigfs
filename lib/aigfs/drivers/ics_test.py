@@ -44,7 +44,7 @@ def driverobj(config, cycle):
         config=config,
         cycle=cycle,
         batch=True,
-        schema_file=Path(__file__).parent / "ics.jsonschema",
+        schema_file=Path(__file__).parent / "aigfs_ics.jsonschema",
     )
 
 

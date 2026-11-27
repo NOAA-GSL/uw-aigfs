@@ -38,7 +38,7 @@ def driverobj(config, cycle):
         config=config,
         cycle=cycle,
         leadtime=timedelta(hours=6),
-        schema_file=Path(__file__).parent / "post.jsonschema",
+        schema_file=Path(__file__).parent / "aigfs_post.jsonschema",
     )
 
 

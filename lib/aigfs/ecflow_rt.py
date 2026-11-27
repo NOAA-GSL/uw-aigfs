@@ -1,21 +1,16 @@
 """
 Real-time ecFlow rolling-window driver for AIGFS.
 
-Advances an open-ended, real-time ecFlow suite ("rtaigfs") whose window of cycles
-is deduced from the current time rather than specified explicitly via first_cycle/last_cycle.
-Each invocation (typically from a periodic cron job):
+Advances an open-ended, real-time ecFlow suite ("rtaigfs") whose window of cycles is deduced from
+the current time rather than specified explicitly via first_cycle/last_cycle. Each invocation:
 
-  1. ensures the ecFlow server is up on the ecFlow node (via the ensure-server
-     script, run over ssh),
-  2. deduces the active window of cycles and gates out cycles whose GFS data is
-     not yet expected (now < cycle + DATA_OFFSET),
-  3. renders the suite definition for the gated window (families keyed by cycle),
-  4. incrementally syncs the server: adds families for new cycles, deletes
-     families for cycles that have aged out of the window, forces a checkpoint,
-  5. prunes trailing-edge cycle directories beyond the retention window.
-
-This mirrors the Rocoto real-time rolling window (active_cycles / window_cycles)
-while generating aigfs.yaml exactly once and advancing the suite in place.
+  1. Ensures the ecFlow server is running on the ecFlow node via the ensure-server script, run over
+     ssh;
+  2. Deduces the active window of cycles and gates out cycles whose GFS data is not yet expected;
+  3. Renders the suite definition for the gated window;
+  4. Incrementally syncs the server (adds families for new cycles, deletes families for cycles that
+     have aged out of the window, forces a checkpoint);
+  5. Prunes trailing-edge cycle directories beyond the retention window.
 """
 
 from __future__ import annotations
@@ -44,32 +39,33 @@ CYCLE_FMT = "%Y%m%dT%H%M%S"
 WORKFLOW = "ecflow-realtime"
 RTCYCLES_ENV = "RTCYCLES"
 
-# GFS data-availability cutoff: a cycle's inputs are not expected until this long
-# after the cycle time. Matches the Rocoto real-time stream's 03:45 cutoff
-# (current-cycle analysis reaches /public at 03:42); cf. rtaigfs_ursa_rocoto/files/rtaigfs.yaml.
-DATA_OFFSET = timedelta(hours=3, minutes=45)
+# Post cycle-start time to begin.
 
-# Defaults mirroring the Rocoto rolling window (active_cycles / window_cycles).
+DATA_OFFSET = timedelta(hours=4, minutes=0)
+
 DEFAULT_ACTIVE_CYCLES = 4
 DEFAULT_WINDOW_CYCLES = 12
 
 # Offset added to the user id to give each user a distinct default ecFlow port.
+
 PORT_BASE = 1500
 
 
 def default_port() -> int:
-    """Return the per-user default ecFlow port (user id + PORT_BASE)."""
+    """
+    Return the per-user default ecFlow port.
+    """
     return os.getuid() + PORT_BASE
 
 
-# Cycle math (pure)
+# Cycle math
 
 
 def deduce_cycles(now: datetime, cycle_freq: timedelta, count: int) -> list[datetime]:
     """
     Return the latest `count` cycles, newest first.
 
-    The newest cycle is the most recent cycle_freq boundary at or before `now`.
+    The newest cycle is the most recent `cycle_freq` boundary at or before `now`.
     """
     secs = cycle_freq.total_seconds()
     ts = now.timestamp()
@@ -83,14 +79,16 @@ def gated_cycles(
     """
     Return the subset of `cycles` whose data-availability cutoff has passed.
 
-    A cycle is included when now >= cycle + offset; cycles whose GFS data is not
-    yet expected are withheld.
+    A cycle is included when now >= cycle + offset; cycles whose GFS data is not yet expected are
+    withheld.
     """
     return [c for c in cycles if now >= _utc(c) + offset]
 
 
 def family_name(cycle: datetime) -> str:
-    """Return the ecFlow family name for a cycle (matches ecflow-realtime.yaml)."""
+    """
+    Return the ecFlow family name for a cycle.
+    """
     return "cycle_%s" % _utc(cycle).strftime(CYCLE_FMT)
 
 
@@ -107,9 +105,9 @@ def render_suite(
     """
     Render suite.def and ecf scripts for the given window of cycles into rundir.
 
-    The cycle list is passed to the suite template via the RTCYCLES environment
-    variable. aigfs.yaml (the task config) is written once and left in place on
-    subsequent invocations, since its content does not depend on the window.
+    The cycle list is passed to the suite template via the RTCYCLES environment variable. aigfs.yaml
+    (the task config) is written once and left in place on subsequent invocations, since its content
+    does not depend on the window.
     """
     os.environ[RTCYCLES_ENV] = ",".join(_utc(c).strftime(CYCLE_FMT) for c in cycles)
     # Supply a concrete app.rundir so nested, cycle-parameterized rundir templates (e.g.
@@ -136,7 +134,9 @@ def render_suite(
 
 
 def _client(host: str, port: int):
-    """Return an SSL-enabled ecFlow client for the given host/port."""
+    """
+    Return an SSL-enabled ecFlow client for the given host/port.
+    """
     from ecflow import Client  # type: ignore[import-untyped]  # noqa: PLC0415
 
     client = Client(host, str(port))
@@ -148,13 +148,17 @@ def wait_until_running(host: str, port: int, *, attempts: int = 60, delay: float
     """
     Wait until the ecFlow server is reachable, then move it to the RUNNING state.
 
-    ensure-server starts the server in the background and returns immediately, so
-    the server may not be accepting connections yet. A freshly started server (or
-    one recovered from a checkpoint) comes up HALTED, so restart it to RUNNING.
+    ensure-server starts the server in the background and returns immediately, so the server may not
+    be accepting connections yet. A freshly started server (or one recovered from a checkpoint)
+    comes up HALTED, so restart it to RUNNING.
+
+    The client is created inside the retry loop because enable_ssl() raises an exception if the
+    server's SSL certificates do not exist yet, and a newly started server may still be creating
+    them.
     """
-    client = _client(host, port)
     for _ in range(attempts):
         try:
+            client = _client(host, port)
             client.ping()
         except RuntimeError:
             sleep(delay)
@@ -175,9 +179,9 @@ def sync_window(
     """
     Incrementally bring the server's rtaigfs suite into line with `cycles`.
 
-    Load (and begin) the suite if absent, otherwise add families for new cycles
-    and delete families for cycles that have aged out. Force a checkpoint
-    afterward so a hard server crash does not lose the change.
+    Load (and begin) the suite if absent, otherwise add families for new cycles and delete families
+    for cycles that have aged out. Force a checkpoint afterward so a hard server crash does not
+    lose the change.
     """
     client = _client(host, port)
     suite_def = str(rundir / "suite.def")
@@ -208,7 +212,9 @@ def sync_window(
 
 
 def prune_cycle_dirs(rundir: Path, keep: int) -> None:
-    """Remove trailing-edge per-cycle directories (YYYYMMDDHH), keeping the newest `keep`."""
+    """
+    Remove trailing-edge per-cycle directories, keeping the newest `keep`.
+    """
     if not rundir.is_dir():
         return
     is_cycledir = lambda p: p.is_dir() and re.match(r"^\d{10}$", p.name)
@@ -222,7 +228,9 @@ def prune_cycle_dirs(rundir: Path, keep: int) -> None:
 
 
 def ensure_server(install: Path, ecflow_host: str, rundir: Path, port: int, platform: str) -> None:
-    """Run ensure-server on the ecFlow node over ssh to start/recover the server."""
+    """
+    Run `ensure-server` on the ecFlow node over ssh to start/recover the server.
+    """
     cmd = [
         "ssh",
         "-o",
@@ -246,7 +254,9 @@ def ensure_server(install: Path, ecflow_host: str, rundir: Path, port: int, plat
 
 
 def drive(args: argparse.Namespace) -> None:
-    """Advance the real-time window by one step."""
+    """
+    Advance the real-time window by one step.
+    """
     install = Path(args.install).resolve()
     user_config = Path(args.config)
 
@@ -279,16 +289,44 @@ def drive(args: argparse.Namespace) -> None:
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Advance the real-time ecFlow AIGFS window.")
-    parser.add_argument("--config", required=True, help="path to the real-time user config YAML")
-    parser.add_argument("--install", required=True, help="role install directory (contains bin/)")
-    parser.add_argument("--ecflow-host", required=True, help="dedicated ecFlow node hostname")
-    parser.add_argument(
-        "--port", type=int, help="ecFlow server port (default: user id + %d)" % PORT_BASE
+    parser = argparse.ArgumentParser(
+        description="Advance the real-time ecFlow AIGFS window.",
     )
-    parser.add_argument("--platform", default="ursa", help="platform name")
-    parser.add_argument("--render-only", action="store_true", help="render suite.def only")
-    parser.add_argument("--verbose", action="store_true", help="enable verbose logging")
+    parser.add_argument(
+        "--config",
+        required=True,
+        help="path to the real-time user config YAML",
+    )
+    parser.add_argument(
+        "--install",
+        required=True,
+        help="role install directory (contains bin/)",
+    )
+    parser.add_argument(
+        "--ecflow-host",
+        required=True,
+        help="dedicated ecFlow node hostname",
+    )
+    parser.add_argument(
+        "--port",
+        type=int,
+        help="ecFlow server port (default: user id + %d)" % PORT_BASE,
+    )
+    parser.add_argument(
+        "--platform",
+        default="ursa",
+        help="platform name",
+    )
+    parser.add_argument(
+        "--render-only",
+        action="store_true",
+        help="render suite.def only",
+    )
+    parser.add_argument(
+        "--verbose",
+        action="store_true",
+        help="enable verbose logging",
+    )
     return parser.parse_args(argv)
 
 

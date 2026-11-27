@@ -190,7 +190,7 @@ When adding a new workflow stage, you will typically need to:
 
 1. Add a new driver module in `lib/aigfs/drivers/`.
 1. Add a unit-test module alongside the driver module.
-1. Add a `.jsonschema` file for validation of the driver's config alongside the driver module.
+1. Add a `<driver-name>.jsonschema` file for validation of the driver's config alongside the driver module. The value of `<driver-name>` should be taken from the driver's `driver_name()` method.
 1. Add corresponding configuration block(s) in `etc/base.yaml` and potentially in the `etc/platform/<system>.yaml` configs.
 1. Add new workflow configuration in `etc/workflow/<engine>.yaml`.
 1. Update this documentation.

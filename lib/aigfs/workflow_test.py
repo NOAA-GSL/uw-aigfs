@@ -10,7 +10,6 @@ from pydantic import ValidationError
 from pytest import fixture, mark, raises
 
 from aigfs import workflow
-from aigfs.drivers.inference import AIGFSInference
 from aigfs.strings import STR
 
 TASKNAME = "20251001 18Z 012 post"
@@ -234,7 +233,6 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, prefix, ready, tmp_path
     with (
         patch.object(workflow, "AIGFSInference", cls),
         patch.object(workflow, "_config", return_value=c) as _config,
-        patch.object(workflow, "_schema", return_value=Path("/s")),
         patch.object(workflow, "prep", Mock(wraps=lambda _: atask(ready))) as prep,
         patch.object(workflow, "run_shell_cmd") as run_shell_cmd,
     ):
@@ -244,9 +242,7 @@ def test_workflow_forecast(atask, cfg, cycle, gribfiles, prefix, ready, tmp_path
             ]
         node = workflow.forecast(cycle)
     assert node.taskname == "20251001 18Z forecast"
-    cls.assert_called_once_with(
-        cycle=cycle, config=cfg, key_path=[STR.forecast], schema_file=Path("/s")
-    )
+    cls.assert_called_once_with(cycle=cycle, config=cfg, key_path=[STR.forecast])
     prep.assert_called_once_with(cycle)
     assert node.ready is ready
     if ready:
@@ -267,7 +263,6 @@ def test_workflow_post(atask, cfg, cycle, gribfiles, ready, tmp_path):
     cls = driver({STR.forecast: gribfiles}, tmp_path / "run")
     with (
         patch.object(workflow, "AIGFSInference", cls),
-        patch.object(workflow, "_schema", return_value=Path("/s")),
         patch.object(
             workflow, "_post_one_leadtime", Mock(wraps=lambda *_: atask(ready=ready))
         ) as _post_one_leadtime,
@@ -275,9 +270,7 @@ def test_workflow_post(atask, cfg, cycle, gribfiles, ready, tmp_path):
         node = workflow.post(cycle)
     assert node.ready is ready
     assert node.taskname == "20251001 18Z post"
-    cls.assert_called_once_with(
-        cycle=cycle, config=cfg, key_path=[STR.forecast], schema_file=Path("/s")
-    )
+    cls.assert_called_once_with(cycle=cycle, config=cfg, key_path=[STR.forecast])
     for pres, sfc in zip(gribfiles[::2], gribfiles[1::2], strict=True):
         _post_one_leadtime.assert_any_call(cycle, pres, sfc)
 
@@ -288,7 +281,6 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
     cls = driver({"ics": ics}, tmp_path / "run")
     with (
         patch.object(workflow, "AIGFSICs", cls),
-        patch.object(workflow, "_schema", return_value=Path("/s")),
         patch.object(workflow, "_timegate", Mock(wraps=lambda _: atask(ready))) as _timegate,
         patch.object(workflow, "run_shell_cmd") as run_shell_cmd,
     ):
@@ -296,9 +288,7 @@ def test_workflow_prep(atask, cfg, cycle, ready, tmp_path):
             run_shell_cmd.side_effect = lambda *_, **_k: ics.touch()
         node = workflow.prep(cycle)
     assert node.taskname == "20251001 18Z prep"
-    cls.assert_called_once_with(
-        cycle=cycle, config=cfg, key_path=[STR.prep], schema_file=Path("/s")
-    )
+    cls.assert_called_once_with(cycle=cycle, config=cfg, key_path=[STR.prep])
     _timegate.assert_called_once_with(cycle)
     assert node.ready is ready
     if ready:
@@ -379,7 +369,6 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
     cls = driver(output, tmp_path / "run")
     with (
         patch.object(workflow, "AIGFSPost", cls),
-        patch.object(workflow, "_schema", return_value=Path("/s")),
         patch.object(
             workflow, "_forecast_one_leadtime", Mock(wraps=lambda *_: atask(ready))
         ) as _forecast_one_leadtime,
@@ -396,7 +385,6 @@ def test_workflow__post_one_leadtime(atask, cfg, cycle, deliver, gribfiles, read
         leadtime=timedelta(hours=12),
         config=cfg,
         key_path=[STR.post],
-        schema_file=Path("/s"),
     )
     if ready:
         run_shell_cmd.assert_called_once_with(
@@ -561,12 +549,6 @@ def test_workflow__passthrough_logger(capsys):
     logger.info("some log message")
     assert capsys.readouterr().err.strip() == "some log message"
     assert workflow._passthrough_logger() is logger  # logging module reuses loggers
-
-
-def test_workflow__schema():
-    path = workflow._schema(AIGFSInference)
-    assert path.name == "inference.jsonschema"
-    assert path.is_file()
 
 
 def test_workflow__utc():

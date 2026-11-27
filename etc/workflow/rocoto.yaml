@@ -31,7 +31,7 @@ rocoto:
           value: prep-@Y@m@d-@H
       join:
         cyclestr:
-          value: '&LOGDIR;/{{ jobname.cyclestr.value }}.log'
+          value: '&LOGDIR;/prep-@Y@m@d-@H.log'
       memory: '{{ prep.aigfs_ics.execution.batchargs.memory }}'
       walltime: '{{ prep.aigfs_ics.execution.batchargs.walltime }}'
     task_forecast:
@@ -52,7 +52,7 @@ rocoto:
           value: forecast-@Y@m@d-@H
       join:
         cyclestr:
-          value: '&LOGDIR;/{{ jobname.cyclestr.value }}.log'
+          value: '&LOGDIR;/forecast-@Y@m@d-@H.log'
       nodes: '{{ forecast.aigfs_inference.execution.batchargs.nodes }}:ppn={{ forecast.aigfs_inference.execution.batchargs.tasks_per_node }}'
       memory: '{{ forecast.aigfs_inference.execution.batchargs.memory }}'
       walltime: '{{ forecast.aigfs_inference.execution.batchargs.walltime }}'
@@ -84,7 +84,7 @@ rocoto:
             value: post-@Y@m@d-@H-#fhr#
         join:
           cyclestr:
-            value: '&LOGDIR;/{{ jobname.cyclestr.value }}.log'
+            value: '&LOGDIR;/post-@Y@m@d-@H-#fhr#.log'
         envars:
           FHR: '#fhr#'
         memory: '{{ post.aigfs_post.execution.batchargs.memory }}'

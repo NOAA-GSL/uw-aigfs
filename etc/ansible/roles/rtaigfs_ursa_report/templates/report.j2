@@ -1,7 +1,7 @@
 ;; -*- clj -*-
 
-;; AIGFS production report: one HTML email with a column per deployed stream (Rocoto,
-;; ecFlow), counting the forecast .idx files in each stream's <root>/YYYYMMDDHH/forecast/.
+;; AIGFS production report: one HTML email with a column per deployed stream (ecFlow,
+;; Rocoto), counting the forecast .idx files in each stream's <root>/YYYYMMDDHH/forecast/.
 
 (def RECIPIENTS {{ (
   'anna.smoot@noaa.gov christina.holt@noaa.gov emily.l.carpenter@noaa.gov paul.madden@noaa.gov'
@@ -19,8 +19,8 @@
 ;; deployment still produces a valid one-column report.
 
 (def STREAMS
-  (->> [{:name "Rocoto" :app "app-rocoto" :cycles "cycles"}
-        {:name "ecFlow" :app "app-ecflow" :cycles "run"}]
+  (->> [{:name "ecFlow" :app "app-ecflow" :cycles "run"}
+        {:name "Rocoto" :app "app-rocoto" :cycles "cycles"}]
        (filter (fn [s] (fs/exists? (fs/path BASE (:app s)))))
        (map (fn [s] (assoc s :root (str (fs/path BASE (:app s) (:cycles s))))))))
 

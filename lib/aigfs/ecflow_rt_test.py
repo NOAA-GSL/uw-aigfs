@@ -35,7 +35,6 @@ def test_ecflow_rt_gated_cycles_withholds_until_cutoff(utc):
     now = utc(2026, 9, 13, 7, 30)
     cycles = ecflow_rt.deduce_cycles(now, timedelta(hours=6), 4)
     gated = ecflow_rt.gated_cycles(cycles, now)
-    # 06Z cutoff is 09:45 (> now) so it is withheld; 00Z cutoff is 03:45 (<= now) so it is included.
     assert utc(2026, 9, 13, 6) not in gated
     assert gated[0] == utc(2026, 9, 13, 0)
     assert len(gated) == 3
@@ -209,7 +208,20 @@ def test_ecflow_rt_wait_until_running_retries_then_succeeds():
     client.ping.side_effect = [RuntimeError("not up"), None]
     with patch("ecflow.Client", return_value=client), patch.object(ecflow_rt, "sleep") as sleep:
         ecflow_rt.wait_until_running("host", 20, attempts=5, delay=0.0)
+    assert client.enable_ssl.call_count == 2
     assert client.ping.call_count == 2
+    sleep.assert_called_once_with(0.0)
+    client.restart_server.assert_called_once()
+
+
+def test_ecflow_rt_wait_until_running_retries_until_certs_exist():
+    # enable_ssl() raises until the newly started server has created its certificates.
+    client = Mock()
+    client.enable_ssl.side_effect = [RuntimeError("no certificate"), None]
+    with patch("ecflow.Client", return_value=client), patch.object(ecflow_rt, "sleep") as sleep:
+        ecflow_rt.wait_until_running("host", 20, attempts=5, delay=0.0)
+    assert client.enable_ssl.call_count == 2
+    client.ping.assert_called_once()
     sleep.assert_called_once_with(0.0)
     client.restart_server.assert_called_once()
 
