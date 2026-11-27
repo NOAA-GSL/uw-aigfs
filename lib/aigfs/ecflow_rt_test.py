@@ -35,7 +35,6 @@ def test_ecflow_rt_gated_cycles_withholds_until_cutoff(utc):
     now = utc(2026, 9, 13, 7, 30)
     cycles = ecflow_rt.deduce_cycles(now, timedelta(hours=6), 4)
     gated = ecflow_rt.gated_cycles(cycles, now)
-    # 06Z cutoff is 09:45 (> now) so it is withheld; 00Z cutoff is 03:45 (<= now) so it is included.
     assert utc(2026, 9, 13, 6) not in gated
     assert gated[0] == utc(2026, 9, 13, 0)
     assert len(gated) == 3
