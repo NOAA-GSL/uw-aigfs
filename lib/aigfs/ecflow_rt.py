@@ -39,10 +39,9 @@ CYCLE_FMT = "%Y%m%dT%H%M%S"
 WORKFLOW = "ecflow-realtime"
 RTCYCLES_ENV = "RTCYCLES"
 
-# GFS data-availability cutoff: A cycle's inputs are not expected until this long after the cycle
-# start time.
+# Post cycle-start time to begin.
 
-DATA_OFFSET = timedelta(hours=3, minutes=45)
+DATA_OFFSET = timedelta(hours=4, minutes=0)
 
 DEFAULT_ACTIVE_CYCLES = 4
 DEFAULT_WINDOW_CYCLES = 12
