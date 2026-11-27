@@ -6,15 +6,12 @@ on:
   workflow_dispatch:
 jobs:
   docs:
-    name: Build and Publish API Docs
+    name: Build API Docs
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
+    outputs:
+      artifact_name: github-pages-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v6
       - name: Prepare Environment
@@ -25,8 +22,22 @@ jobs:
         if: github.event.repository.has_pages
         uses: actions/upload-pages-artifact@v3
         with:
+          name: github-pages-${{ github.run_attempt }}
           path: docs/api/
+  deploy:
+    name: Publish API Docs
+    if: github.event.repository.has_pages
+    needs: docs
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - name: Deploy to GitHub Pages
-        if: github.event.repository.has_pages
         id: deployment
         uses: actions/deploy-pages@v4
+        with:
+          artifact_name: ${{ needs.docs.outputs.artifact_name }}
