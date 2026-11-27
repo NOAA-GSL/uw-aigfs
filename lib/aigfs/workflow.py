@@ -1,5 +1,4 @@
 import fcntl
-import inspect
 import logging
 import os
 import re
@@ -119,7 +118,7 @@ def forecast(cycle_: CycleT) -> Iterator:
     yield taskname
     cls = AIGFSInference
     key_path: list = [STR.forecast]
-    driver = cls(cycle=dt, config=CONFIG, key_path=key_path, schema_file=_schema(cls))
+    driver = cls(cycle=dt, config=CONFIG, key_path=key_path)
     assets = [Asset(path, path.is_file) for path in driver.output[STR.forecast]]
     yield assets
     yield prep(dt)
@@ -141,7 +140,7 @@ def post(cycle_: CycleT) -> Iterator:
     dt, taskname = _dt_taskname(cycle_, STR.post)
     yield taskname
     cls = AIGFSInference
-    inference = cls(cycle=dt, config=CONFIG, key_path=[STR.forecast], schema_file=_schema(cls))
+    inference = cls(cycle=dt, config=CONFIG, key_path=[STR.forecast])
     paths = iter(sorted(sorted(inference.output[STR.forecast]), key=_fff))
     yield [_post_one_leadtime(dt, pres, sfc) for pres, sfc in zip(paths, paths, strict=False)]
 
@@ -155,7 +154,7 @@ def prep(cycle_: CycleT) -> Iterator:
     yield taskname
     cls = AIGFSICs
     key_path: list = [STR.prep]
-    driver = cls(cycle=dt, config=CONFIG, key_path=key_path, schema_file=_schema(cls))
+    driver = cls(cycle=dt, config=CONFIG, key_path=key_path)
     path = driver.output[STR.ics]
     assets = [Asset(path, path.is_file)]
     yield assets
@@ -215,9 +214,7 @@ def _post_one_leadtime(dt: datetime, pres: Path, sfc: Path) -> Iterator:
     cls = AIGFSPost
     key_path: list = [STR.post]
     leadtime = timedelta(hours=int(fff))
-    driver = cls(
-        cycle=dt, leadtime=leadtime, config=CONFIG, key_path=key_path, schema_file=_schema(cls)
-    )
+    driver = cls(cycle=dt, leadtime=leadtime, config=CONFIG, key_path=key_path)
     output = driver.output
     paths = output.get(STR.delivered, output[STR.idx])
     assets = [Asset(path, path.is_file) for path in paths]
@@ -336,11 +333,6 @@ def _passthrough_logger() -> logging.Logger:
         logger.addHandler(handler)
     handler.stream = sys.stderr
     return logger
-
-
-def _schema(cls: type) -> Path:
-    path = Path(inspect.getfile(cls))
-    return path.with_name("aigfs_%s.jsonschema" % path.stem)
 
 
 def _utc(dt: datetime) -> datetime:
